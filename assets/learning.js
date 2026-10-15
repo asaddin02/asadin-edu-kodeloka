@@ -158,4 +158,10 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize);
   else initialize();
+  // Every course draws its first lesson on DOMContentLoaded, and app.js registered that listener before this
+  // deferred script, so the page is shown in the frame after the lesson exists (learning.css keeps it
+  // invisible until then, so the static defaults are never painted and then replaced).
+  const ready = () => requestAnimationFrame(() => document.body.classList.add('lesson-ready'));
+  if (document.readyState === 'complete') ready();
+  else document.addEventListener('DOMContentLoaded', ready);
 })();

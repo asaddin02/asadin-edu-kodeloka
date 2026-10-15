@@ -271,3 +271,8 @@ button, .btn, .tab-btn, .category-pill, .cat-chip {
   .lesson-articles-link { width: 42px; padding: 8px 0; justify-content: center; font-size: 1rem; }
   .lesson-articles-text { display: none; }
 }
+
+/* Layout stability: invisible until learning.js marks the first lesson as drawn (see there); shown after 3 s
+   regardless, so a failed script never leaves a blank page. */
+body:not(.lesson-ready) > * { visibility: hidden; animation: lesson-ready-fallback 0s linear 3s forwards; }
+@keyframes lesson-ready-fallback { to { visibility: visible; } }
