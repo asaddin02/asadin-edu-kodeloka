@@ -1,0 +1,120 @@
+[
+  {
+    "slug": "golang",
+    "name": "Golang",
+    "title": "Belajar Golang Bahasa Indonesia: Dasar, Concurrency, Web, gRPC, Docker",
+    "description": "Kelas Golang lengkap berbahasa Indonesia: 267 bab dari sintaks dasar, goroutine dan channel, web server net/http, database, gRPC, observabilitas, Docker, sampai ujian akhir. Dengan editor praktik dan kuis.",
+    "language": "Go"
+  },
+  {
+    "slug": "fastapi",
+    "name": "FastAPI",
+    "title": "Belajar FastAPI Bahasa Indonesia: Pydantic v2, SQLAlchemy, JWT, Pytest",
+    "description": "Kelas FastAPI berbahasa Indonesia: 24 modul tentang path dan query parameter, Pydantic v2, SQLAlchemy dan Alembic, dependency injection, autentikasi JWT, WebSocket, pengujian, dan deployment Docker.",
+    "language": "Python"
+  },
+  {
+    "slug": "next",
+    "name": "Next.js",
+    "title": "Belajar Next.js 16 Bahasa Indonesia: App Router, Server Component, Caching",
+    "description": "Kelas Next.js 16 berbahasa Indonesia: 23 modul tentang App Router, Server dan Client Component, Server Action, caching dan revalidasi, use cache, Partial Prerendering, keamanan, dan deployment.",
+    "language": "TypeScript"
+  },
+  {
+    "slug": "microservices",
+    "name": "Microservices",
+    "title": "Belajar Arsitektur Microservices Bahasa Indonesia: Saga, CQRS, API Gateway",
+    "description": "Kelas arsitektur microservices berbahasa Indonesia: 24 modul tentang database per service, messaging, orkestrasi dan koreografi, Saga, API Gateway, CQRS, resilience, service discovery, dan contract testing."
+  },
+  {
+    "slug": "postgresql",
+    "name": "PostgreSQL",
+    "title": "Belajar PostgreSQL Bahasa Indonesia: Indeks, EXPLAIN, Transaksi, VACUUM, Partisi, Replikasi",
+    "description": "Kelas PostgreSQL berbahasa Indonesia: 12 modul tentang arsitektur dan WAL, tipe data, indeks, EXPLAIN ANALYZE, transaksi dan isolasi, VACUUM, partisi, replikasi dan PITR, Row Level Security, migrasi tanpa downtime, dan window function.",
+    "language": "SQL"
+  },
+  {
+    "slug": "redis",
+    "name": "Redis",
+    "title": "Belajar Redis Bahasa Indonesia: Struktur Data, Caching, Streams, Cluster",
+    "description": "Kelas Redis berbahasa Indonesia: 21 modul tentang string, hash, list, set, sorted set, TTL, transaksi, Pub/Sub, Streams, Lua, replikasi, Sentinel, Cluster, eviction, persistensi, dan ACL. Dengan simulator CLI."
+  },
+  {
+    "slug": "kafka",
+    "name": "Apache Kafka",
+    "title": "Belajar Apache Kafka Bahasa Indonesia: Partisi, Consumer Group, KRaft, Exactly-Once",
+    "description": "Kelas Apache Kafka berbahasa Indonesia: 13 modul tentang log terdistribusi, partisi dan urutan, consumer group dan rebalance, KRaft, transaksi exactly-once, Schema Registry, Connect, Streams, dan pola outbox."
+  },
+  {
+    "slug": "rabbitmq",
+    "name": "RabbitMQ",
+    "title": "Belajar RabbitMQ Bahasa Indonesia: AMQP, Exchange, Quorum Queue, DLX",
+    "description": "Kelas RabbitMQ berbahasa Indonesia: 15 modul tentang model AMQP, tipe exchange, acknowledgement dan prefetch, publisher confirm, dead letter exchange dan retry, quorum queue dan stream, idempotensi, klaster, keamanan, dan monitoring."
+  },
+  {
+    "slug": "nginx",
+    "name": "Nginx",
+    "title": "Belajar Nginx Bahasa Indonesia: Reverse Proxy, Upstream, TLS, Rate Limit, Cache",
+    "description": "Kelas Nginx berbahasa Indonesia: 8 modul tentang model proses dan konteks konfigurasi, reverse proxy, upstream, TLS, pembatasan laju, caching, dan diagnosis masalah."
+  },
+  {
+    "slug": "docker",
+    "name": "Docker",
+    "title": "Belajar Docker Bahasa Indonesia: Image, Dockerfile, Compose, BuildKit, Keamanan",
+    "description": "Kelas Docker berbahasa Indonesia: 21 modul tentang kontainer, perintah dasar, jaringan, volume, Docker Compose, Dockerfile, layer dan cache, multi-stage build, BuildKit, registry, dan keamanan kontainer."
+  },
+  {
+    "slug": "kubernetes",
+    "name": "Kubernetes",
+    "title": "Belajar Kubernetes Bahasa Indonesia: Pod, Deployment, Service, Ingress, HPA",
+    "description": "Kelas Kubernetes berbahasa Indonesia: 14 modul tentang Pod dan Deployment, Service dan DNS, Ingress dan Gateway API, ConfigMap dan Secret, resource dan QoS, StatefulSet, RBAC, autoscaling, penjadwalan, diagnosis masalah, Helm, dan GitOps."
+  },
+  {
+    "slug": "kong",
+    "name": "Kong API Gateway",
+    "title": "Belajar Kong API Gateway Bahasa Indonesia: Service, Route, Plugin, decK",
+    "description": "Kelas Kong API Gateway berbahasa Indonesia: 12 modul tentang service, route dan upstream, plugin, autentikasi, rate limiting, decK, Kong Ingress Controller, observabilitas, dan operasi produksi."
+  },
+  {
+    "slug": "git-ci-cd",
+    "name": "Git & CI/CD",
+    "title": "Belajar Git dan CI/CD Bahasa Indonesia: Branching, Rebase, GitHub Actions, GitOps",
+    "description": "Kelas Git dan CI/CD berbahasa Indonesia: 20 modul tentang model objek Git, branching dan merge, konflik, rebase, strategi percabangan, GitHub Actions, GitLab CI, Jenkins, DevSecOps, dan GitOps dengan Argo CD."
+  },
+  {
+    "slug": "linux",
+    "name": "Linux & Shell",
+    "title": "Belajar Linux dan Shell Bahasa Indonesia: Filesystem, Izin, Proses, systemd, Bash, SSH",
+    "description": "Kelas Linux dan shell berbahasa Indonesia: 8 modul tentang filesystem dan path, izin dan sudo, proses dan sinyal, systemd, pipe dan perkakas teks, skrip Bash yang aman, jaringan dan DNS, serta SSH."
+  },
+  {
+    "slug": "keamanan",
+    "name": "Keamanan Aplikasi",
+    "title": "Belajar Keamanan Aplikasi Web Bahasa Indonesia: SQL Injection, XSS, CSRF, SSRF",
+    "description": "Kelas keamanan aplikasi berbahasa Indonesia: 8 modul tentang model ancaman, SQL injection, XSS, autentikasi dan sesi, otorisasi, rahasia dan enkripsi, keamanan rantai pasok, serta keamanan API, CSRF, dan SSRF."
+  },
+  {
+    "slug": "opentelemetry",
+    "name": "OpenTelemetry",
+    "title": "Belajar OpenTelemetry Bahasa Indonesia: Trace, Metrik, Log, Collector, Sampling",
+    "description": "Kelas OpenTelemetry berbahasa Indonesia: 8 modul tentang tiga sinyal telemetri, instrumentasi otomatis dan manual, Collector, sampling, metrik, perambatan konteks, penerapan di Kubernetes, dan menyelidiki masalah."
+  },
+  {
+    "slug": "prometheus",
+    "name": "Prometheus",
+    "title": "Belajar Prometheus Bahasa Indonesia: PromQL, Exporter, Alerting, Federation",
+    "description": "Kelas Prometheus berbahasa Indonesia: 15 modul tentang model metrik, instrumentasi, exporter, PromQL, rate dan agregasi, service discovery, recording rule, alerting dan Alertmanager, penyimpanan dan federation, serta kardinalitas."
+  },
+  {
+    "slug": "grafana",
+    "name": "Grafana",
+    "title": "Belajar Grafana Bahasa Indonesia: Panel, Variabel, Transformasi, Alerting",
+    "description": "Kelas Grafana berbahasa Indonesia: 15 modul tentang data source, panel dan visualisasi, variabel, transformasi data, alerting terpadu, korelasi Loki dan Tempo, izin, performa, dan dashboard sebagai kode."
+  },
+  {
+    "slug": "k6",
+    "name": "k6",
+    "title": "Belajar k6 Load Testing Bahasa Indonesia: Skenario, Threshold, Metrik, CI/CD",
+    "description": "Kelas uji beban k6 berbahasa Indonesia: 15 modul tentang skrip dan siklus hidup, check dan threshold, data uji, metrik kustom, executor dan skenario, WebSocket dan gRPC, integrasi CI/CD, pengujian terdistribusi, dan analisis bottleneck."
+  }
+]

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Golang Bahasa Indonesia: Dasar, Concurrency, Web, gRPC, Docker | Kodeloka</title>
+    <meta name="description" content="Kelas Golang lengkap berbahasa Indonesia: 267 bab dari sintaks dasar, goroutine dan channel, web server net/http, database, gRPC, observabilitas, Docker, sampai ujian akhir. Dengan editor praktik dan kuis.">
+    <link rel="icon" href="../assets/brand/kodeloka-mark.svg" type="image/svg+xml">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CodeMirror Editor — berkas lokal agar tetap berfungsi tanpa internet -->
+    <link rel="stylesheet" href="vendor/codemirror/codemirror.min.css">
+    <link rel="stylesheet" href="vendor/codemirror/dracula.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/learning.css">
+<script src="../assets/learning.js" defer></script>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <a class="course-home" href="../" aria-label="Kembali ke katalog Kodeloka">
+            <img src="../assets/brand/kodeloka-mark.svg" alt="">
+            <span><b>Kodeloka</b><small>Katalog kelas</small></span>
+        </a>
+        <div class="brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M1.811 10.231c-.044.278-.067.562-.067.851 0 3.738 2.871 6.84 6.55 7.189 1.159.11 2.338-.071 3.398-.519 1.059-.448 1.97-1.171 2.628-2.086l-2.036-1.579c-.43.597-1.025 1.07-1.716 1.363-.691.293-1.46.411-2.217.34-2.42-.23-4.307-2.268-4.307-4.708 0-.19.015-.375.044-.557l-2.277-.334zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm8 10c0 4.411-3.589 8-8 8s-8-3.589-8-8 3.589-8 8-8 8 3.589 8 8z"/>
+                    <path d="M12.75 6h-1.5v6.25l5.25 3.15.75-1.23-4.5-2.67z"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>Kelas Golang Lengkap</h1>
+                <span id="chapterCountBadge">267 Bab · Deployment · Docker · Ujian Akhir</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Cari materi: goroutine, docker, slice, http, REST API...">
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="progress-widget" title="Progres Belajar Anda — klik chapter untuk belajar">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <span class="progress-text" id="progressText">0 / 0 Selesai (0%)</span>
+            </div>
+            <button class="btn btn-secondary" id="resetProgressBtn" onclick="resetAllProgress()" style="padding: 6px 12px; font-size: 0.8rem;">
+                🔄 Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>Daftar Materi</span>
+                <span id="chapterCountSidebar" class="badge">Loading...</span>
+            </div>
+
+            <!-- Final Exam Quick Launch Button -->
+            <button class="sidebar-exam-btn" onclick="openFinalExam()" id="sidebarExamBtn">
+                🏆 Mulai Ujian Akhir
+            </button>
+
+            <div id="chapterListContainer">
+                <!-- Dynamic Chapter List Rendered by app.js -->
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Chapter Header Banner -->
+            <div class="chapter-header" id="chapterHeader">
+                <div class="chapter-meta">
+                    <span class="badge" id="chapterCategoryBadge">Modul 1</span>
+                    <div class="video-timestamp" id="videoTimestamp" hidden>
+                        <span>🎬 Timestamp:</span>
+                        <strong id="timestampText">00:00:00</strong>
+                    </div>
+                </div>
+                <h2 id="chapterTitle">01. Pengenalan Golang</h2>
+                <p class="chapter-desc" id="chapterDesc">Penjelasan komprehensif mengenai sejarah, tujuan pembuatan, serta keunggulan bahasa pemrograman Go.</p>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="theory">
+                    <span>📖</span> Teori &amp; Panduan
+                </button>
+                <button class="tab-btn" data-tab="playground">
+                    <span>💻</span> Live Playground
+                </button>
+                <button class="tab-btn" data-tab="quiz">
+                    <span>🎯</span> Kuis Pemahaman
+                </button>
+                <button class="tab-btn" data-tab="hardquiz">
+                    <span>🏆</span> Tes Sulit
+                </button>
+            </div>
+
+            <!-- Tab 1: Theory Content -->
+            <div class="tab-content active" id="tab-theory">
+                <div class="theory-container" id="theoryBody">
+                    <!-- Technical Content Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Code Playground -->
+            <div class="tab-content" id="tab-playground">
+                <div class="playground-container">
+                    <div class="playground-toolbar">
+                        <div class="engine-selector">
+                            <label for="engineSelect">⚡ Mode:</label>
+                            <select id="engineSelect" class="engine-select">
+                                <option value="playground">Go Playground API (Online)</option>
+                                <option value="js">JS Evaluator (Offline Instant)</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" id="resetCodeBtn">↺ Reset</button>
+                            <button class="btn btn-secondary" id="copyCodeBtn">📋 Salin</button>
+                            <button class="btn btn-primary" id="runCodeBtn">
+                                <span>▶</span> Jalankan <span class="kbd-hint">Ctrl+↵</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="editor-wrapper">
+                        <textarea id="codeEditor"></textarea>
+                    </div>
+
+                    <div class="console-container">
+                        <div class="console-header">
+                            <span>Output Konsol</span>
+                            <div class="console-status" id="consoleStatus">
+                                <span>🟢 Ready</span>
+                            </div>
+                        </div>
+                        <pre class="console-output" id="consoleOutput">// Tekan 'Jalankan Kode' untuk mengeksekusi program Go di atas.</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Quiz -->
+            <div class="tab-content" id="tab-quiz">
+                <div class="quiz-container" id="quizBody">
+                    <!-- Quiz Content Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Tab 4: Hard Quiz -->
+            <div class="tab-content" id="tab-hardquiz">
+                <div class="hard-quiz-container" id="hardQuizBody">
+                    <!-- Hard Quiz Content Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="chapter-nav-bottom">
+                <button class="btn btn-secondary" id="prevChapterBtn">← Bab Sebelumnya</button>
+                <button class="btn btn-primary" id="markCompletedBtn">✓ Tandai Selesai</button>
+                <button class="btn btn-secondary" id="nextChapterBtn">Bab Selanjutnya →</button>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- FINAL EXAM MODAL OVERLAY                   -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="final-exam-overlay" id="finalExamOverlay">
+        <div class="final-exam-modal" id="finalExamModal">
+
+            <!-- Exam Header -->
+            <div class="final-exam-modal-header">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div>
+                        <h2>🏆 Ujian Akhir Golang</h2>
+                        <p>Uji seluruh pemahaman Anda dari semua domain pembelajaran Go</p>
+                        <div class="exam-meta-row">
+                            <div class="exam-meta-item">📝 20 Soal Komprehensif</div>
+                            <div class="exam-meta-item">⏱ 30 Menit</div>
+                            <div class="exam-meta-item">🎯 Lulus ≥ 70%</div>
+                        </div>
+                    </div>
+                    <div class="exam-timer" id="examTimer">30:00</div>
+                </div>
+            </div>
+
+            <!-- Exam Question Body -->
+            <div class="final-exam-body" id="finalExamBody">
+                <!-- Rendered by JS -->
+            </div>
+
+            <!-- Exam Result Screen (shown after submit) -->
+            <div class="exam-result-screen" id="examResultScreen">
+                <!-- Rendered by JS -->
+            </div>
+
+            <!-- Exam Footer -->
+            <div class="final-exam-footer" id="finalExamFooter">
+                <button class="btn-close-exam" onclick="closeFinalExam()">✕ Tutup Ujian</button>
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <span id="examAnsweredCount" style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">0 / 20 dijawab</span>
+                    <button class="btn-submit-exam" id="submitExamBtn" onclick="submitFinalExam()">
+                        ✅ Selesai & Lihat Nilai
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CodeMirror Core & Go Mode -->
+    <script src="vendor/codemirror/codemirror.min.js"></script>
+    <script src="vendor/codemirror/go.min.js"></script>
+
+    <!-- Custom Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: node tests/site.test.mjs
+      - run: node tests/browser.mjs
+      # data/modules.json feeds the article pages; it must match what the courses show.
+      - name: Article data matches the courses
+        run: |
+          node scripts/extract-modules.mjs
+          git diff --exit-code -- data/ || { echo "Run npm run extract and commit data/."; exit 1; }

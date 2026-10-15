@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Arsitektur Microservices Bahasa Indonesia: Saga, CQRS, API Gateway | Kodeloka</title>
+    <meta name="description" content="Kelas arsitektur microservices berbahasa Indonesia: 24 modul tentang database per service, messaging, orkestrasi dan koreografi, Saga, API Gateway, CQRS, resilience, service discovery, dan contract testing.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+<link rel="icon" href="../assets/brand/kodeloka-mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/learning.css">
+<script src="../assets/learning.js" defer></script>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <a class="brand-home" href="../" aria-label="Kembali ke beranda Kodeloka">
+            <img src="../assets/brand/kodeloka-mark.svg" alt="" aria-hidden="true">
+            <span class="brand-home-copy"><strong>Kodeloka</strong><small>← Kembali ke beranda</small></span>
+        </a>
+        <div class="brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="8" height="8" rx="2"/>
+                    <rect x="14" y="2" width="8" height="8" rx="2"/>
+                    <rect x="2" y="14" width="8" height="8" rx="2"/>
+                    <rect x="14" y="14" width="8" height="8" rx="2"/>
+                    <path d="M6 10v4M18 10v4M10 6h4M10 18h4"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>Kelas Arsitektur Microservices</h1>
+                <span id="chapterCountBadge">24 Modul · Video Programmer Zaman Now · Saga · CQRS</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Cari materi: API Gateway, Saga Pattern, CQRS, Service Registry, JWT, BFF, Kafka...">
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="progress-widget" title="Kemajuan Belajar Microservices Anda">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <span class="progress-text" id="progressText">0 / 19 Selesai (0%)</span>
+            </div>
+            <button class="btn btn-secondary" id="resetProgressBtn" onclick="resetAllProgress()">
+                🔄 Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container Layout -->
+    <div class="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>📚 Daftar Modul Playlist</span>
+                <span id="chapterCountSidebar" class="badge badge-indigo">24 Modul</span>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="category-filter-container" id="categoryFilterContainer">
+                <button class="category-pill active" onclick="filterCategory('ALL')">Semua</button>
+                <button class="category-pill" onclick="filterCategory('Konsep Dasar')">Konsep</button>
+                <button class="category-pill" onclick="filterCategory('Arsitektur')">Arsitektur</button>
+                <button class="category-pill" onclick="filterCategory('Data Pattern')">Data Pattern</button>
+                <button class="category-pill" onclick="filterCategory('Komunikasi')">Komunikasi</button>
+                <button class="category-pill" onclick="filterCategory('Orkestrasi')">Saga &amp; Event</button>
+                <button class="category-pill" onclick="filterCategory('Gateway & Routing')">Gateway &amp; BFF</button>
+                <button class="category-pill" onclick="filterCategory('Keamanan')">Keamanan</button>
+                <button class="category-pill" onclick="filterCategory('Advanced Pattern')">CQRS</button>
+                <button class="category-pill" onclick="filterCategory('Keandalan')">Keandalan</button>
+                <button class="category-pill" onclick="filterCategory('Infrastructure')">Discovery &amp; Config</button>
+            </div>
+
+            <!-- Final Exam Button -->
+            <button class="sidebar-exam-btn" onclick="openFinalExam()">
+                🏆 Mulai Ujian Sertifikasi Microservices Architect
+            </button>
+
+            <!-- Chapters List -->
+            <div id="chapterListContainer">
+                <!-- Dynamically rendered by app.js -->
+            </div>
+        </aside>
+
+        <!-- Main Content Section -->
+        <main class="main-content">
+
+            <!-- Chapter Header Banner -->
+            <div class="chapter-header" id="chapterHeader">
+                <div class="chapter-meta">
+                    <span class="badge badge-indigo" id="chapterCategoryBadge">Konsep Dasar</span>
+                    <div class="video-timestamp" id="videoTimestamp" hidden>
+                        <span>🎬 Video ID:</span>
+                        <strong id="timestampText">PhCrso3J11k</strong>
+                    </div>
+                </div>
+                <h2 id="chapterTitle">01. Belajar Microservices - Intro</h2>
+                <p class="chapter-desc" id="chapterDesc">Pengenalan arsitektur Microservices, sejarah evolusi dari Monolith, alasan adopsi microservices di perusahaan tech, dan tantangan umum yang dihadapi.</p>
+
+                <div class="chapter-actions">
+                    <button class="btn btn-secondary" id="bookmarkBtn" onclick="toggleBookmark()">
+                        ⭐ Bookmark
+                    </button>
+                    <button class="btn btn-primary" id="toggleCompletedBtn" onclick="toggleCurrentCompleted()">
+                        ✅ Tandai Selesai
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="theory" onclick="switchTab('theory')">
+                    📖 Teori &amp; Panduan
+                </button>
+                <button class="tab-btn" data-tab="video" onclick="switchTab('video')">
+                    🎥 Video Tutorial
+                </button>
+                <button class="tab-btn" data-tab="playground" onclick="switchTab('playground')">
+                    💻 Interactive Architecture Simulator
+                </button>
+                <button class="tab-btn" data-tab="quiz" onclick="switchTab('quiz')">
+                    🧪 Quiz &amp; Testing
+                </button>
+                <button class="tab-btn" data-tab="notes" onclick="switchTab('notes')">
+                    📝 Catatan Saya
+                </button>
+            </div>
+
+            <!-- Tab 1: Teori & Panduan -->
+            <div class="tab-panel active" id="tab-theory">
+                <div class="article-content" id="articleBody">
+                    <!-- Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Video Tutorial -->
+            <div class="tab-panel" id="tab-video">
+                <div class="video-player-container">
+                    <iframe id="youtubeIframe" src="" allowfullscreen title="YouTube Video Player"></iframe>
+                </div>
+                <div class="video-meta-box">
+                    <h3 id="videoTitleMeta">Judul Video</h3>
+                    <p id="videoDescMeta" style="color: var(--text-secondary); margin-top: 8px;">Deskripsi video tutorial Microservices Programmer Zaman Now.</p>
+                    <a id="videoDirectLink" href="#" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; margin-top: 12px;">
+                        🔗 Buka Video di YouTube
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tab 3: Interactive Architecture & CLI Simulator -->
+            <div class="tab-panel" id="tab-playground">
+                <div class="playground-container">
+                    <div class="playground-card">
+                        <div class="playground-title">
+                            <span>⚡ Quick Architecture Snippets</span>
+                            <button class="btn btn-secondary" onclick="loadSampleCommands()" style="font-size: 0.75rem; padding: 4px 8px;">Load Example Commands</button>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Klik tombol di bawah untuk menyalin &amp; mengeksekusi perintah simulasi jaringan microservices:</p>
+                        <div class="snippet-buttons-grid" id="snippetButtonsGrid">
+                            <!-- Populated dynamically based on current active chapter -->
+                        </div>
+                    </div>
+
+                    <div class="playground-card">
+                        <div class="playground-title">
+                            <span>🖥️ Interactive Microservices Router &amp; CLI Simulator Engine</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" onclick="clearTerminalOutput()" style="font-size: 0.75rem; padding: 4px 8px;">Clear Screen</button>
+                            </div>
+                        </div>
+                        
+                        <div class="terminal-window">
+                            <div class="terminal-body" id="terminalOutput">
+                                <div class="term-line term-info">Welcome to Microservices Distributed Simulator v3.1.0!</div>
+                                <div class="term-line term-info">Simulating: API Gateway, Eureka Registry, Saga Orchestrator, CQRS Read/Write Store, JWT Auth. Type 'help' or click snippet buttons above.</div>
+                            </div>
+                            <div class="terminal-input-row">
+                                <span class="terminal-prompt" id="terminalPrompt">gateway:8080></span>
+                                <input type="text" id="terminalInput" class="terminal-input" placeholder="Tulis perintah (misal: GET /api/orders, saga start, eureka list, cqrs sync)..." autocomplete="off" spellcheck="false">
+                                <button class="btn btn-primary" onclick="executeTerminalCommand()" style="padding: 6px 14px; font-size: 0.85rem;">Run ↵</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Quiz & Testing -->
+            <div class="tab-panel" id="tab-quiz">
+                <div class="quiz-container" id="quizContainer">
+                    <!-- Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Tab 5: Catatan Saya -->
+            <div class="tab-panel" id="tab-notes">
+                <div class="notes-container">
+                    <h3 style="margin-bottom: 12px; color: var(--accent-indigo);">📝 Catatan Pribadi Modul Ini</h3>
+                    <textarea class="notes-textarea" id="notesTextarea" placeholder="Tuliskan poin penting, pola arsitektur, sintaks manifes, atau pemahaman microservices Anda di sini... Catatan tersimpan secara otomatis."></textarea>
+                    <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;">
+                        <button class="btn btn-primary" onclick="saveUserNote()">💾 Simpan Catatan</button>
+                        <span id="saveNotesStatus" style="color: var(--success-color); font-size: 0.85rem; display: none;">Catatan tersimpan!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="footer-nav">
+                <button class="btn btn-secondary" id="prevBtn" onclick="navigatePrev()">
+                    ⬅️ Modul Sebelumnya
+                </button>
+                <span id="currentFooterProgress" style="font-size: 0.85rem; color: var(--text-muted);">Modul 1 dari 19</span>
+                <button class="btn btn-primary" id="nextBtn" onclick="navigateNext()">
+                    Modul Selanjutnya ➡️
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Final Exam Modal -->
+    <div class="modal-overlay" id="examModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFinalExam()">✖</button>
+            <div id="examModalBody">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="../assets/videos.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

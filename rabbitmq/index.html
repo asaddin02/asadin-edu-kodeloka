@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id" data-mode="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Belajar RabbitMQ Bahasa Indonesia: AMQP, Exchange, Quorum Queue, DLX | Kodeloka</title>
+<meta name="description" content="Kelas RabbitMQ berbahasa Indonesia: 15 modul tentang model AMQP, tipe exchange, acknowledgement dan prefetch, publisher confirm, dead letter exchange dan retry, quorum queue dan stream, idempotensi, klaster, keamanan, dan monitoring.">
+<link rel="icon" href="../assets/brand/kodeloka-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../assets/learning.css">
+<script src="../assets/learning.js" defer></script>
+</head>
+<body>
+
+<header class="app-header">
+    <a class="brand-home" href="../" aria-label="Kembali ke katalog Kodeloka"><img src="../assets/brand/kodeloka-mark.svg" alt=""><span><strong>Kodeloka</strong><small>← Katalog kelas</small></span></a>
+    <button class="icon-btn menu-toggle" id="menuToggle" title="Buka daftar materi">☰</button>
+    <div class="brand">
+        <div class="brand-icon">🐇</div>
+        <div class="brand-text">
+            <h1>RabbitMQ Mastery</h1>
+            <span id="brandSub">Memuat materi…</span>
+        </div>
+    </div>
+    <div class="header-center">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari: exchange, routing key, ack, prefetch, quorum, dlx…">
+        </div>
+    </div>
+    <div class="header-actions">
+        <div class="progress-widget" title="Progres belajar Anda (tersimpan di browser)">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+            <span class="progress-text" id="progressText">0 / 0 selesai</span>
+        </div>
+
+        <button class="icon-btn" id="resetBtn" title="Reset progres belajar">↺</button>
+    </div>
+</header>
+
+<div class="app-container">
+
+    <aside class="app-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>Daftar Materi</span>
+            <span class="badge" id="sidebarCount">…</span>
+        </div>
+        <div class="sidebar-cta">
+            <button class="cta-btn cta-project" id="openProjectBtn">🚀 <span>Mini Project (Real Case)</span></button>
+            <button class="cta-btn cta-exam" id="openExamBtn">🏆 <span>Ujian Akhir Sertifikasi</span></button>
+        </div>
+        <div class="cat-filters" id="catFilters"></div>
+        <nav class="chapter-list" id="chapterList"></nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="chapter-header">
+            <div class="chapter-meta" id="chapterMeta"></div>
+            <h2 id="chapterTitle">Memuat…</h2>
+            <p class="chapter-desc" id="chapterDesc"></p>
+        </div>
+
+        <div class="tabs-nav" id="tabsNav">
+            <button class="tab-btn active" data-tab="theory">📖 <span>Materi</span></button>
+            <button class="tab-btn" data-tab="lab">🧪 <span>Lab Praktik</span></button>
+            <button class="tab-btn" data-tab="pitfall">⚠️ <span>Pitfall &amp; Best Practice</span></button>
+            <button class="tab-btn" data-tab="quiz">🎯 <span>Kuis</span></button>
+        </div>
+
+        <div class="tab-content active" id="tab-theory"><div class="theory" id="theoryBody"></div></div>
+        <div class="tab-content" id="tab-lab"><div id="labBody"></div></div>
+        <div class="tab-content" id="tab-pitfall"><div class="pitfall-grid" id="pitfallBody"></div></div>
+        <div class="tab-content" id="tab-quiz"><div id="quizBody"></div></div>
+
+        <div class="chapter-nav">
+            <button class="btn btn-secondary" id="prevBtn">← Sebelumnya</button>
+            <button class="btn btn-primary" id="doneBtn">✓ Tandai Selesai</button>
+            <button class="btn btn-secondary" id="nextBtn">Selanjutnya →</button>
+        </div>
+    </main>
+</div>
+
+<!-- ===== MINI PROJECT MODAL ===== -->
+<div class="overlay" id="projectOverlay">
+    <div class="modal">
+        <div class="modal-head">
+            <h2 id="projTitle">🚀 Mini Project</h2>
+            <p id="projSubtitle"></p>
+            <div class="modal-meta" id="projMeta"></div>
+        </div>
+        <div class="modal-body" id="projBody"></div>
+        <div class="modal-foot">
+            <button class="btn btn-ghost" id="closeProjBtn">✕ Tutup</button>
+            <span class="progress-text" id="projProgress"></span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FINAL EXAM MODAL ===== -->
+<div class="overlay" id="examOverlay">
+    <div class="modal">
+        <div class="modal-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div>
+                    <h2>🏆 Ujian Akhir Sertifikasi</h2>
+                    <p id="examSubtitle"></p>
+                    <div class="modal-meta" id="examMeta"></div>
+                </div>
+                <div class="exam-timer" id="examTimer">--:--</div>
+            </div>
+        </div>
+        <div class="modal-body" id="examBody"></div>
+        <div class="modal-foot">
+            <button class="btn btn-ghost" id="closeExamBtn">✕ Tutup</button>
+            <div style="display:flex;gap:12px;align-items:center">
+                <span class="progress-text" id="examAnswered"></span>
+                <button class="btn btn-primary" id="submitExamBtn">✅ Kumpulkan &amp; Lihat Nilai</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

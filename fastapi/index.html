@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar FastAPI Bahasa Indonesia: Pydantic v2, SQLAlchemy, JWT, Pytest | Kodeloka</title>
+    <meta name="description" content="Kelas FastAPI berbahasa Indonesia: 24 modul tentang path dan query parameter, Pydantic v2, SQLAlchemy dan Alembic, dependency injection, autentikasi JWT, WebSocket, pengujian, dan deployment Docker.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+<link rel="icon" href="../assets/brand/kodeloka-mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/learning.css">
+<script src="../assets/learning.js" defer></script>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <a class="brand-home" href="../" aria-label="Kembali ke beranda Kodeloka">
+            <img src="../assets/brand/kodeloka-mark.svg" alt="" aria-hidden="true">
+            <span class="brand-home-copy"><strong>Kodeloka</strong><small>← Kembali ke beranda</small></span>
+        </a>
+        <div class="brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#10b981" stroke="#059669"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>Kelas FastAPI</h1>
+                <span id="chapterCountBadge">24 Modul · Video Corey Schafer · Pydantic v2 · Async</span>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Cari materi: Jinja2, Depends, Pydantic, SQLAlchemy, JWT, APIRouter, Pytest...">
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="progress-widget" title="Kemajuan Belajar FastAPI Anda">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
+                <span class="progress-text" id="progressText">0 / 20 Selesai (0%)</span>
+            </div>
+            <button class="btn btn-secondary" id="resetProgressBtn" onclick="resetAllProgress()">
+                🔄 Reset
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container Layout -->
+    <div class="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>📚 Modul Playlist FastAPI</span>
+                <span id="chapterCountSidebar" class="badge badge-teal">24 Modul</span>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="category-filter-container" id="categoryFilterContainer">
+                <button class="category-pill active" onclick="filterCategory('ALL')">Semua</button>
+                <button class="category-pill" onclick="filterCategory('Dasar & Frontend')">Dasar</button>
+                <button class="category-pill" onclick="filterCategory('Data & Models')">Models</button>
+                <button class="category-pill" onclick="filterCategory('Database & Auth')">Database</button>
+                <button class="category-pill" onclick="filterCategory('Advanced & Deploy')">Deploy</button>
+            </div>
+
+            <!-- Final Exam Button -->
+            <button class="sidebar-exam-btn" onclick="openFinalExam()">
+                🏆 Mulai Ujian Sertifikasi FastAPI
+            </button>
+
+            <!-- Chapters List -->
+            <div id="chapterListContainer">
+                <!-- Dynamically rendered by app.js -->
+            </div>
+        </aside>
+
+        <!-- Main Content Section -->
+        <main class="main-content">
+
+            <!-- Chapter Header Banner -->
+            <div class="chapter-header" id="chapterHeader">
+                <div class="chapter-meta">
+                    <span class="badge badge-teal" id="chapterCategoryBadge">Dasar &amp; Frontend</span>
+                    <div class="video-timestamp" id="videoTimestamp" hidden>
+                        <span>🎬 Video ID:</span>
+                        <strong id="timestampText">7AMjmCTumuo</strong>
+                    </div>
+                </div>
+                <h2 id="chapterTitle">01. Python FastAPI Tutorial (Part 1): Getting Started - Web App + REST API</h2>
+                <p class="chapter-desc" id="chapterDesc">Memahami arsitektur FastAPI, pemrograman Asynchronous (async/await), ASGI server, Uvicorn, dan dokumentasi OpenAPI otomatis.</p>
+
+                <div class="chapter-actions">
+                    <button class="btn btn-secondary" id="bookmarkBtn" onclick="toggleBookmark()">
+                        ⭐ Bookmark
+                    </button>
+                    <button class="btn btn-primary" id="toggleCompletedBtn" onclick="toggleCurrentCompleted()">
+                        ✅ Tandai Selesai
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="theory" onclick="switchTab('theory')">
+                    📖 Teori &amp; Panduan
+                </button>
+                <button class="tab-btn" data-tab="video" onclick="switchTab('video')">
+                    🎥 Video Playlist Tutorial
+                </button>
+                <button class="tab-btn" data-tab="playground" onclick="switchTab('playground')">
+                    💻 Live FastAPI Simulator
+                </button>
+                <button class="tab-btn" data-tab="quiz" onclick="switchTab('quiz')">
+                    🧪 Quiz &amp; Testing
+                </button>
+                <button class="tab-btn" data-tab="notes" onclick="switchTab('notes')">
+                    📝 Catatan Saya
+                </button>
+            </div>
+
+            <!-- Tab 1: Teori & Panduan -->
+            <div class="tab-panel active" id="tab-theory">
+                <div class="article-content" id="articleBody">
+                    <!-- Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Video Tutorial -->
+            <div class="tab-panel" id="tab-video">
+                <div class="video-player-container">
+                    <iframe id="youtubeIframe" src="" allowfullscreen title="FastAPI Video Player"></iframe>
+                </div>
+                <div class="video-meta-box">
+                    <h3 id="videoTitleMeta">Judul Video</h3>
+                    <p id="videoDescMeta" style="color: var(--text-secondary); margin-top: 8px;">Python FastAPI Tutorial Series oleh Corey Schafer.</p>
+                    <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+                        <a id="videoDirectLink" href="https://youtu.be/7AMjmCTumuo" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
+                            🔗 Buka Video Ini di YouTube
+                        </a>
+                        <a href="https://youtube.com/playlist?list=PL-osiE80TeTsak-c-QsVeg0YYG_0TeyXI" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                            📺 Buka Playlist Seri Lengkap di YouTube
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Live Playground / FastAPI Simulator -->
+            <div class="tab-panel" id="tab-playground">
+                <div class="playground-container">
+                    <div class="playground-card">
+                        <div class="playground-title">
+                            <span>⚡ FastAPI Code Snippets Launcher</span>
+                            <button class="btn btn-secondary" onclick="loadSampleCode()" style="font-size: 0.75rem; padding: 4px 8px;">Standard Template</button>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">Pilih contoh kode Python FastAPI di bawah ini untuk dimuat ke editor:</p>
+                        <div class="snippet-buttons-grid" id="snippetButtonsGrid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="playground-card">
+                        <div class="playground-title">
+                            <span>💻 Python FastAPI Live Code Editor</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-primary" onclick="runFastAPISimulation()" style="font-size: 0.78rem; padding: 5px 12px;">🚀 Run FastAPI App</button>
+                                <button class="btn btn-secondary" onclick="clearPlayground()" style="font-size: 0.78rem; padding: 5px 12px;">Clear Code</button>
+                            </div>
+                        </div>
+                        <textarea class="editor-textarea" id="playgroundEditor" placeholder="# Tuliskan kode Python FastAPI di sini...&#10;from fastapi import FastAPI&#10;&#10;app = FastAPI()&#10;&#10;@app.get('/')&#10;def read_root():&#10;    return {'message': 'Hello FastAPI World!'}"></textarea>
+                    </div>
+
+                    <div class="playground-card">
+                        <div class="playground-title">
+                            <span>🖥️ Uvicorn ASGI Server Output &amp; Swagger OpenAPI JSON</span>
+                            <button class="btn btn-secondary" onclick="clearTerminalOutput()" style="font-size: 0.75rem; padding: 4px 8px;">Clear Output</button>
+                        </div>
+                        
+                        <div class="fastapi-preview-grid">
+                            <div class="preview-box">
+                                <div class="box-header">🌐 Simulated OpenAPI JSON Response</div>
+                                <div class="rendered-preview-content" id="renderedUIPreview">
+                                    <div style="color: var(--text-muted); font-style: italic;">Klik "Run FastAPI App" untuk melihat simulasi output HTTP JSON & Swagger Docs...</div>
+                                </div>
+                            </div>
+                            <div class="preview-box">
+                                <div class="box-header">⚡ Uvicorn ASGI Log Terminal</div>
+                                <div class="terminal-body" id="terminalOutput">
+                                    <div class="term-line term-info">INFO: Started server process [18492]</div>
+                                    <div class="term-line term-info">INFO: Waiting for application startup.</div>
+                                    <div class="term-line term-success">INFO: Application startup complete.</div>
+                                    <div class="term-line term-info">INFO: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Quiz & Testing -->
+            <div class="tab-panel" id="tab-quiz">
+                <div class="quiz-container" id="quizContainer">
+                    <!-- Rendered by app.js -->
+                </div>
+            </div>
+
+            <!-- Tab 5: Catatan Saya -->
+            <div class="tab-panel" id="tab-notes">
+                <div class="notes-container">
+                    <h3 style="margin-bottom: 12px; color: var(--fastapi-teal);">📝 Catatan Pribadi Modul Ini</h3>
+                    <textarea class="notes-textarea" id="notesTextarea" placeholder="Tuliskan poin penting, klausa Jinja2 templates, atau skema SQLAlchemy Anda di sini... Catatan tersimpan secara otomatis."></textarea>
+                    <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;">
+                        <button class="btn btn-primary" onclick="saveUserNote()">💾 Simpan Catatan</button>
+                        <span id="saveNotesStatus" style="color: var(--success-color); font-size: 0.85rem; display: none;">Catatan tersimpan!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="footer-nav">
+                <button class="btn btn-secondary" id="prevBtn" onclick="navigatePrev()">
+                    ⬅️ Modul Sebelumnya
+                </button>
+                <span id="currentFooterProgress" style="font-size: 0.85rem; color: var(--text-muted);">Modul 1 dari 20</span>
+                <button class="btn btn-primary" id="nextBtn" onclick="navigateNext()">
+                    Modul Selanjutnya ➡️
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Final Exam Modal -->
+    <div class="modal-overlay" id="examModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeFinalExam()">✖</button>
+            <div id="examModalBody">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="../assets/videos.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

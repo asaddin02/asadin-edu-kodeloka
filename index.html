@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Kodeloka: kelas pemrograman gratis berbahasa Indonesia. 19 kelas dan lebih dari 500 modul tentang Golang, FastAPI, Next.js, PostgreSQL, Redis, Kafka, Docker, Kubernetes, Git, CI/CD, Linux, keamanan, dan observabilitas, lengkap dengan praktik dan kuis.">
+<title>Kodeloka · Belajar Pemrograman, Backend, dan DevOps dalam Bahasa Indonesia</title>
+<link rel="icon" type="image/svg+xml" href="assets/brand/kodeloka-mark.svg">
+<style>
+    :root {
+        --paper: #f7f3eb;
+        --paper-high: #fffdf8;
+        --paper-muted: #efe9de;
+        --ink: #173e40;
+        --ink-soft: #315c5e;
+        --muted: #667a78;
+        --faint: #60746e;
+        --line: #d6ded5;
+        --line-strong: #bfccc0;
+        --coral: #ff754c;
+        --coral-deep: #db5538;
+        --leaf: #b9dd7a;
+        --leaf-deep: #6d983d;
+        --sky: #9ed9e8;
+        --sky-deep: #387e98;
+        --sun: #ffc95b;
+        --violet: #c9baf0;
+        --shadow: 0 18px 45px rgba(30, 62, 58, 0.1);
+        --shadow-soft: 0 10px 25px rgba(30, 62, 58, 0.075);
+        --display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+        --sans: ui-sans-serif, "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        --radius: 26px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+    body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        background:
+            radial-gradient(circle at 92% 4%, rgba(185, 221, 122, 0.26), transparent 23rem),
+            radial-gradient(circle at 2% 34%, rgba(158, 217, 232, 0.2), transparent 27rem),
+            var(--paper);
+        font-family: var(--sans);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    ::selection { background: var(--leaf); color: var(--ink); }
+    .skip-link {
+        position: fixed;
+        left: 18px;
+        top: -70px;
+        z-index: 1000;
+        padding: 10px 14px;
+        color: var(--paper-high);
+        background: var(--ink);
+        border-radius: 0 0 10px 10px;
+        text-decoration: none;
+        transition: top 160ms ease;
+    }
+    .skip-link:focus { top: 0; }
+    .shell { width: min(1240px, calc(100% - 48px)); margin: 0 auto; }
+    .page-grain {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.14;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+    }
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid rgba(191, 204, 192, 0.68);
+        background: rgba(247, 243, 235, 0.82);
+        backdrop-filter: blur(16px);
+    }
+    .site-nav {
+        min-height: 76px;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+    }
+    .brand {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+    .brand-mark {
+        width: 39px;
+        height: 39px;
+        display: grid;
+        place-items: center;
+        filter: drop-shadow(0 5px 7px rgba(23, 62, 64, 0.13));
+    }
+    .brand-mark img { display: block; width: 100%; height: 100%; }
+    .brand-name {
+        display: grid;
+        gap: 0;
+        color: var(--ink);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 0.95;
+    }
+    .brand-name small {
+        margin-top: 4px;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 0.56rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .nav-links {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1;
+        gap: 8px;
+    }
+    .nav-links > a:not(.nav-cta) {
+        padding: 9px 12px;
+        color: var(--ink-soft);
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: color 160ms ease, background 160ms ease;
+    }
+    .nav-links > a:not(.nav-cta):hover {
+        color: var(--ink);
+        background: rgba(185, 221, 122, 0.35);
+    }
+    .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 15px;
+        color: var(--paper-high);
+        background: var(--ink);
+        border: 1px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 0 5px 0 rgba(23, 62, 64, 0.16);
+        font-size: 0.85rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+    .nav-cta:hover { background: #245457; transform: translateY(-2px); box-shadow: 0 7px 0 rgba(23, 62, 64, 0.13); }
+    .nav-toggle {
+        display: none;
+        width: 42px;
+        height: 42px;
+        margin-left: auto;
+        padding: 0;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        background: var(--paper-high);
+        cursor: pointer;
+    }
+    .nav-toggle span, .nav-toggle::before, .nav-toggle::after {
+        display: block;
+        width: 17px;
+        height: 2px;
+        margin: 0 auto;
+        background: var(--ink);
+        content: "";
+        transition: transform 160ms ease, opacity 160ms ease;
+    }
+    .nav-toggle::before { transform: translateY(-5px); }
+    .nav-toggle::after { transform: translateY(3px); }
+    .site-header.menu-open .nav-toggle span { opacity: 0; }
+    .site-header.menu-open .nav-toggle::before { transform: translateY(2px) rotate(45deg); }
+    .site-header.menu-open .nav-toggle::after { transform: translateY(-2px) rotate(-45deg); }
+    .hero { padding: clamp(50px, 7vw, 84px) 0 44px; }
+    .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+        gap: clamp(38px, 7vw, 96px);
+        align-items: center;
+    }
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 18px;
+        color: var(--ink-soft);
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+    .eyebrow::before {
+        width: 25px;
+        height: 2px;
+        background: var(--coral);
+        content: "";
+    }
+    .hero h1 {
+        max-width: 690px;
+        margin: 0;
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: clamp(3.25rem, 6.25vw, 5.8rem);
+        font-weight: 500;
+        letter-spacing: -0.075em;
+        line-height: 0.93;
+    }
+    .hero h1 em {
+        color: var(--coral-deep);
+        font-style: italic;
+        font-weight: 500;
+    }
+    .hero-copy > p:not(.eyebrow) {
+        max-width: 600px;
+        margin: 26px 0 0;
+        color: var(--ink-soft);
+        font-size: clamp(1rem, 1.5vw, 1.15rem);
+        line-height: 1.75;
+    }
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 17px;
+        margin-top: 32px;
+    }
+    .button-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 11px;
+        min-height: 52px;
+        padding: 13px 20px;
+        color: var(--ink);
+        border: 1px solid #a8c779;
+        border-radius: 15px 15px 15px 4px;
+        background: var(--leaf);
+        box-shadow: 5px 5px 0 var(--ink);
+        font-weight: 850;
+        text-decoration: none;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+    .button-primary:hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--ink); }
+    .text-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 1px;
+        color: var(--ink);
+        border-bottom: 1px solid currentColor;
+        font-size: 0.9rem;
+        font-weight: 750;
+        text-decoration: none;
+        transition: color 160ms ease, gap 160ms ease;
+    }
+    .text-link:hover { gap: 11px; color: var(--coral-deep); }
+    .hero-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        margin-top: 52px;
+    }
+    .metric {
+        min-width: 132px;
+        padding: 2px 20px 2px 0;
+        margin-right: 20px;
+        border-right: 1px solid var(--line-strong);
+    }
+    .metric:last-child { margin-right: 0; border-right: 0; }
+    .metric b {
+        display: block;
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.06em;
+        line-height: 1;
+    }
+    .metric span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 750;
+        letter-spacing: 0.075em;
+        text-transform: uppercase;
+    }
+    .signal-stage {
+        position: relative;
+        min-height: 462px;
+        isolation: isolate;
+    }
+    .signal-stage::before {
+        position: absolute;
+        top: 35px;
+        right: 9%;
+        width: min(34vw, 360px);
+        aspect-ratio: 1;
+        border: 1px solid rgba(49, 92, 94, 0.24);
+        border-radius: 50%;
+        box-shadow: 0 0 0 25px rgba(158, 217, 232, 0.2), 0 0 0 55px rgba(185, 221, 122, 0.13);
+        content: "";
+        z-index: -2;
+    }
+    .stage-label {
+        position: absolute;
+        top: 0;
+        right: 5%;
+        padding: 8px 12px;
+        color: var(--ink);
+        border: 1px solid rgba(23, 62, 64, 0.14);
+        border-radius: 999px;
+        background: rgba(255, 253, 248, 0.73);
+        box-shadow: var(--shadow-soft);
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transform: rotate(4deg);
+    }
+    .terminal-card {
+        position: absolute;
+        top: 66px;
+        right: 4%;
+        width: min(100%, 394px);
+        overflow: hidden;
+        color: #e9f6ef;
+        border: 1px solid rgba(18, 54, 55, 0.8);
+        border-radius: 23px 23px 23px 5px;
+        background: #163e40;
+        box-shadow: 16px 17px 0 rgba(255, 117, 76, 0.88), var(--shadow);
+        transform: rotate(2.2deg);
+    }
+    .terminal-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 13px 15px;
+        border-bottom: 1px solid rgba(233, 246, 239, 0.15);
+        color: #b5dcd2;
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.04em;
+    }
+    .terminal-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .terminal-dot:nth-child(1) { background: var(--coral); }
+    .terminal-dot:nth-child(2) { background: var(--sun); }
+    .terminal-dot:nth-child(3) { background: var(--leaf); }
+    .terminal-title { margin-left: 6px; opacity: 0.85; }
+    .terminal-body { padding: 25px 25px 24px; }
+    .terminal-body > span {
+        color: var(--leaf);
+        font-family: var(--mono);
+        font-size: 0.73rem;
+        font-weight: 700;
+    }
+    .terminal-body h2 {
+        max-width: 280px;
+        margin: 13px 0 21px;
+        font-family: var(--display);
+        font-size: clamp(1.8rem, 3vw, 2.55rem);
+        font-weight: 500;
+        letter-spacing: -0.055em;
+        line-height: 1;
+    }
+    .signal-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding-top: 17px;
+        border-top: 1px solid rgba(233, 246, 239, 0.18);
+        color: #b5dcd2;
+        font-size: 0.76rem;
+    }
+    .signal-row strong { color: #fffdf8; font-family: var(--mono); font-size: 0.7rem; }
+    .signal-bar { height: 5px; margin-top: 7px; overflow: hidden; border-radius: 99px; background: rgba(233, 246, 239, 0.18); }
+    .signal-bar span { display: block; width: 74%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--leaf), var(--sky)); }
+    .study-note {
+        position: absolute;
+        bottom: 2px;
+        left: 0;
+        width: 225px;
+        padding: 18px 17px;
+        border: 1px solid rgba(23, 62, 64, 0.12);
+        border-radius: 4px 22px 22px 22px;
+        background: var(--sun);
+        box-shadow: var(--shadow-soft);
+        transform: rotate(-5deg);
+    }
+    .study-note svg { display: block; width: 30px; height: 30px; margin-bottom: 10px; color: var(--ink); }
+    .study-note span { display: block; font-size: 0.73rem; font-weight: 800; line-height: 1.35; }
+    .study-note small { display: block; margin-top: 6px; color: var(--ink-soft); font-family: var(--mono); font-size: 0.62rem; }
+    .orbit-chip {
+        position: absolute;
+        right: 0;
+        bottom: 45px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 13px;
+        color: var(--ink);
+        border: 1px solid rgba(23, 62, 64, 0.12);
+        border-radius: 999px;
+        background: var(--paper-high);
+        box-shadow: var(--shadow-soft);
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        font-weight: 800;
+        transform: rotate(-4deg);
+    }
+    .orbit-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 4px rgba(255, 117, 76, 0.17); }
+    .section { padding: 74px 0; }
+    .section-intro { display: flex; align-items: end; justify-content: space-between; gap: 28px; }
+    .section-kicker {
+        margin: 0 0 13px;
+        color: var(--coral-deep);
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        font-weight: 850;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+    }
+    .section h2 {
+        max-width: 730px;
+        margin: 0;
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: clamp(2.25rem, 4.1vw, 3.85rem);
+        font-weight: 500;
+        letter-spacing: -0.065em;
+        line-height: 0.98;
+    }
+    .section-intro > p {
+        max-width: 315px;
+        margin: 0 0 4px;
+        color: var(--muted);
+        font-size: 0.94rem;
+        line-height: 1.7;
+    }
+    .field-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 38px;
+    }
+    .field-card {
+        position: relative;
+        min-height: 185px;
+        padding: 19px 17px;
+        overflow: hidden;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--paper-high);
+        box-shadow: 0 2px 0 rgba(23, 62, 64, 0.03);
+        text-align: left;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+    .field-card::after {
+        position: absolute;
+        right: -15px;
+        bottom: -23px;
+        width: 74px;
+        height: 74px;
+        border-radius: 50%;
+        content: "";
+        opacity: 0.92;
+        transition: transform 180ms ease;
+    }
+    .field-card:nth-child(1)::after { background: var(--sky); }
+    .field-card:nth-child(2)::after { background: var(--coral); }
+    .field-card:nth-child(3)::after { background: var(--leaf); }
+    .field-card:nth-child(4)::after { background: var(--sun); }
+    .field-card:nth-child(5)::after { background: var(--violet); }
+    .field-card:hover, .field-card.is-active { border-color: var(--ink); box-shadow: 5px 5px 0 var(--ink); transform: translate(-2px, -2px); }
+    .field-card:hover::after, .field-card.is-active::after { transform: scale(1.12); }
+    .field-index { display: block; color: var(--muted); font-family: var(--mono); font-size: 0.67rem; font-weight: 800; letter-spacing: 0.08em; }
+    .field-card strong { display: block; max-width: 145px; margin-top: 32px; font-size: 1rem; line-height: 1.14; letter-spacing: -0.03em; }
+    .field-card small { display: block; margin-top: 8px; color: var(--muted); font-size: 0.75rem; }
+    .field-arrow { position: absolute; z-index: 1; right: 18px; bottom: 16px; font-family: var(--display); font-size: 1.55rem; line-height: 1; }
+    .route-panel {
+        position: relative;
+        display: grid;
+        grid-template-columns: 0.8fr 1.2fr;
+        gap: 36px;
+        margin-top: 58px;
+        padding: clamp(26px, 4vw, 47px);
+        overflow: hidden;
+        color: var(--ink);
+        border: 1px solid rgba(23, 62, 64, 0.16);
+        border-radius: 27px 27px 5px 27px;
+        background: linear-gradient(112deg, #d9f0f1 0%, #edf5d9 58%, #f8efce 100%);
+    }
+    .route-panel::after {
+        position: absolute;
+        right: -70px;
+        bottom: -105px;
+        width: 300px;
+        height: 300px;
+        border: 1px solid rgba(23, 62, 64, 0.2);
+        border-radius: 50%;
+        box-shadow: 0 0 0 27px rgba(255, 253, 248, 0.27), 0 0 0 58px rgba(23, 62, 64, 0.055);
+        content: "";
+        pointer-events: none;
+    }
+    .route-panel h3 {
+        max-width: 360px;
+        margin: 0;
+        font-family: var(--display);
+        font-size: clamp(1.9rem, 3.1vw, 2.8rem);
+        font-weight: 500;
+        letter-spacing: -0.055em;
+        line-height: 1;
+    }
+    .route-panel > div > p {
+        max-width: 350px;
+        margin: 17px 0 0;
+        color: var(--ink-soft);
+        font-size: 0.9rem;
+        line-height: 1.68;
+    }
+    .route-list {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 1px;
+        align-self: center;
+        border: 1px solid rgba(23, 62, 64, 0.15);
+        border-radius: 15px;
+        overflow: hidden;
+        background: rgba(23, 62, 64, 0.15);
+    }
+    .route-button {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        min-height: 64px;
+        padding: 11px 16px;
+        color: var(--ink);
+        border: 0;
+        background: rgba(255, 253, 248, 0.72);
+        text-align: left;
+        cursor: pointer;
+        transition: background 160ms ease, padding 160ms ease;
+    }
+    .route-button:hover { padding-left: 21px; background: var(--paper-high); }
+    .route-button b { font-family: var(--mono); font-size: 0.71rem; }
+    .route-button span { font-size: 0.9rem; font-weight: 800; }
+    .route-button small { color: var(--muted); font-family: var(--mono); font-size: 0.68rem; }
+    .catalog-section { padding-top: 42px; }
+    .catalog-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, 0.76fr); gap: 30px; align-items: end; }
+    .catalog-copy p { max-width: 570px; margin: 15px 0 0; color: var(--muted); }
+    .search-wrap { position: relative; }
+    .search-label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--ink-soft);
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .search-control { position: relative; }
+    .search-control svg { position: absolute; top: 50%; left: 16px; width: 18px; height: 18px; color: var(--muted); transform: translateY(-50%); pointer-events: none; }
+    #cari {
+        width: 100%;
+        min-height: 56px;
+        padding: 13px 45px 13px 47px;
+        color: var(--ink);
+        border: 1px solid var(--line-strong);
+        border-radius: 17px;
+        outline: none;
+        background: rgba(255, 253, 248, 0.78);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        font-size: 0.92rem;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+    #cari::placeholder { color: var(--faint); }
+    #cari:focus { border-color: var(--ink); background: var(--paper-high); box-shadow: 0 0 0 4px rgba(158, 217, 232, 0.45); }
+    .clear-search {
+        position: absolute;
+        top: 50%;
+        right: 11px;
+        display: grid;
+        width: 31px;
+        height: 31px;
+        padding: 0;
+        place-items: center;
+        color: var(--ink-soft);
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-50%);
+        transition: opacity 150ms ease, background 150ms ease;
+    }
+    .search-wrap.has-query .clear-search { opacity: 1; pointer-events: auto; }
+    .clear-search:hover { background: var(--paper-muted); }
+    .search-hint { margin: 7px 0 0; color: var(--faint); font-size: 0.7rem; text-align: right; }
+    .search-hint kbd { padding: 1px 5px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; background: var(--paper-high); font-family: var(--mono); font-size: 0.64rem; }
+    .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 38px 0 19px;
+    }
+    .filter-chip {
+        padding: 9px 13px;
+        color: var(--ink-soft);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 253, 248, 0.57);
+        font-size: 0.78rem;
+        font-weight: 750;
+        cursor: pointer;
+        transition: color 150ms ease, border-color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+    .filter-chip:hover { color: var(--ink); border-color: var(--ink-soft); transform: translateY(-1px); }
+    .filter-chip.is-active { color: var(--paper-high); border-color: var(--ink); background: var(--ink); }
+    .catalog-status {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 26px;
+        margin-bottom: 18px;
+        color: var(--muted);
+        font-size: 0.83rem;
+    }
+    .catalog-status strong { color: var(--ink); }
+    .catalog-status span:last-child { font-family: var(--mono); font-size: 0.68rem; }
+    .course-group { margin-top: 48px; }
+    .course-group:first-child { margin-top: 0; }
+    .course-group-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 15px;
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+    .course-group-heading::after { height: 1px; flex: 1; background: var(--line); content: ""; }
+    .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+    .course-card {
+        position: relative;
+        display: flex;
+        min-height: 294px;
+        flex-direction: column;
+        padding: 20px;
+        overflow: hidden;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: rgba(255, 253, 248, 0.76);
+        box-shadow: 0 2px 0 rgba(23, 62, 64, 0.02);
+        text-decoration: none;
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+    .course-card::before {
+        position: absolute;
+        top: -42px;
+        right: -34px;
+        width: 114px;
+        height: 114px;
+        border-radius: 50%;
+        content: "";
+        opacity: 0.45;
+        transition: transform 220ms ease;
+    }
+    .course-card.tone-bahasa::before { background: var(--sky); }
+    .course-card.tone-data::before { background: var(--coral); }
+    .course-card.tone-infra::before { background: var(--leaf); }
+    .course-card.tone-security::before { background: var(--sun); }
+    .course-card.tone-observe::before { background: var(--violet); }
+    .course-card:hover { z-index: 1; border-color: var(--ink); background: var(--paper-high); box-shadow: 6px 7px 0 var(--ink); transform: translate(-3px, -3px); }
+    .course-card:hover::before { transform: scale(1.16); }
+    .course-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .course-number { color: var(--faint); font-family: var(--mono); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; }
+    .course-badge { padding: 4px 7px; color: var(--coral-deep); border: 1px solid rgba(219, 85, 56, 0.3); border-radius: 999px; background: rgba(255, 117, 76, 0.1); font-family: var(--mono); font-size: 0.61rem; font-weight: 850; letter-spacing: 0.04em; text-transform: uppercase; }
+    .course-icon {
+        display: grid;
+        width: 45px;
+        height: 45px;
+        margin-top: 19px;
+        place-items: center;
+        border: 1px solid rgba(23, 62, 64, 0.1);
+        border-radius: 13px 13px 13px 3px;
+        background: var(--paper-high);
+        box-shadow: 2px 2px 0 rgba(23, 62, 64, 0.11);
+        font-family: var(--mono);
+        font-size: 1.06rem;
+        font-weight: 800;
+        letter-spacing: -.07em;
+    }
+    .course-domain { display: block; margin-top: 18px; color: var(--muted); font-family: var(--mono); font-size: 0.63rem; font-weight: 800; letter-spacing: 0.075em; text-transform: uppercase; }
+    .course-card h3 { margin: 7px 0 0; max-width: 255px; font-size: 1.15rem; letter-spacing: -0.035em; line-height: 1.15; }
+    .course-card p { margin: 12px 0 0; color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+    .course-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 13px; }
+    .course-tags span { padding: 3px 6px; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 4px; background: var(--paper-high); font-family: var(--mono); font-size: 0.59rem; line-height: 1.2; }
+    .course-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.78rem; font-weight: 800; }
+    .course-footer span:first-child { color: var(--muted); font-family: var(--mono); font-size: 0.65rem; font-weight: 700; }
+    .course-footer span:last-child { display: inline-flex; align-items: center; gap: 5px; }
+    .course-card:hover .course-footer span:last-child { color: var(--coral-deep); }
+    .empty-state {
+        display: grid;
+        min-height: 230px;
+        place-items: center;
+        padding: 30px;
+        border: 1px dashed var(--line-strong);
+        border-radius: 22px;
+        background: rgba(255, 253, 248, 0.44);
+        text-align: center;
+    }
+    .empty-state b { display: block; font-family: var(--display); font-size: 1.8rem; font-weight: 500; letter-spacing: -0.05em; }
+    .empty-state p { margin: 7px 0 16px; color: var(--muted); font-size: 0.86rem; }
+    .reset-filter { padding: 8px 12px; color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; background: var(--paper-high); font-size: 0.76rem; font-weight: 800; cursor: pointer; }
+    .offline-note {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 18px;
+        align-items: center;
+        margin-top: 78px;
+        padding: 20px 22px;
+        color: var(--ink);
+        border: 1px solid var(--line-strong);
+        border-radius: 18px;
+        background: rgba(255, 253, 248, 0.7);
+    }
+    .offline-symbol {
+        display: grid;
+        width: 39px;
+        height: 39px;
+        place-items: center;
+        color: var(--paper-high);
+        border-radius: 50%;
+        background: var(--ink);
+        font-family: var(--mono);
+        font-size: 0.78rem;
+    }
+    .offline-note b { display: block; font-size: 0.82rem; }
+    .offline-note p { margin: 2px 0 0; color: var(--muted); font-size: 0.76rem; }
+    .offline-note code { color: var(--ink-soft); font-family: var(--mono); font-size: 0.72rem; }
+    .footer { margin-top: 80px; border-top: 1px solid var(--line); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 106px; }
+    .footer-copy { color: var(--muted); font-size: 0.76rem; }
+    .footer-copy strong { color: var(--ink); }
+    .footer-copy a { color: var(--ink-soft); font-weight: 700; text-underline-offset: 3px; }
+    .footer-copy a:hover { color: var(--coral-deep); }
+    .top-link { color: var(--ink); font-size: 0.78rem; font-weight: 800; text-decoration: none; }
+    .top-link:hover { color: var(--coral-deep); }
+    .tone-bahasa .course-icon { background: #e4f1f3; color: #225968; }
+    .tone-data .course-icon { background: #fae7df; color: #963d2e; }
+    .tone-infra .course-icon { background: #e8f0db; color: #3b5c31; }
+    .tone-security .course-icon { background: #f6eccd; color: #74571f; }
+    .tone-observe .course-icon { background: #ede7f5; color: #614881; }
+    .course-card h3 { font-size: 1.4rem; }
+    .course-top, .course-icon, .course-domain, .course-card h3 { position: relative; z-index: 1; }
+    .course-tags { margin-bottom: auto; }
+    .route-button.is-active { background: #e5efd8; }
+    .course-group { animation: catalog-enter .24s ease-out both; }
+    @keyframes catalog-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+    @media (hover: hover) {
+        .course-card:hover { box-shadow: 0 12px 24px #173e4012; transform: translateY(-4px); }
+        .field-card:hover { box-shadow: 0 8px 20px #173e4010; transform: translateY(-3px); }
+    }
+    :focus-visible { outline: 3px solid var(--sky-deep); outline-offset: 3px; }
+    @media (max-width: 1050px) {
+        .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(350px, 0.8fr); gap: 34px; }
+        .field-grid { grid-template-columns: repeat(3, 1fr); }
+        .field-card:nth-child(4), .field-card:nth-child(5) { min-height: 152px; }
+        .course-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 800px) {
+        .site-nav { min-height: 68px; }
+        .nav-toggle { display: grid; place-items: center; }
+        .nav-links {
+            position: absolute;
+            top: calc(100% + 1px);
+            right: 0;
+            left: 0;
+            display: grid;
+            gap: 4px;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(247, 243, 235, 0.98);
+            box-shadow: 0 13px 23px rgba(23, 62, 64, 0.08);
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+            transition: opacity 160ms ease, transform 160ms ease;
+        }
+        .site-header.menu-open .nav-links { visibility: visible; opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .nav-links > a:not(.nav-cta) { padding: 12px; }
+        .nav-cta { margin: 6px 0 3px; justify-content: center; }
+        .hero { padding-top: 55px; }
+        .hero-grid { grid-template-columns: 1fr; }
+        .hero-copy { max-width: 680px; }
+        .signal-stage { width: min(100%, 570px); min-height: 430px; margin: 0 auto; }
+        .section { padding: 73px 0; }
+        .section-intro, .catalog-head { grid-template-columns: 1fr; display: grid; align-items: start; }
+        .section-intro > p { max-width: 610px; }
+        .route-panel { grid-template-columns: 1fr; }
+        .route-panel > div > p { max-width: 600px; }
+    }
+    @media (max-width: 560px) {
+        .shell { width: min(100% - 32px, 1240px); }
+        .brand-name { font-size: 0.96rem; }
+        .hero h1 { font-size: clamp(3rem, 15vw, 4.2rem); }
+        .hero-metrics { gap: 18px; }
+        .metric { min-width: auto; flex: 1 1 27%; margin: 0; padding: 0 12px 0 0; }
+        .metric b { font-size: 1.7rem; }
+        .signal-stage { min-height: 385px; margin-top: 3px; }
+        .signal-stage::before { top: 26px; right: 15%; width: 250px; }
+        .terminal-card { top: 55px; right: 4px; width: calc(100% - 25px); box-shadow: 9px 10px 0 var(--coral); }
+        .terminal-body { padding: 21px; }
+        .study-note { width: 186px; padding: 14px; }
+        .orbit-chip { right: 0; bottom: 33px; }
+        .field-grid { grid-template-columns: repeat(2, 1fr); }
+        .field-card { min-height: 146px; }
+        .field-card:last-child { grid-column: span 2; }
+        .field-card strong { margin-top: 20px; }
+        .route-panel { gap: 26px; padding: 24px 20px; }
+        .route-button { grid-template-columns: 25px minmax(0, 1fr); gap: 10px; }
+        .route-button small { display: none; }
+        .filter-row { gap: 6px; }
+        .filter-chip { padding: 8px 10px; font-size: 0.72rem; }
+        .course-grid { grid-template-columns: 1fr; }
+        .course-card { min-height: 272px; }
+        .offline-note { grid-template-columns: auto 1fr; gap: 12px; padding: 16px; }
+        .offline-note code { grid-column: 1 / -1; }
+        .footer-inner { min-height: 120px; align-items: flex-start; flex-direction: column; justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+    }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#katalog">Langsung ke katalog kelas</a>
+<div class="page-grain" aria-hidden="true"></div>
+<header class="site-header" id="beranda">
+    <nav class="site-nav shell" aria-label="Navigasi utama">
+        <a class="brand" href="#beranda" aria-label="Kodeloka, kembali ke atas">
+            <span class="brand-mark"><img src="assets/brand/kodeloka-mark.svg" alt=""></span>
+            <span class="brand-name">Kodeloka<small>teknologi &amp; sistem</small></span>
+        </a>
+        <button class="nav-toggle" id="menuToggle" type="button" aria-label="Buka menu" aria-controls="navLinks" aria-expanded="false"><span></span></button>
+        <div class="nav-links" id="navLinks">
+            <a href="#peta">Peta kelas</a>
+            <a href="#jalur">Cara mulai</a>
+            <a href="#katalog">Koleksi</a>
+            <a class="nav-cta" href="#katalog">Temukan materi <span aria-hidden="true">↘</span></a>
+        </div>
+    </nav>
+</header>
+<main>
+    <section class="hero shell" aria-labelledby="hero-title">
+        <div class="hero-grid">
+            <div class="hero-copy">
+                <p class="eyebrow">Ruang belajar mandiri, gratis, tanpa akun</p>
+                <h1 id="hero-title">Dari baris kode, <em>ke sistem yang utuh.</em></h1>
+                <p>Tempat bertumbuh untuk rasa ingin tahu teknismu. Pelajari backend, data, dan infrastruktur lewat materi berbahasa Indonesia yang bisa langsung kamu praktikkan.</p>
+                <div class="hero-actions">
+                    <a class="button-primary" href="#peta">Pilih medan belajar <span aria-hidden="true">↓</span></a>
+                    <a class="text-link" id="continueLink" href="#katalog">Lihat seluruh kelas <span aria-hidden="true">→</span></a>
+                </div>
+                <div class="hero-metrics" aria-label="Ringkasan koleksi">
+                    <div class="metric"><b id="jmlTopik">0</b><span>Kelas terkurasi</span></div>
+                    <div class="metric"><b id="jmlModul">0</b><span>Modul bertahap</span></div>
+                    <div class="metric"><b>5</b><span>Bidang belajar</span></div>
+                </div>
+            </div>
+            <div class="signal-stage" aria-label="Ilustrasi perjalanan belajar">
+                <span class="stage-label">learning signal / 01</span>
+                <article class="terminal-card">
+                    <div class="terminal-top"><i class="terminal-dot"></i><i class="terminal-dot"></i><i class="terminal-dot"></i><span class="terminal-title">jalur-belajar.log</span></div>
+                    <div class="terminal-body">
+                        <span>$ mulai dari fondasi</span>
+                        <h2>Hubungkan konsep. Uji di konteks nyata.</h2>
+                        <div class="signal-row">
+                            <div><span>Progres tumbuh dari rasa ingin tahu</span><div class="signal-bar"><span></span></div></div>
+                            <strong>01/∞</strong>
+                        </div>
+                    </div>
+                </article>
+                <div class="study-note">
+                    <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 5.5H25V26.5H7V5.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M11 11H21M11 16H21M11 21H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M23 3V8M20.5 5.5H25.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <span>Satu topik kecil bisa membuka pola besar.</span>
+                    <small>catatan belajar</small>
+                </div>
+                <span class="orbit-chip"><i></i> konsep → praktik</span>
+            </div>
+        </div>
+    </section>
+    <section class="section shell" id="peta" aria-labelledby="peta-title">
+        <div class="section-intro">
+            <div>
+                <p class="section-kicker">01 — Pilih medan</p>
+                <h2 id="peta-title">Masuk dari pintu yang paling masuk akal untukmu.</h2>
+            </div>
+            <p>Jelajahi berdasarkan dunia kerja yang ingin kamu pahami; setiap kartu membawa langsung ke kelompok kelas yang relevan.</p>
+        </div>
+        <div class="field-grid" role="group" aria-label="Bidang pembelajaran">
+            <button class="field-card filter-control" type="button" data-bidang="Bahasa &amp; Framework" aria-pressed="false"><span class="field-index">01 / BANGUN</span><strong>Bahasa &amp; Framework</strong><small><span data-count="Bahasa &amp; Framework">0</span> kelas</small><span class="field-arrow" aria-hidden="true">↘</span></button>
+            <button class="field-card filter-control" type="button" data-bidang="Data &amp; Pesan" aria-pressed="false"><span class="field-index">02 / SIMPAN</span><strong>Data &amp; Pesan</strong><small><span data-count="Data &amp; Pesan">0</span> kelas</small><span class="field-arrow" aria-hidden="true">↘</span></button>
+            <button class="field-card filter-control" type="button" data-bidang="Infrastruktur" aria-pressed="false"><span class="field-index">03 / JALANKAN</span><strong>Infrastruktur</strong><small><span data-count="Infrastruktur">0</span> kelas</small><span class="field-arrow" aria-hidden="true">↘</span></button>
+            <button class="field-card filter-control" type="button" data-bidang="Keamanan &amp; Sistem" aria-pressed="false"><span class="field-index">04 / LINDUNGI</span><strong>Keamanan &amp; Sistem</strong><small><span data-count="Keamanan &amp; Sistem">0</span> kelas</small><span class="field-arrow" aria-hidden="true">↘</span></button>
+            <button class="field-card filter-control" type="button" data-bidang="Observabilitas &amp; Uji" aria-pressed="false"><span class="field-index">05 / AMATI</span><strong>Observabilitas &amp; Uji</strong><small><span data-count="Observabilitas &amp; Uji">0</span> kelas</small><span class="field-arrow" aria-hidden="true">↘</span></button>
+        </div>
+    </section>
+    <section class="shell" id="jalur" aria-labelledby="jalur-title">
+        <div class="route-panel">
+            <div>
+                <p class="section-kicker">02 — Bila belum tahu mulai dari mana</p>
+                <h3 id="jalur-title">Ikuti pertanyaan yang sedang kamu pecahkan.</h3>
+                <p>Tidak perlu menguasai semuanya berurutan. Pilih masalah yang dekat, lalu bangun pemahaman ke arah yang lebih luas.</p>
+            </div>
+            <div class="route-list" role="group" aria-label="Jalur belajar cepat">
+                <button class="route-button filter-control" type="button" data-bidang="Bahasa &amp; Framework"><b>01</b><span>Saya ingin membangun layanan</span><small>Go · FastAPI · Next</small></button>
+                <button class="route-button filter-control" type="button" data-bidang="Data &amp; Pesan"><b>02</b><span>Saya ingin data dan event tetap rapi</span><small>Postgres · Redis · Kafka</small></button>
+                <button class="route-button filter-control" type="button" data-bidang="Infrastruktur"><b>03</b><span>Saya ingin sistem siap dijalankan</span><small>Docker · K8s · CI/CD</small></button>
+                <button class="route-button filter-control" type="button" data-bidang="Observabilitas &amp; Uji"><b>04</b><span>Saya ingin tahu apa yang terjadi</span><small>OTel · Prometheus · k6</small></button>
+                <button class="route-button filter-control" type="button" data-bidang="Keamanan &amp; Sistem"><b>05</b><span>Saya ingin sistem yang lebih aman</span><small>Linux · Keamanan</small></button>
+            </div>
+        </div>
+    </section>
+    <section class="section catalog-section shell" id="katalog" aria-labelledby="katalog-title">
+        <div class="catalog-head">
+            <div class="catalog-copy">
+                <p class="section-kicker">03 — Koleksi kelas</p>
+                <h2 id="katalog-title">Pilih satu, lalu mulai membongkar.</h2>
+                <p>Materi bertahap, contoh perintah, dan kuis pemahaman. Pilih kelas yang ingin kamu kuasai hari ini.</p>
+            </div>
+            <div class="search-wrap" id="searchWrap">
+                <label class="search-label" for="cari">Cari di seluruh koleksi</label>
+                <div class="search-control">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.1 4.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <input type="search" id="cari" placeholder="Contoh: Kafka, container, atau indeks" autocomplete="off" aria-describedby="searchHint">
+                    <button class="clear-search" id="clearSearch" type="button" aria-label="Hapus pencarian">×</button>
+                </div>
+                <p class="search-hint" id="searchHint">Tekan <kbd>/</kbd> untuk mencari dengan cepat</p>
+            </div>
+        </div>
+        <div class="filter-row" aria-label="Saring kelas berdasarkan bidang">
+            <button class="filter-chip filter-control is-active" type="button" data-bidang="SEMUA" aria-pressed="true">Semua kelas</button>
+            <button class="filter-chip filter-control" type="button" data-bidang="Bahasa &amp; Framework" aria-pressed="false">Bahasa &amp; Framework</button>
+            <button class="filter-chip filter-control" type="button" data-bidang="Data &amp; Pesan" aria-pressed="false">Data &amp; Pesan</button>
+            <button class="filter-chip filter-control" type="button" data-bidang="Infrastruktur" aria-pressed="false">Infrastruktur</button>
+            <button class="filter-chip filter-control" type="button" data-bidang="Keamanan &amp; Sistem" aria-pressed="false">Keamanan &amp; Sistem</button>
+            <button class="filter-chip filter-control" type="button" data-bidang="Observabilitas &amp; Uji" aria-pressed="false">Observabilitas &amp; Uji</button>
+        </div>
+        <div class="catalog-status" id="hasilStat" aria-live="polite"></div>
+        <div id="hasil"></div>
+        <noscript><p>Aktifkan JavaScript untuk menampilkan katalog interaktif. Kamu tetap dapat membuka <a href="golang/">kelas Golang</a> atau <a href="linux/">Linux &amp; Shell</a>.</p></noscript>
+        <aside class="offline-note" aria-label="Cara progres disimpan">
+            <div class="offline-symbol">&gt;_</div>
+            <div><b>Belajar dengan ritmemu sendiri.</b><p>Tanpa akun dan tanpa iklan. Progres, penanda, dan catatanmu tersimpan di peramban ini saja, tidak dikirim ke server mana pun.</p></div>
+            <code>tanpa akun · progres di perangkatmu</code>
+        </aside>
+    </section>
+</main>
+<footer class="footer">
+    <div class="footer-inner shell">
+        <p class="footer-copy"><strong>Kodeloka</strong> — ruang kecil untuk membangun pemahaman teknis yang utuh. Bagian dari <a href="https://asadinedu.com/">Asadin Edu</a>, bersama <a href="https://biotaloka.asadinedu.com/">Biotaloka</a>, <a href="https://kimialoka.asadinedu.com/">Kimialoka</a>, <a href="https://fisikaloka.asadinedu.com/">Fisikaloka</a>, dan <a href="https://mitoloka.asadinedu.com/">Mitoloka</a>.</p>
+        <a class="top-link" href="tentang/">Tentang &amp; privasi</a>
+        <a class="top-link" href="#beranda">Kembali ke atas ↑</a>
+    </div>
+</footer>
+<script>
+const TOPIK = [
+    { nama: "Golang", folder: "golang", ikon: "🐹", modul: 267, bidang: "Bahasa & Framework", ringkas: "Kurikulum Go paling lengkap di sini: sintaks, konkurensi, web server, gRPC, observabilitas, sampai ujian akhir.", tag: ["goroutine", "gRPC", "sqlc", "OTel"] },
+    { nama: "FastAPI", folder: "fastapi", ikon: "⚡", modul: 24, bidang: "Bahasa & Framework", ringkas: "API Python modern: Pydantic v2, dependency injection, async, WebSocket, lifespan, dan penerapan produksi.", tag: ["Pydantic v2", "async", "SQLModel"] },
+    { nama: "Next.js", folder: "next", ikon: "▲", modul: 23, bidang: "Bahasa & Framework", ringkas: "App Router, Server Component, Server Action, caching, dan pola rendering pada Next.js versi terbaru.", tag: ["App Router", "RSC", "caching"] },
+    { nama: "Microservices", folder: "microservices", ikon: "🧩", modul: 24, bidang: "Bahasa & Framework", ringkas: "Pemecahan layanan, komunikasi antar layanan, resilience, Saga, contract testing, dan distributed tracing.", tag: ["Saga", "resilience", "tracing"] },
+    { nama: "PostgreSQL", folder: "postgresql", ikon: "🐘", modul: 12, bidang: "Data & Pesan", ringkas: "Arsitektur, indeks, EXPLAIN ANALYZE, MVCC dan VACUUM, partisi, replikasi, sampai migrasi tanpa downtime.", tag: ["indeks", "MVCC", "replikasi"] },
+    { nama: "Redis", folder: "redis", ikon: "🔴", modul: 21, bidang: "Data & Pesan", ringkas: "Struktur data, strategi caching, persistensi, Streams, Cluster, dan pola penguncian terdistribusi.", tag: ["cache", "Streams", "Cluster"] },
+    { nama: "Apache Kafka", folder: "kafka", ikon: "🌊", modul: 13, bidang: "Data & Pesan", ringkas: "Log terdistribusi, partisi dan urutan, KRaft, transaksi, Schema Registry, Connect, Streams, dan pola outbox.", tag: ["KRaft", "exactly-once", "outbox"] },
+    { nama: "RabbitMQ", folder: "rabbitmq", ikon: "🐰", modul: 15, bidang: "Data & Pesan", ringkas: "AMQP, exchange dan routing, quorum queue, dead letter exchange, serta klaster dan ketahanan pesan.", tag: ["AMQP", "quorum", "DLX"] },
+    { nama: "Nginx", folder: "nginx", ikon: "🌐", modul: 8, bidang: "Infrastruktur", baru: true, ringkas: "Model proses dan konteks konfigurasi, reverse proxy, upstream, TLS, pembatasan laju, caching, dan diagnosis.", tag: ["proxy", "TLS", "cache"] },
+    { nama: "Docker", folder: "docker", ikon: "🐳", modul: 21, bidang: "Infrastruktur", ringkas: "Image dan layer, multi-stage build, Compose, BuildKit dan buildx, rootless, serta pemindaian keamanan.", tag: ["BuildKit", "Compose", "rootless"] },
+    { nama: "Kubernetes", folder: "kubernetes", ikon: "☸️", modul: 14, bidang: "Infrastruktur", ringkas: "Pod sampai Deployment, Service dan Ingress, konfigurasi, penskalaan, keamanan, dan penelusuran masalah klaster.", tag: ["Deployment", "Ingress", "HPA"] },
+    { nama: "Kong", folder: "kong", ikon: "🦍", modul: 12, bidang: "Infrastruktur", ringkas: "API gateway: rute dan layanan, plugin, autentikasi, rate limiting, mode DB-less, dan Konnect.", tag: ["gateway", "plugin", "Konnect"] },
+    { nama: "Git & CI/CD", folder: "git-ci-cd", ikon: "🔀", modul: 20, bidang: "Infrastruktur", ringkas: "Fondasi Git, strategi percabangan, GitHub Actions, pipeline, artefak, dan strategi rilis.", tag: ["Git", "Actions", "pipeline"] },
+    { nama: "Linux & Shell", folder: "linux", ikon: "🐧", modul: 8, bidang: "Keamanan & Sistem", baru: true, ringkas: "Fondasi sistem untuk semua topik lain: filesystem, proses, shell, jaringan, dan operasi harian.", tag: ["shell", "proses", "jaringan"] },
+    { nama: "Keamanan Aplikasi", folder: "keamanan", ikon: "🛡️", modul: 8, bidang: "Keamanan & Sistem", baru: true, ringkas: "Model ancaman, injeksi, XSS, autentikasi dan otorisasi, pengelolaan rahasia, rantai pasok, CSRF dan SSRF.", tag: ["OWASP", "XSS", "SSRF"] },
+    { nama: "OpenTelemetry", folder: "opentelemetry", ikon: "🔭", modul: 8, bidang: "Observabilitas & Uji", baru: true, ringkas: "Trace, metrik, dan log yang menyatu: instrumentasi, Collector, sampling, perambatan konteks, dan penyelidikan.", tag: ["trace", "Collector", "sampling"] },
+    { nama: "Prometheus", folder: "prometheus", ikon: "🔥", modul: 15, bidang: "Observabilitas & Uji", ringkas: "Model metrik, PromQL, exporter, aturan perekaman, alerting, dan federation untuk skala besar.", tag: ["PromQL", "exporter", "alert"] },
+    { nama: "Grafana", folder: "grafana", ikon: "📊", modul: 15, bidang: "Observabilitas & Uji", ringkas: "Panel dan visualisasi, variabel, transformasi data, alerting terpadu, dan provisioning sebagai kode.", tag: ["panel", "variabel", "provisioning"] },
+    { nama: "k6", folder: "k6", ikon: "🎯", modul: 15, bidang: "Observabilitas & Uji", ringkas: "Uji beban modern: skenario, threshold, metrik khusus, integrasi CI/CD, dan pengujian terdistribusi.", tag: ["load test", "threshold", "CI"] }
+];
+const URUTAN_BIDANG = ["Bahasa & Framework", "Data & Pesan", "Infrastruktur", "Keamanan & Sistem", "Observabilitas & Uji"];
+const TONE_BIDANG = { "Bahasa & Framework": "bahasa", "Data & Pesan": "data", "Infrastruktur": "infra", "Keamanan & Sistem": "security", "Observabilitas & Uji": "observe" };
+const COURSE_MARKS = { "golang": "Go", "fastapi": "Py", "next": "N/", "microservices": "μs", "postgresql": "Pg", "redis": "Re", "kafka": "Kf", "rabbitmq": "Rq", "nginx": "Nx", "docker": "Dk", "kubernetes": "K8", "kong": "Kg", "git-ci-cd": "Git", "linux": ">_", "keamanan": "{✓}", "opentelemetry": "Ot", "prometheus": "Pr", "grafana": "Gr", "k6": "k6" };
+let bidangAktif = "SEMUA";
+let kataCari = "";
+function lolos(teks) {
+    return String(teks).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function tersaring() {
+    const q = kataCari.trim().toLowerCase();
+    return TOPIK.filter(function(topik) {
+        if (bidangAktif !== "SEMUA" && topik.bidang !== bidangAktif) return false;
+        if (!q) return true;
+        return (topik.nama + " " + topik.ringkas + " " + topik.tag.join(" ") + " " + topik.bidang).toLowerCase().includes(q);
+    });
+}
+function kartu(topik, nomor) {
+    const tag = topik.tag.slice(0, 3).map(function(item) { return '<span>' + lolos(item) + '</span>'; }).join("");
+    const badge = topik.baru ? '<span class="course-badge">baru</span>' : "";
+    return '<a class="course-card tone-' + TONE_BIDANG[topik.bidang] + '" href="' + topik.folder + '/" data-folder="' + lolos(topik.folder) + '">' +
+        '<div class="course-top"><span class="course-number">' + String(nomor).padStart(2, "0") + ' / ' + lolos(TONE_BIDANG[topik.bidang]) + '</span>' + badge + '</div>' +
+        '<span class="course-icon" aria-hidden="true">' + lolos(COURSE_MARKS[topik.folder]) + '</span>' +
+        '<span class="course-domain">' + lolos(topik.bidang) + '</span>' +
+        '<h3>' + lolos(topik.nama) + '</h3>' +
+        '<p>' + lolos(topik.ringkas) + '</p>' +
+        '<div class="course-tags">' + tag + '</div>' +
+        '<div class="course-footer"><span>' + topik.modul + ' modul</span><span>Masuk kelas <b aria-hidden="true">→</b></span></div></a>';
+}
+function render() {
+    const hasil = tersaring();
+    const wadah = document.getElementById("hasil");
+    const status = document.getElementById("hasilStat");
+    const labelBidang = bidangAktif === "SEMUA" ? "seluruh koleksi" : bidangAktif;
+    status.innerHTML = '<strong>' + hasil.length + ' kelas ditemukan</strong><span>' + lolos(labelBidang) + '</span>';
+    if (hasil.length === 0) {
+        wadah.innerHTML = '<div class="empty-state"><div><b>Belum ketemu, ya?</b><p>Coba kata kunci lain atau kembali ke seluruh koleksi.</p><button class="reset-filter" type="button" data-reset-filter>Atur ulang pencarian</button></div></div>';
+        return;
+    }
+    let nomor = 0;
+    let html = "";
+    URUTAN_BIDANG.forEach(function(bidang) {
+        const isi = hasil.filter(function(topik) { return topik.bidang === bidang; });
+        if (!isi.length) return;
+        html += '<section class="course-group" aria-labelledby="group-' + TONE_BIDANG[bidang] + '">' +
+            '<h3 class="course-group-heading" id="group-' + TONE_BIDANG[bidang] + '">' + lolos(bidang) + '<span>' + isi.length + ' kelas</span></h3>' +
+            '<div class="course-grid">' + isi.map(function(topik) { nomor += 1; return kartu(topik, nomor); }).join("") + '</div></section>';
+    });
+    wadah.innerHTML = html;
+}
+function sinkronkanKontrol() {
+    document.querySelectorAll(".filter-control").forEach(function(kontrol) {
+        const aktif = kontrol.dataset.bidang === bidangAktif;
+        kontrol.classList.toggle("is-active", aktif);
+        if (kontrol.hasAttribute("aria-pressed")) kontrol.setAttribute("aria-pressed", String(aktif));
+    });
+}
+function pilihBidang(bidang, pindahKeKatalog) {
+    bidangAktif = bidang;
+    if (pindahKeKatalog) {
+        kataCari = "";
+        document.getElementById("cari").value = "";
+        document.getElementById("searchWrap").classList.remove("has-query");
+    }
+    sinkronkanKontrol();
+    render();
+    if (pindahKeKatalog) document.getElementById("katalog").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+}
+function simpanKelasTerakhir(folder) {
+    try { localStorage.setItem("kodeloka-kelas-terakhir", folder); } catch (error) {}
+}
+function pulihkanKelasTerakhir() {
+    try {
+        const folder = localStorage.getItem("kodeloka-kelas-terakhir");
+        const topik = TOPIK.find(function(item) { return item.folder === folder; });
+        if (!topik) return;
+        const tautan = document.getElementById("continueLink");
+        tautan.href = topik.folder + "/";
+        tautan.innerHTML = "Lanjutkan " + lolos(topik.nama) + ' <span aria-hidden="true">→</span>';
+    } catch (error) {}
+}
+document.addEventListener("DOMContentLoaded", function() {
+    const jumlahModul = TOPIK.reduce(function(total, topik) { return total + topik.modul; }, 0);
+    document.getElementById("jmlTopik").textContent = TOPIK.length;
+    document.getElementById("jmlModul").textContent = jumlahModul;
+    document.querySelectorAll("[data-count]").forEach(function(elemen) {
+        const bidang = elemen.dataset.count;
+        elemen.textContent = TOPIK.filter(function(topik) { return topik.bidang === bidang; }).length;
+    });
+    const pencarian = document.getElementById("cari");
+    const searchWrap = document.getElementById("searchWrap");
+    pencarian.addEventListener("input", function(event) {
+        kataCari = event.target.value;
+        searchWrap.classList.toggle("has-query", Boolean(kataCari));
+        render();
+    });
+    document.getElementById("clearSearch").addEventListener("click", function() {
+        pencarian.value = "";
+        kataCari = "";
+        searchWrap.classList.remove("has-query");
+        pencarian.focus();
+        render();
+    });
+    document.querySelectorAll(".filter-control").forEach(function(kontrol) {
+        kontrol.addEventListener("click", function() {
+            pilihBidang(kontrol.dataset.bidang, kontrol.closest("#peta, #jalur") !== null);
+        });
+    });
+    document.getElementById("hasil").addEventListener("click", function(event) {
+        const kartuTerpilih = event.target.closest(".course-card");
+        if (kartuTerpilih) simpanKelasTerakhir(kartuTerpilih.dataset.folder);
+        if (event.target.closest("[data-reset-filter]")) {
+            kataCari = "";
+            pencarian.value = "";
+            searchWrap.classList.remove("has-query");
+            pilihBidang("SEMUA", false);
+            pencarian.focus();
+        }
+    });
+    const header = document.querySelector(".site-header");
+    const toggle = document.getElementById("menuToggle");
+    toggle.addEventListener("click", function() {
+        const terbuka = header.classList.toggle("menu-open");
+        toggle.setAttribute("aria-expanded", String(terbuka));
+        toggle.setAttribute("aria-label", terbuka ? "Tutup menu" : "Buka menu");
+    });
+    document.querySelectorAll("#navLinks a").forEach(function(tautan) {
+        tautan.addEventListener("click", function() {
+            header.classList.remove("menu-open");
+            toggle.setAttribute("aria-expanded", "false");
+            toggle.setAttribute("aria-label", "Buka menu");
+        });
+    });
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "/" && !event.target.closest("input, textarea, select, [contenteditable='true']") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            pencarian.focus();
+        }
+        if (event.key === "Escape" && header.classList.contains("menu-open")) {
+            header.classList.remove("menu-open");
+            toggle.setAttribute("aria-expanded", "false");
+            toggle.setAttribute("aria-label", "Buka menu");
+            toggle.focus();
+        }
+    });
+    pulihkanKelasTerakhir();
+    sinkronkanKontrol();
+    render();
+});
+</script>
+</body>
+</html>
