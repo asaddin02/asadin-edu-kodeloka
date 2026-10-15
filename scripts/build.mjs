@@ -320,7 +320,7 @@ ${footer}`;
 <li>Tidak ada akun, iklan, atau analitik pelacak.</li>
 <li>Progres, penanda, dan catatan disimpan di peramban kamu sendiri (localStorage) dan tidak dikirim ke server.</li>
 <li>Saat kamu menekan tombol jalankan di editor Golang, kodenya dikirim ke Go Playground resmi (play.golang.org) untuk dikompilasi.</li>
-<li>Beberapa kelas memuat huruf dari Google Fonts, dan video dimuat dari YouTube saat tab Video dibuka.</li>
+<li>Video dimuat dari YouTube hanya saat tab Video dibuka.</li>
 </ul>
 <h2>Melaporkan kesalahan</h2>
 <p>Laporan kesalahan dan saran bisa dikirim lewat <a href="https://github.com/asaddin02/asadin-edu-kodeloka/issues">GitHub Issues</a>. Sertakan nama kelas dan modulnya.</p>
@@ -363,7 +363,7 @@ await writeFile(join(dist, 'manifest.webmanifest'), JSON.stringify({
   ]
 }, null, 2) + '\n');
 // The course engines use inline handlers and inline styles, so scripts keep 'unsafe-inline'; everything
-// else is locked to this origin plus YouTube's privacy-mode player, Google Fonts and the Go Playground
+// else is locked to this origin plus YouTube's privacy-mode player and the Go Playground
 // (the Golang editor sends code there only when the learner presses Run).
 await writeFile(join(dist, '_headers'), `/*
   X-Content-Type-Options: nosniff
@@ -371,7 +371,7 @@ await writeFile(join(dist, '_headers'), `/*
   X-Frame-Options: DENY
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
   Strict-Transport-Security: max-age=31536000
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://i.ytimg.com; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://play.golang.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://i.ytimg.com; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://play.golang.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 /assets/*
   Cache-Control: public, max-age=86400

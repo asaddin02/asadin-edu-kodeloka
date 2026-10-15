@@ -63,14 +63,23 @@ for (const course of courses) {
     const len = await page.evaluate(() => document.querySelector('main').innerText.trim().length);
     if (len < 200) fail(`${course.slug}: module ${i + 1} renders almost nothing`);
   }
-  // Video tab: the iframe is either a checked youtube-nocookie embed or hidden with a notice.
+  // Video tab: the iframe is either a checked youtube-nocookie embed or hidden with a notice, and the
+  // player is only requested once the tab is opened.
   if (await page.locator('#youtubeIframe').count()) {
+    if (await page.evaluate(() => !!document.getElementById('youtubeIframe').getAttribute('src'))) fail(`${course.slug}: video player loaded before the Video tab was opened`);
     for (let i = 0; i < count; i++) {
       await page.locator(ITEMS).nth(i).click();
-      const v = await page.evaluate(() => ({ src: document.getElementById('youtubeIframe').getAttribute('src'), title: document.getElementById('videoTitleMeta')?.textContent }));
+      const v = await page.evaluate(() => { const f = document.getElementById('youtubeIframe'); return { src: f.dataset.src || f.getAttribute('src'), title: document.getElementById('videoTitleMeta')?.textContent }; });
       if (v.src && !/^https:\/\/www\.youtube-nocookie\.com\/embed\/[\w-]{11}\?rel=0/.test(v.src)) fail(`${course.slug}: module ${i + 1} video src ${v.src}`);
       if (!v.src && !/Belum ada video/.test(v.title)) fail(`${course.slug}: module ${i + 1} has no video and no notice`);
     }
+  }
+  if (await page.locator('#lesson-tab-video').count()) {
+    await page.locator(ITEMS).first().click();
+    await page.click('#lesson-tab-video');
+    await page.waitForTimeout(50);
+    const src = await page.evaluate(() => document.getElementById('youtubeIframe').getAttribute('src'));
+    if (!src || !src.startsWith('https://www.youtube-nocookie.com/embed/')) fail(`${course.slug}: opening the Video tab did not start the player (${src})`);
   }
   if (errors.length) fail(`${course.slug}: ${errors.slice(0, 3).join(' | ')}`);
   await page.close();

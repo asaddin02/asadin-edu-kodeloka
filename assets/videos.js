@@ -96,6 +96,15 @@
     return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
   }
 
+  // Opening the Video tab starts the player that kodelokaVideo prepared for the current module.
+  document.addEventListener('click', event => {
+    if (!event.target.closest('.tab-btn[data-tab="video"], #lesson-tab-video')) return;
+    setTimeout(() => {
+      const iframe = document.getElementById('youtubeIframe');
+      if (iframe && iframe.dataset.src && iframe.getAttribute('src') !== iframe.dataset.src) iframe.src = iframe.dataset.src;
+    }, 0);
+  });
+
   window.kodelokaVideo = function (id, options) {
     const start = (options && options.start) || 0;
     const iframe = document.getElementById('youtubeIframe');
@@ -105,7 +114,7 @@
     const link = document.getElementById('videoDirectLink');
     const info = id ? VIDEOS[id] : null;
     if (!info) {
-      if (iframe) iframe.removeAttribute('src');
+      if (iframe) { iframe.removeAttribute('src'); delete iframe.dataset.src; }
       if (frame) frame.style.display = 'none';
       if (title) title.textContent = 'Belum ada video untuk modul ini';
       if (desc) desc.textContent = 'Kodeloka hanya memasang video yang benar-benar membahas topik modulnya, dan untuk modul ini belum ada. Materi tertulis, praktik, dan kuisnya tetap lengkap.';
@@ -113,7 +122,12 @@
       return;
     }
     if (frame) frame.style.display = '';
-    if (iframe) iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0' + (start ? '&start=' + start : '');
+    if (iframe) {
+      // The player loads only once the Video tab is open, so opening a lesson contacts no third party.
+      iframe.dataset.src = 'https://www.youtube-nocookie.com/embed/' + id + '?rel=0' + (start ? '&start=' + start : '');
+      if (iframe.getClientRects().length) iframe.src = iframe.dataset.src;
+      else iframe.removeAttribute('src');
+    }
     if (title) title.textContent = info[0];
     if (desc) {
       const note = NOTES[id] ? ' ' + NOTES[id] : '';
