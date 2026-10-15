@@ -373,14 +373,10 @@ await writeFile(join(dist, '_headers'), `/*
   Strict-Transport-Security: max-age=31536000
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://i.ytimg.com; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://play.golang.org; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
-/assets/*
+/assets/brand/*
   Cache-Control: public, max-age=86400
-
-/*/app.js
-  Cache-Control: public, max-age=3600
-
-/*/style.css
-  Cache-Control: public, max-age=3600
 `);
+// Scripts and styles keep Pages' default (revalidate every time): their names carry no content hash, so a
+// long max-age would keep serving the previous version from the edge after a deploy.
 
 console.log(`dist: ${urls.length} URL di sitemap (${courses.length} kelas, ${urls.length - 2 - courses.length * 2} halaman materi)`);
