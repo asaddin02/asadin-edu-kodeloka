@@ -661,7 +661,31 @@
         text-transform: uppercase;
     }
     .course-group-heading::after { height: 1px; flex: 1; background: var(--line); content: ""; }
+    .course-rail-hint {
+        display: none;
+        align-items: center;
+        gap: 7px;
+        margin: -2px 0 11px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        line-height: 1.45;
+    }
+    .course-rail-hint span[aria-hidden="true"] {
+        display: grid;
+        width: 23px;
+        height: 23px;
+        flex: 0 0 auto;
+        place-items: center;
+        color: var(--ink-soft);
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--paper-high);
+        font-family: var(--mono);
+        font-size: 0.76rem;
+        font-weight: 800;
+    }
     .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+    .course-grid:focus-visible { outline: 3px solid var(--sky-deep); outline-offset: 4px; border-radius: 20px; }
     .course-card {
         position: relative;
         display: flex;
@@ -777,7 +801,8 @@
     .course-card h3 { font-size: 1.4rem; }
     .course-top, .course-icon, .course-domain, .course-card h3 { position: relative; z-index: 1; }
     .course-tags { margin-bottom: auto; }
-    .route-button.is-active { background: #e5efd8; }
+    .route-button.is-active { padding-left: 21px; background: #e5efd8; box-shadow: inset 4px 0 0 var(--ink); }
+    .route-button.is-active b { color: var(--coral-deep); }
     .course-group { animation: catalog-enter .24s ease-out both; }
     @keyframes catalog-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
     @media (hover: hover) {
@@ -844,10 +869,39 @@
         .route-panel { gap: 26px; padding: 24px 20px; }
         .route-button { grid-template-columns: 25px minmax(0, 1fr); gap: 10px; }
         .route-button small { display: none; }
-        .filter-row { gap: 6px; }
-        .filter-chip { padding: 8px 10px; font-size: 0.72rem; }
-        .course-grid { grid-template-columns: 1fr; }
-        .course-card { min-height: 272px; }
+        .filter-row {
+            flex-wrap: nowrap;
+            gap: 7px;
+            margin-top: 29px;
+            padding: 3px 2px 12px;
+            overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            scroll-padding-inline: 2px;
+            scroll-snap-type: inline proximity;
+            scrollbar-color: var(--line-strong) transparent;
+            scrollbar-width: thin;
+        }
+        .filter-row::-webkit-scrollbar, .course-grid::-webkit-scrollbar { height: 6px; }
+        .filter-row::-webkit-scrollbar-thumb, .course-grid::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--line-strong); }
+        .filter-chip { flex: 0 0 auto; padding: 8px 10px; font-size: 0.72rem; scroll-snap-align: start; }
+        .course-group { margin-top: 42px; }
+        .course-group-heading { margin-bottom: 9px; }
+        .course-rail-hint { display: flex; }
+        .course-grid {
+            grid-auto-columns: minmax(270px, calc(100% - 42px));
+            grid-auto-flow: column;
+            grid-template-columns: none;
+            gap: 12px;
+            padding: 2px 2px 12px;
+            overflow-x: auto;
+            overflow-y: visible;
+            overscroll-behavior-inline: contain;
+            scroll-padding-inline: 2px;
+            scroll-snap-type: inline mandatory;
+            scrollbar-color: var(--line-strong) transparent;
+            scrollbar-width: thin;
+        }
+        .course-card { min-height: 280px; scroll-snap-align: start; scroll-snap-stop: always; }
         .offline-note { grid-template-columns: auto 1fr; gap: 12px; padding: 16px; }
         .offline-note code { grid-column: 1 / -1; }
         .footer-inner { min-height: 120px; align-items: flex-start; flex-direction: column; justify-content: center; }
@@ -963,7 +1017,7 @@
                 <p class="search-hint" id="searchHint">Tekan <kbd>/</kbd> untuk mencari dengan cepat</p>
             </div>
         </div>
-        <div class="filter-row" aria-label="Saring kelas berdasarkan bidang">
+        <div class="filter-row" role="group" aria-label="Saring kelas berdasarkan bidang">
             <button class="filter-chip filter-control is-active" type="button" data-bidang="SEMUA" aria-pressed="true">Semua kelas</button>
             <button class="filter-chip filter-control" type="button" data-bidang="Bahasa &amp; Framework" aria-pressed="false">Bahasa &amp; Framework</button>
             <button class="filter-chip filter-control" type="button" data-bidang="Data &amp; Pesan" aria-pressed="false">Data &amp; Pesan</button>
@@ -1013,6 +1067,7 @@ const TOPIK = [
 const URUTAN_BIDANG = ["Bahasa & Framework", "Data & Pesan", "Infrastruktur", "Keamanan & Sistem", "Observabilitas & Uji"];
 const TONE_BIDANG = { "Bahasa & Framework": "bahasa", "Data & Pesan": "data", "Infrastruktur": "infra", "Keamanan & Sistem": "security", "Observabilitas & Uji": "observe" };
 const COURSE_MARKS = { "golang": "Go", "fastapi": "Py", "next": "N/", "microservices": "μs", "postgresql": "Pg", "redis": "Re", "kafka": "Kf", "rabbitmq": "Rq", "nginx": "Nx", "docker": "Dk", "kubernetes": "K8", "kong": "Kg", "git-ci-cd": "Git", "linux": ">_", "keamanan": "{✓}", "opentelemetry": "Ot", "prometheus": "Pr", "grafana": "Gr", "k6": "k6" };
+const RAIL_KATALOG_MOBILE = matchMedia("(max-width: 560px)");
 let bidangAktif = "SEMUA";
 let kataCari = "";
 function lolos(teks) {
@@ -1055,15 +1110,24 @@ function render() {
         if (!isi.length) return;
         html += '<section class="course-group" aria-labelledby="group-' + TONE_BIDANG[bidang] + '">' +
             '<h3 class="course-group-heading" id="group-' + TONE_BIDANG[bidang] + '">' + lolos(bidang) + '<span>' + isi.length + ' kelas</span></h3>' +
-            '<div class="course-grid">' + isi.map(function(topik) { nomor += 1; return kartu(topik, nomor); }).join("") + '</div></section>';
+            '<p class="course-rail-hint" id="rail-hint-' + TONE_BIDANG[bidang] + '"><span aria-hidden="true">↔</span>Geser untuk melihat semua kelas di bidang ini.</p>' +
+            '<div class="course-grid" role="region" aria-labelledby="group-' + TONE_BIDANG[bidang] + '" aria-describedby="rail-hint-' + TONE_BIDANG[bidang] + '">' + isi.map(function(topik) { nomor += 1; return kartu(topik, nomor); }).join("") + '</div></section>';
     });
     wadah.innerHTML = html;
+    sinkronkanRailKatalog();
+}
+function sinkronkanRailKatalog() {
+    document.querySelectorAll(".course-grid").forEach(function(rail) {
+        if (RAIL_KATALOG_MOBILE.matches) rail.setAttribute("tabindex", "0");
+        else rail.removeAttribute("tabindex");
+    });
 }
 function sinkronkanKontrol() {
     document.querySelectorAll(".filter-control").forEach(function(kontrol) {
         const aktif = kontrol.dataset.bidang === bidangAktif;
         kontrol.classList.toggle("is-active", aktif);
-        if (kontrol.hasAttribute("aria-pressed")) kontrol.setAttribute("aria-pressed", String(aktif));
+        kontrol.setAttribute("aria-pressed", String(aktif));
+        kontrol.setAttribute("aria-controls", "hasil");
     });
 }
 function pilihBidang(bidang, pindahKeKatalog) {
@@ -1100,6 +1164,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     const pencarian = document.getElementById("cari");
     const searchWrap = document.getElementById("searchWrap");
+    RAIL_KATALOG_MOBILE.addEventListener("change", sinkronkanRailKatalog);
     pencarian.addEventListener("input", function(event) {
         kataCari = event.target.value;
         searchWrap.classList.toggle("has-query", Boolean(kataCari));

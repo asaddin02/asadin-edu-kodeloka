@@ -53,6 +53,30 @@ const overflow = page => page.evaluate(() => document.documentElement.scrollWidt
   await page.close();
 }
 
+// The complete catalog stays available on a narrow screen, but each category is a keyboard-focusable
+// horizontal rail instead of a 19-card vertical wall.
+{
+  const { page, errors } = await open('/', { width: 390, height: 844 });
+  if (await page.locator('#hasil .course-card').count() !== 19) fail('home mobile: expected all 19 course cards');
+  if (await page.locator('.course-grid[role="region"][aria-labelledby][aria-describedby]').count() !== 5) fail('home mobile: expected five labelled course rails');
+  const rail = page.locator('.course-grid').first();
+  if (await rail.getAttribute('tabindex') !== '0') fail('home mobile: first course rail is not keyboard focusable');
+  const before = await rail.evaluate(el => ({ left: el.scrollLeft, width: el.scrollWidth, client: el.clientWidth }));
+  if (before.width <= before.client) fail('home mobile: first course rail is not horizontally scrollable');
+  await rail.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(150);
+  const after = await rail.evaluate(el => el.scrollLeft);
+  if (after <= before.left) fail('home mobile: ArrowRight did not move the focused course rail');
+  await page.locator('.route-button').nth(1).click();
+  if (await page.locator('#hasil .course-card').count() !== 4) fail('home mobile: route filter did not narrow to four data courses');
+  if (await page.locator('.route-button[aria-pressed="true"]').count() !== 1) fail('home mobile: route filter did not expose its pressed state');
+  const o = await overflow(page);
+  if (o > 1) fail(`home mobile: ${o}px document horizontal overflow at 390px`);
+  if (errors.length) fail('home mobile: ' + errors.join(' | '));
+  await page.close();
+}
+
 for (const course of courses) {
   const { page, errors } = await open(`/${course.slug}/`);
   const count = await page.locator(ITEMS).count();
