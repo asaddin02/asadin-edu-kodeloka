@@ -3,90 +3,135 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Memahami rumus distribusi ruang kosong dan penyusutan ruang sempit di dalam Flexbox, perbedaan `flex-basis: 0%` vs `auto`, serta cara mengatasi masalah `min-inline-size: auto` pada flex item.
 
-## Mengapa "Bedah Matematis Flexbox: Bagaimana `flex-grow`, `flex-shrink`, dan `flex-basis` Dihitung Peramban" Penting dalam Pengembangan CSS Modern?
+## Mengapa Perlu Memahami Perhitungannya?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`flex-basis`** dan **`flex-shrink`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Pelajaran 06 memperkenalkan `flex: 1`, `flex: auto`, dan `flex: none`. Namun saat tata letak tidak berperilaku seperti dugaan, misalnya satu kolom menolak mengecil atau dua kolom `flex: 1` memiliki lebar berbeda, Anda perlu tahu **bagaimana peramban membagi ruang**. Ternyata rumusnya sederhana dan dapat dihitung dengan tangan.
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. Langkah Dasar: Ukuran Awal dan Ruang Bebas
 
-Fitur `flex-basis` dan `flex-shrink` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+Untuk setiap flex item pada sumbu utama, peramban melakukan hal berikut:
+1. Menentukan **ukuran dasar** (*flex base size*) dari `flex-basis`. Jika `flex-basis: auto`, dipakai nilai `width` (atau `height` pada `column`); jika `width` juga `auto`, dipakai ukuran isi (`max-content`).
+2. Menjumlahkan semua ukuran dasar (termasuk `gap`, margin, padding, dan border) lalu membandingkannya dengan ukuran kontainer.
+3. **Ruang bebas** = ukuran kontainer dikurangi jumlah itu.
+   - Jika ruang bebas **positif**, item boleh **tumbuh** (`flex-grow`).
+   - Jika ruang bebas **negatif**, item harus **menyusut** (`flex-shrink`).
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`flex-basis`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`flex-shrink`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
+## 2. Menghitung `flex-grow`
 
-## 2. Implementasi Kode CSS Siap Pakai
+Ruang bebas dibagi sesuai perbandingan faktor `flex-grow`:
 
-Berikut adalah pola penerapan `flex-basis` dan `flex-shrink` sesuai praktik terbaik CSS modern:
+`tambahan item = ruang bebas x (grow item / jumlah semua grow)`
+
+**Contoh:** Kontainer `600px`, tiga item dengan `flex-basis: 100px` dan `flex-grow` berturut-turut `1`, `2`, `0`.
+- Jumlah ukuran dasar = `300px`, ruang bebas = `600 - 300 = 300px`, jumlah grow = `3`.
+- Item A: `100 + 300 x 1/3 = 200px`
+- Item B: `100 + 300 x 2/3 = 300px`
+- Item C: `100 + 0 = 100px`
+
+Hasil: `200 + 300 + 100 = 600px`.
+
+> **💡 Catatan:** Jika **jumlah** `flex-grow` kurang dari `1` (misalnya satu item dengan `flex-grow: 0.5`), hanya sebagian ruang bebas yang dibagikan (di sini 50%), bukan seluruhnya.
+
+## 3. Menghitung `flex-shrink`
+
+Peramban tidak menyusutkan item sama rata, melainkan **dibobot dengan ukuran dasar**. Bobot item = `flex-shrink x ukuran dasar`.
+
+`penyusutan item = |ruang bebas| x (bobot item / jumlah semua bobot)`
+
+**Contoh:** Kontainer `400px`; item A `flex-basis: 400px`, item B `flex-basis: 200px`, keduanya `flex-shrink: 1` dan tanpa isi (tidak ada batas minimum dari isi).
+- Jumlah ukuran dasar = `600px`, ruang bebas = `400 - 600 = -200px`.
+- Bobot A = `1 x 400 = 400`, bobot B = `1 x 200 = 200`, jumlah = `600`.
+- A menyusut `200 x 400/600 = 133,3px`, menjadi `266,7px`.
+- B menyusut `200 x 200/600 = 66,7px`, menjadi `133,3px`.
+
+Item yang lebih besar menyusut lebih banyak (dalam piksel), tetapi persentase penyusutannya sama. Dengan `flex-shrink: 0`, item tidak ikut menyusut sama sekali, sehingga item lain menanggung seluruh penyusutan atau, bila tidak cukup, kontainer meluber.
 
 ```css
-/* Contoh penerapan Bedah Matematis Flexbox: Bagaimana `flex-grow`, `flex-shrink`, dan `flex-basis` Dihitung Peramban */
-.kolom-utama {
-  flex: 1 1 0%;
-  min-inline-size: 0;
+.kontainer { display: flex; inline-size: 400px; }
+.a { flex: 0 1 400px; }   /* jadi 266,7px */
+.b { flex: 0 1 200px; }   /* jadi 133,3px */
+.ikon { flex: none; }     /* tidak menyusut maupun tumbuh */
+```
+
+## 4. `flex-basis: 0%` Berbeda dengan `auto`
+
+Perbedaan `flex: 1` dan `flex: auto` hanya terletak pada ukuran dasarnya:
+
+| Singkatan | Setara | Ukuran dasar | Akibat |
+|---|---|---|---|
+| `flex: 1` | `1 1 0%` | `0` | Seluruh ruang kontainer dibagi menurut grow, sehingga item **sama lebar** meski isinya berbeda. |
+| `flex: auto` | `1 1 auto` | ukuran isi/`width` | Ruang **sisa** setelah isi dihitung yang dibagi, sehingga item dengan isi lebih panjang tetap lebih lebar. |
+
+**Contoh:** Kontainer `600px`, tiga item dengan lebar isi `50px`, `100px`, dan `150px`.
+- Dengan `flex: 1`: tiap item `200px`.
+- Dengan `flex: auto`: ruang bebas `600 - 300 = 300px`, tiap item mendapat tambahan `100px`, hasilnya `150px`, `200px`, `250px`.
+
+## 5. Batas Minimum Otomatis dan Jebakan `min-width: auto`
+
+Setelah rumus di atas, peramban memeriksa batas `min-width`/`max-width`. Pada flex item, nilai bawaan `min-width` adalah **`auto`**, yang berarti item **tidak boleh menyusut lebih kecil daripada ukuran isi minimumnya** (`min-content`). Itu sebabnya kata panjang, URL, atau blok `<pre>` bisa membuat kolom menolak mengecil dan meluber dari kontainer. Solusinya:
+
+```css
+.kolom-isi {
+  flex: 1;
+  min-inline-size: 0;   /* izinkan menyusut di bawah ukuran isi minimum */
+}
+
+.kolom-isi pre {
+  overflow-x: auto;     /* blok kode digulir di dalam kolomnya sendiri */
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan flex-basis</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
-```
+Alternatif: `overflow: hidden` (atau nilai `overflow` selain `visible`) pada flex item membuat batas minimum otomatisnya menjadi `0`.
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `flex-basis` dan `flex-shrink`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+## Kesalahan Umum dan Cara Menghindarinya
 
-## 3. Kesalahan Umum yang Harus Dihindari
+1. **Menyangka `flex-shrink` menyusutkan item sama rata.** Penyusutan dibobot dengan ukuran dasar, jadi item yang besar menyusut lebih banyak piksel.
+2. **Mengira `flex: 1` dan `flex: auto` sama.** Ukuran dasar `0%` dan `auto` menghasilkan lebar yang berbeda ketika isinya tidak sama panjang.
+3. **Memakai `width` dan `flex-basis` bersamaan.** Pada sumbu utama, `flex-basis` selain `auto` mengalahkan `width`; tulis ukuran awal di satu tempat saja.
+4. **Melupakan padding dan border saat menghitung.** Dengan `box-sizing: content-box`, `flex-basis` hanya mengukur isi, sedangkan padding dan border tetap dihitung dalam ruang bebas. Gunakan `box-sizing: border-box` agar hitungan lebih mudah diprediksi.
+5. **Lupa `min-width: 0`.** Kolom yang berisi `<pre>` atau URL panjang akan menolak menyusut.
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `flex-basis` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## Latihan Praktik: Menghitung dan Membuktikan
 
-## Latihan Praktik
-
-Buatlah berkas `28-flexbox-mendalam-perhitungan-flex-shrink-dan-basis.html` dan stylesheet pendampingnya:
-1. Terapkan kode `flex-basis` dan `flex-shrink` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+Buatlah berkas `flex-hitung.html` dan `flex-hitung.css`:
+1. Buat kontainer `600px` dengan tiga kotak kosong berukuran dasar `100px` dan `flex-grow` `1`, `2`, `0`. Ukur lebar masing-masing dengan DevTools dan cocokkan dengan hitungan tangan (`200px`, `300px`, `100px`).
+2. Buat kontainer `400px` dengan dua kotak `flex-basis: 400px` dan `200px`; bandingkan `flex-shrink: 1` dengan `flex-shrink: 0` pada kotak kedua.
+3. Bandingkan `flex: 1` dan `flex: auto` pada tiga item berisi teks pendek, sedang, dan panjang.
+4. Tempatkan blok `<pre>` berisi satu baris sangat panjang di dalam kolom `flex: 1`, amati meluber, lalu perbaiki dengan `min-inline-size: 0`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `flex-basis` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `flex-basis` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Kontainer `600px` berisi tiga item `flex-basis: 100px` dengan `flex-grow` `1`, `2`, dan `0`. Berapa lebar item kedua?
+- A. `200px`
+- B. `100px`
+- C. `400px`
+- D. `300px`
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `flex-basis` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** D
+**Penjelasan:** Ruang bebas = `600 - 300 = 300px`. Item kedua mendapat `300 x 2/3 = 200px` tambahan, sehingga lebarnya `100 + 200 = 300px`.
 
 ### Soal 2
-Dalam konteks **Bedah Matematis Flexbox: Bagaimana `flex-grow`, `flex-shrink`, dan `flex-basis` Dihitung Peramban**, bagaimana `flex-shrink` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`flex-shrink`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Kontainer `400px` berisi item A (`flex-basis: 400px`) dan B (`flex-basis: 200px`), keduanya `flex-shrink: 1` dan tanpa isi. Berapa lebar akhir A dan B?
+- A. `200px` dan `200px`
+- B. `300px` dan `100px`
+- C. `266,7px` dan `133,3px`
+- D. `250px` dan `150px`
 
-**Jawaban Benar:** B
-**Penjelasan:** `flex-shrink` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** Ruang bebas `-200px`. Penyusutan dibobot dengan ukuran dasar: A menyusut `200 x 400/600 = 133,3px` menjadi `266,7px`, B menyusut `200 x 200/600 = 66,7px` menjadi `133,3px`.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Tiga item di kontainer `600px` memiliki lebar isi `50px`, `100px`, dan `150px`. Dengan `flex: auto`, berapa lebar akhir masing-masing?
+- A. `200px` untuk ketiganya.
+- B. `150px`, `200px`, `250px`
+- C. `50px`, `100px`, `150px` (tidak tumbuh)
+- D. `100px`, `200px`, `300px`
 
 **Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Penjelasan:** `flex: auto` setara `1 1 auto`, sehingga ukuran dasar mengikuti isi. Ruang bebas `600 - 300 = 300px` dibagi rata tiga (masing-masing `100px`) lalu ditambahkan pada ukuran dasar: `150`, `200`, `250px`. Dengan `flex: 1` (basis `0%`), ketiganya akan `200px`.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [Controlling ratios of flex items along the main axis — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Flexible_box_layout/Controlling_flex_item_ratios)
+- [`flex` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/flex)
+- [CSS Flexible Box Layout Module Level 1 — W3C](https://www.w3.org/TR/css-flexbox-1/)

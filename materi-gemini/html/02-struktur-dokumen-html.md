@@ -56,7 +56,7 @@ Elemen `<html>` membungkus seluruh isi dokumen. Dua atribut yang sangat penting 
 
 Isi di dalam `<head>` tidak ditampilkan sebagai konten halaman di dalam jendela utama, melainkan berisi metadata untuk peramban dan mesin pencari:
 
-1. **`<meta charset="utf-8">`:** Wajib diletakkan di bagian paling atas `<head>` (dalam 1024 byte pertama dokumen) sebelum `<title>`. Pengodean karakter **UTF-8** mampu merepresentasikan hampir seluruh aksara di dunia (Latin, Arab, Jepang, aksara Nusantara, hingga simbol matematika dan emoji). Jika `<title>` diletakkan sebelum `<meta charset="utf-8">`, karakter khusus pada judul tab bisa tampil rusak (*mojibake* seperti `Ã©`) atau membuka celah keamanan lama berbasis UTF-7.
+1. **`<meta charset="utf-8">`:** Spesifikasi mewajibkan deklarasi ini berada dalam 1024 byte pertama dokumen, sehingga praktik terbaiknya meletakkannya di bagian paling atas `<head>`, sebelum `<title>`. Pengodean karakter **UTF-8** mampu merepresentasikan hampir seluruh aksara di dunia (Latin, Arab, Jepang, aksara Nusantara, hingga simbol matematika dan emoji). Jika `<title>` diletakkan sebelum `<meta charset="utf-8">`, karakter khusus pada judul tab bisa tampil rusak (*mojibake* seperti `Ã©`) atau membuka celah keamanan lama berbasis UTF-7.
 2. **`<meta name="viewport" content="width=device-width, initial-scale=1.0">`:** Tanpa baris ini, peramban di ponsel pintar akan berpura-pura memiliki layar selebar desktop (biasanya `980px`) lalu memperkecil seluruh halaman sehingga teks terlihat sangat kecil. Atribut `width=device-width` menyamakan lebar kanvas tata letak dengan lebar layar perangkat yang sebenarnya.
 3. **`<title>`:** Menentukan judul yang muncul di tab peramban, daftar markah (*bookmark*), riwayat penelusuran, serta judul utama pada hasil pencarian Google. Selain itu, `<title>` adalah elemen pertama yang dibacakan oleh *screen reader* saat halaman selesai dimuat.
 
@@ -67,7 +67,7 @@ Isi di dalam `<head>` tidak ditampilkan sebagai konten halaman di dalam jendela 
 
 Di HTML, penting untuk membedakan antara **tag** dan **elemen**:
 
-```
+```text
 <a href="https://kodeloka.asadinedu.com" class="tautan">Belajar di Kodeloka</a>
 ├──────────────────────────────────────────────────────┤├──────────────────┤├──┤
                      Tag Pembuka                            Isi Konten       Tag Penutup
@@ -99,7 +99,7 @@ Sebagian elemen di HTML tidak mungkin memiliki isi teks atau elemen anak di dala
 | `id` | Pengenal unik satu elemen di seluruh halaman | Nilai `id` **wajib unik** dalam satu dokumen dan tidak boleh mengandung spasi. Gunakan untuk target tautan `#fragmen`, asosiasi `<label for="...">`, atau ARIA. |
 | `class` | Pengelompokan elemen untuk CSS dan JavaScript | Satu elemen boleh memiliki banyak kelas yang dipisahkan spasi (`class="kartu kartu-utama"`). |
 | `hidden` | Menyembunyikan elemen yang belum relevan | Menginstruksikan peramban dan pembaca layar untuk tidak merender elemen tersebut. |
-| `inert` | Menonaktifkan seluruh interaksi pada elemen dan turunannya | Status **Baseline Widely Available** (sejak 2023). Sangat berguna untuk mematikan klik, fokus papan ketik (`Tab`), dan pembacaan layar pada area latar belakang saat sebuah panel terbuka. |
+| `inert` | Menonaktifkan seluruh interaksi pada elemen dan turunannya | Tersedia di semua peramban utama sejak April 2023 dan berstatus **Baseline Widely Available** sejak Oktober 2025. Sangat berguna untuk mematikan klik, fokus papan ketik (`Tab`), dan pembacaan layar pada area latar belakang saat sebuah panel terbuka. |
 | `data-*` | Menyimpan data kustom milik aplikasi di elemen HTML | Contoh: `data-modul-id="12"` dapat dibaca dengan mudah di JavaScript melalui `elemen.dataset.modulId`. |
 | `title` | Informasi tambahan (biasanya muncul sebagai *tooltip* tetikus) | Jangan mengandalkan `title` untuk informasi penting karena tidak dapat diakses oleh pengguna layar sentuh (ponsel) maupun sebagian pengguna papan ketik. |
 
@@ -169,7 +169,7 @@ Mengapa tag `<meta charset="utf-8">` disarankan diletakkan tepat di awal elemen 
 - D. Agar berkas CSS eksternal dapat diunduh dua kali lebih cepat.
 
 **Jawaban Benar:** B
-**Penjelasan:** Spesifikasi HTML mengharuskan deklarasi pengodean karakter berada di awal dokumen (dalam 1024 byte pertama) dan sebelum elemen apa pun yang mengandung teks yang dapat dibaca pengguna seperti `<title>`, sehingga peramban tidak salah menafsirkan karakter non-ASCII pada judul halaman.
+**Penjelasan:** Spesifikasi HTML mengharuskan deklarasi pengodean karakter berada dalam 1024 byte pertama dokumen. Praktik terbaiknya, deklarasi itu diletakkan sebelum elemen yang mengandung teks yang dapat dibaca pengguna seperti `<title>`, sehingga peramban tidak salah menafsirkan karakter non-ASCII pada judul halaman.
 
 ### Soal 3
 Manakah dari pernyataan berikut yang **benar** mengenai atribut global `id` dan `data-*`?

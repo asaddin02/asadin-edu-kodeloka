@@ -24,7 +24,7 @@ Elemen **`<slot>`** berfungsi sebagai "lubang tempat pengisian konten" (*content
 
 Dulu, membuat Shadow DOM mengharuskan eksekusi JavaScript (`element.attachShadow({ mode: "open" })`), sehingga komponen tidak bisa dirender langsung dari server (*Server-Side Rendering / SSR*) sebelum JavaScript selesai diunduh.
 
-Sejak Februari 2024 (status **Baseline Newly Available** di seluruh peramban utama Chrome, Edge, Safari, dan Firefox), Anda dapat membuat Shadow DOM **murni dengan HTML tanpa satu baris JavaScript pun** cukup dengan menambahkan atribut **`shadowrootmode="open"`** pada elemen **`<template>`**!
+Sejak Februari 2024 (tersedia di seluruh peramban utama Chrome, Edge, Safari, dan Firefox; status **Baseline Widely Available** sejak Agustus 2026), Anda dapat membuat Shadow DOM **murni dengan HTML tanpa satu baris JavaScript pun** cukup dengan menambahkan atribut **`shadowrootmode="open"`** pada elemen **`<template>`**!
 
 ```html
 <!-- Komponen Kartu Peringatan dengan Declarative Shadow DOM Murni HTML -->
@@ -32,8 +32,8 @@ Sejak Februari 2024 (status **Baseline Newly Available** di seluruh peramban uta
   <template shadowrootmode="open">
     <style>
       /* Gaya CSS di dalam Shadow DOM ini 100% TERISOLASI!
-         Selektor 'h3' dan 'p' di sini TIDAK AKAN PERNAH bocor mempengaruhi
-         <h3> atau <p> lain di halaman luar! */
+         Selektor 'header' di sini TIDAK AKAN PERNAH bocor mempengaruhi
+         <header> lain di halaman luar! */
       :host {
         display: block;
         padding: 1rem 1.25rem;

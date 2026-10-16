@@ -20,7 +20,9 @@ Jangan pernah mengaktifkan atribut `autoplay` pada elemen `<audio>` tanpa perset
 </figure>
 ```
 
-> **💡 Tips Performa (`preload="metadata"`):** Gunakan `preload="metadata"` agar peramban hanya mengunduh informasi durasi dan dimensi berkas (beberapa kilobyte), bukan mengunduh seluruh berkas audio puluhan megabyte sebelum pengguna menekan tombol Putar.
+> **Catatan:** Spesifikasi HTML menyebut bahwa elemen `<audio>` tidak memiliki area pemutaran untuk konten visual seperti takarir, sehingga peramban tidak menampilkan teks `<track>` pada pemutar audio; isinya hanya dapat diakses lewat JavaScript (`textTracks`). Agar siniar tetap aksesibel bagi pengguna Tuli, sediakan juga transkrip teks lengkap di halaman, misalnya di dalam `<details>` di bawah pemutar.
+
+> **💡 Tips Performa (`preload="metadata"`):** Gunakan `preload="metadata"` agar peramban hanya mengunduh informasi durasi dan metadata berkas (beberapa kilobyte), bukan mengunduh seluruh berkas audio puluhan megabyte sebelum pengguna menekan tombol Putar.
 
 ## Latihan Praktik Mandiri
 
@@ -62,4 +64,4 @@ Mengapa atribut `type` pada elemen `<source>` (misalnya `type="audio/ogg; codecs
 ## Sumber
 
 - [MDN Web Docs — `<audio>`: The Embed Audio element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/audio)
-- [WHATWG HTML Living Standard — Media Elements](https://html.spec.whatwg.org/multipage/)
+- [WHATWG HTML Living Standard — Media Elements](https://html.spec.whatwg.org/multipage/media.html)

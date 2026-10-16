@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Metadata Pratinjau Sosial: Protokol Open Graph (`og:*`), Kartu Pratinjau, dan Debugging Bot** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`og:image`** dan **`og:url`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`og:image`** dan **`og:url`** berdasarkan protokol [Open Graph](https://ogp.me/) serta dokumentasi elemen [`<meta>` di MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta). Open Graph bukan bagian dari spesifikasi HTML; ia adalah konvensi yang dibaca oleh perayap platform sosial.
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,35 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `og:image` dan `og:url
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Metadata Pratinjau Sosial: Protokol Open Graph (`og:*`), Kartu Pratinjau, dan Debugging Bot — Kodeloka</title>
+    <title>Belajar PostgreSQL: Indeks, EXPLAIN ANALYZE, dan MVCC — Kodeloka</title>
+    <meta name="description" content="Kurikulum PostgreSQL berbahasa Indonesia lengkap dengan latihan dan kuis.">
+    <link rel="canonical" href="https://kodeloka.asadinedu.com/postgresql/">
+
+    <!-- Open Graph: selalu gunakan URL absolut -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Kodeloka">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:title" content="Belajar PostgreSQL: Indeks, EXPLAIN ANALYZE, dan MVCC">
+    <meta property="og:description" content="Kurikulum PostgreSQL berbahasa Indonesia lengkap dengan latihan dan kuis.">
+    <meta property="og:url" content="https://kodeloka.asadinedu.com/postgresql/">
+    <meta property="og:image" content="https://kodeloka.asadinedu.com/assets/og-postgresql.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Kartu kelas PostgreSQL di Kodeloka">
+
+    <!-- Kartu untuk X (Twitter); tag lain akan memakai nilai og:* sebagai cadangan -->
+    <meta name="twitter:card" content="summary_large_image">
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Metadata Pratinjau Sosial: Protokol Open Graph (`og:*`), Kartu Pratinjau, dan Debugging Bot</h1>
-        <p>
-          Penerapan <code>og:image</code> dan <code>og:url</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Belajar PostgreSQL</h1>
+      <p>Perayap hanya membaca bagian head di atas; isi halaman tidak memengaruhi kartu pratinjau.</p>
     </main>
   </body>
 </html>
 ```
+
+> **Catatan:** Open Graph dan `twitter:*` tidak memiliki status Baseline karena bukan fitur peramban. Perilaku tiap platform (ukuran gambar, panjang judul, cache pratinjau) ditentukan oleh platform itu sendiri dan dapat berubah, jadi uji tautan Anda dengan alat penelusuran masing-masing platform.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `og:image` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +109,6 @@ Bagaimana cara memverifikasi bahwa implementasi `og:image` dan `og:url` pada hal
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [The Open Graph protocol](https://ogp.me/)
+- [`<meta>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta)
+- [Metadata — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/semantics.html)

@@ -75,7 +75,7 @@ Manakah pernyataan yang benar mengenai penggunaan `pcntl_async_signals(true); pc
 **Penjelasan:** Pola `pcntl_async_signals(true); pcntl_signal(SIGTERM, function () use (&$berhenti) { $berhenti = true; });` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Pekerja Latar Belakang (*Background Workers*), Antrean Tugas (*Job Queue*), dan Penanganan Sinyal POSIX (`pcntl`)` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Pekerja Latar Belakang (*Background Workers*), Antrean Tugas (*Job Queue*), dan Penanganan Sinyal POSIX (pcntl)" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -86,7 +86,8 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Pekerja Latar Be
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [`pcntl_async_signals` — PHP Manual](https://www.php.net/manual/en/function.pcntl-async-signals.php)
+- [`pcntl_signal` — PHP Manual](https://www.php.net/manual/en/function.pcntl-signal.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

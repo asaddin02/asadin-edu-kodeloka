@@ -53,14 +53,14 @@ Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Mengimpor seluruh
 **Penjelasan:** Mengimpor seluruh isi objek pustaka besar secara utuh atau mengekspor semuanya di dalam satu objek tunggal (`export default { a, b, c }`) menghalangi *bundler* melakukan *tree-shaking* statis, sehingga kode yang tidak terpakai tetap ikut membebani unduhan pengguna.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `// package.json: "sideEffects": false membantu bundler melakukan tree-shaking` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
+Apa fungsi properti `"sideEffects": false` pada `package.json` di proyek yang memakai *bundler* seperti Vite, Rollup, atau webpack?
+- A. Memberi tahu *bundler* bahwa modul-modul di paket tersebut tidak memiliki efek samping ketika diimpor, sehingga impor yang tidak terpakai aman dibuang saat *tree-shaking*.
+- B. Mencegah Node.js menjalankan skrip `postinstall` ketika paket dipasang.
+- C. Mengenkripsi kode produksi agar tidak dapat dibaca pengguna.
+- D. Menonaktifkan *source map* agar kode asli tidak bocor.
 
 **Jawaban Benar:** A
-**Penjelasan:** `// package.json: "sideEffects": false membantu bundler melakukan tree-shaking` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** `sideEffects` adalah konvensi yang dikenali webpack, Rollup, dan Vite (bukan bagian dari ECMAScript). Dengan `false`, bundler boleh menghapus seluruh modul yang impornya tidak dipakai. *Tree-shaking* sendiri bergantung pada sintaks `import`/`export` statis milik ES Modules.
 
 ### Soal 3
 Saat mengintegrasikan fitur `Ekosistem Tooling Modern` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
@@ -74,6 +74,6 @@ Saat mengintegrasikan fitur `Ekosistem Tooling Modern` ke dalam aplikasi produks
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Building for Production — Vite](https://vite.dev/guide/build)
+- [Tree Shaking — webpack](https://webpack.js.org/guides/tree-shaking/)
+- [Source maps — Chrome DevTools](https://developer.chrome.com/docs/devtools/javascript/source-maps)

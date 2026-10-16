@@ -3,92 +3,147 @@
 - **Tingkat:** Dasar
 - **Ringkasan:** Menjaga kestabilan rasio bingkai foto, kartu video, dan avatar menggunakan `aspect-ratio`, mencegah distorsi gambar dengan `object-fit: cover/contain`, serta mengatur titik fokus potongan dengan `object-position`.
 
-## Mengapa "Mengendalikan Proporsi Media dengan `aspect-ratio`, `object-fit`, dan `object-position`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Proporsi Media Perlu Dikendalikan?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`aspect-ratio`** dan **`object-fit`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Gambar dan video sering memiliki rasio yang berbeda-beda: foto potret, tangkapan layar lebar, ikon persegi. Jika semuanya dipaksa masuk ke kotak kartu dengan ukuran yang sama, hasilnya bisa gepeng, terpotong sembarangan, atau membuat tata letak melompat saat gambar selesai dimuat. Tiga properti berikut menyelesaikan masalah itu, dan semuanya berstatus **Baseline Widely Available**: `object-fit` dan `object-position` (sejak Januari 2020) serta `aspect-ratio` (sejak September 2021).
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. `aspect-ratio`: Mengunci Perbandingan Lebar dan Tinggi
 
-Fitur `aspect-ratio` dan `object-fit` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`aspect-ratio`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`object-fit`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `aspect-ratio` dan `object-fit` sesuai praktik terbaik CSS modern:
+`aspect-ratio` menetapkan perbandingan antara lebar dan tinggi kotak. Selama salah satu dimensi bernilai `auto`, dimensi lainnya dihitung otomatis.
 
 ```css
-/* Contoh penerapan Mengendalikan Proporsi Media dengan `aspect-ratio`, `object-fit`, dan `object-position` */
-.sampul-artikel {
+.sampul-kartu {
   inline-size: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  object-position: center 25%;
+  aspect-ratio: 16 / 9;      /* tinggi otomatis = lebar x 9/16 */
+}
+
+.avatar {
+  inline-size: 3.5rem;
+  aspect-ratio: 1;           /* sama dengan 1 / 1: persegi sempurna */
+  border-radius: 50%;
+}
+
+.gambar-fleksibel {
+  aspect-ratio: auto 3 / 2;  /* pakai rasio asli gambar jika sudah diketahui; cadangan 3/2 */
 }
 ```
 
+Hal yang perlu diperhatikan:
+- Rasio ditulis `lebar / tinggi`, misalnya `16 / 9` atau satu angka seperti `1.777`.
+- Jika isi kotak lebih tinggi daripada tinggi hasil rasio, kotak **tetap membesar** mengikuti isi (karena `min-block-size` bawaannya `auto`). Untuk memaksa rasio tetap, beri `min-block-size: 0` dan `overflow: hidden`.
+- Jika **kedua** dimensi diberi nilai, `aspect-ratio` diabaikan karena ukuran sudah ditentukan.
+- Pada `<iframe>` video, gunakan `inline-size: 100%; aspect-ratio: 16 / 9; block-size: auto;` untuk menggantikan trik lama `padding-top: 56.25%`.
+
+### Mencegah Pergeseran Tata Letak (CLS) pada Gambar
+
+Atribut `width` dan `height` pada `<img>` kini dipakai peramban untuk menghitung rasio bawaan (`aspect-ratio: auto lebar / tinggi`) sebelum gambar diunduh:
+
 ```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan aspect-ratio</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+<img src="kelas-css.webp" alt="Tampilan kelas CSS" width="800" height="450">
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `aspect-ratio` dan `object-fit`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+```css
+img {
+  max-inline-size: 100%;
+  block-size: auto;   /* pertahankan rasio dari atribut width/height */
+}
+```
 
-## 3. Kesalahan Umum yang Harus Dihindari
+Dengan pola ini, peramban mencadangkan ruang yang tepat sebelum gambar tiba, sehingga teks di bawahnya tidak melompat (mengurangi *Cumulative Layout Shift*).
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `aspect-ratio` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## 2. `object-fit`: Cara Isi Gambar Menyesuaikan Kotaknya
 
-## Latihan Praktik
+`object-fit` mengatur bagaimana konten *replaced element* (seperti `<img>`, `<video>`, dan `<canvas>`) disesuaikan dengan kotaknya. Properti ini **tidak** berlaku untuk `background-image`.
 
-Buatlah berkas `27-aspect-ratio-object-fit-dan-object-position.html` dan stylesheet pendampingnya:
-1. Terapkan kode `aspect-ratio` dan `object-fit` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+| Nilai | Perilaku |
+|---|---|
+| `fill` (bawaan) | Gambar direntangkan memenuhi kotak, **rasio asli diabaikan** sehingga bisa gepeng. |
+| `contain` | Seluruh gambar tampak utuh dengan rasio asli; sisa ruang dibiarkan kosong (*letterbox*). |
+| `cover` | Kotak terisi penuh dengan rasio asli; bagian gambar yang berlebih dipotong. |
+| `none` | Gambar tidak diubah ukurannya; dapat terpotong jika lebih besar dari kotak. |
+| `scale-down` | Seperti `none` atau `contain`, mana pun yang hasilnya lebih kecil. |
+
+```css
+.foto-kartu {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;        /* kotak penuh tanpa distorsi, tepi gambar dipotong */
+}
+
+.logo-mitra {
+  inline-size: 8rem;
+  aspect-ratio: 2 / 1;
+  object-fit: contain;      /* logo tidak boleh terpotong */
+}
+```
+
+## 3. `object-position`: Menentukan Bagian yang Dipertahankan
+
+Secara bawaan, gambar diposisikan di tengah (`object-position: 50% 50%`). Saat memakai `cover`, bagian yang terpotong adalah tepi di sekeliling titik tengah itu. Jika subjek penting berada di atas (misalnya wajah pada foto potret), geser titik fokusnya:
+
+```css
+.foto-wajah {
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: center 20%;   /* pertahankan bagian atas gambar, potong lebih banyak dari bawah */
+}
+
+.foto-pemandangan {
+  object-position: left bottom;  /* pertahankan pojok kiri bawah */
+}
+```
+
+> **⚠️ Catatan Aksesibilitas dan Konten:** `object-fit: cover` memotong gambar, jadi jangan pakai pada gambar yang seluruh isinya penting, seperti diagram, grafik, tangkapan layar berisi teks, atau logo. Gunakan `contain` untuk gambar semacam itu. Semua gambar bermakna tetap memerlukan atribut `alt`; CSS tidak menggantikannya.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menetapkan `width` dan `height` tetap sekaligus pada gambar tanpa `object-fit`.** Gambar menjadi gepeng karena nilai bawaan `fill`. Tambahkan `object-fit: cover` atau `contain`.
+2. **Mengharapkan `aspect-ratio` memotong isi.** Rasio hanya mengatur ukuran kotak; isi yang lebih tinggi membuat kotak membesar kecuali `min-block-size: 0` dan `overflow: hidden` diberikan.
+3. **Menggunakan `object-fit` pada `background-image`.** Untuk latar belakang, gunakan `background-size: cover` dan `background-position`.
+4. **Memakai `cover` untuk logo atau grafik.** Bagian pentingnya bisa terpotong; pakai `contain`.
+
+## Latihan Praktik: Galeri Kartu Foto yang Konsisten
+
+Buatlah berkas `proporsi-media.html` dan `proporsi.css`:
+1. Buat 6 kartu dengan foto yang rasio aslinya berbeda-beda (potret, lanskap, persegi). Beri semua foto `aspect-ratio: 4 / 3` dan `object-fit: cover`.
+2. Pada satu foto potret berisi wajah, atur `object-position: center 20%` agar wajah tidak terpotong.
+3. Buat bingkai video `<iframe>` yang responsif dengan `aspect-ratio: 16 / 9`.
+4. Tambahkan atribut `width` dan `height` pada semua `<img>`, lalu bandingkan skor *layout shift* di tab Performance DevTools sebelum dan sesudahnya.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `aspect-ratio` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `aspect-ratio` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Sebuah kotak memiliki `inline-size: 320px; aspect-ratio: 16 / 9;` dan tidak ada tinggi eksplisit. Berapa tingginya?
+- A. `180px`
+- B. `320px`
+- C. `142px`
+- D. `569px`
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `aspect-ratio` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** A
+**Penjelasan:** Tinggi dihitung dari lebar dikalikan `9 / 16`: `320 x 9 / 16 = 180px`.
 
 ### Soal 2
-Dalam konteks **Mengendalikan Proporsi Media dengan `aspect-ratio`, `object-fit`, dan `object-position`**, bagaimana `object-fit` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`object-fit`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Logo mitra harus tampil utuh tanpa terpotong dan tanpa gepeng di dalam kotak berukuran tetap. Nilai `object-fit` yang paling tepat?
+- A. `fill`
+- B. `cover`
+- C. `contain`
+- D. `none`
 
-**Jawaban Benar:** B
-**Penjelasan:** `object-fit` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** `contain` menampilkan seluruh gambar dengan rasio aslinya dan menyisakan ruang kosong bila rasionya berbeda. `fill` menggepengkan, `cover` memotong tepi, dan `none` tidak menyesuaikan ukuran sama sekali.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Sebuah `<img width="800" height="450">` diberi CSS `img { max-inline-size: 100%; block-size: auto; }`. Apa manfaat atribut `width` dan `height` itu?
+- A. Gambar selalu ditampilkan tepat `800 x 450` piksel pada semua layar.
+- B. Peramban menghitung rasio `16:9` sebelum gambar diunduh dan mencadangkan ruang yang tepat, sehingga konten di bawahnya tidak melompat saat gambar selesai dimuat.
+- C. Gambar otomatis dipotong dengan `object-fit: cover`.
+- D. Atribut itu hanya dipakai oleh mesin pencari dan tidak memengaruhi tata letak.
 
 **Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Penjelasan:** Peramban memakai atribut `width` dan `height` untuk membentuk rasio bawaan (`aspect-ratio: auto 800 / 450`). Dengan `block-size: auto`, tinggi mengikuti rasio itu sehingga ruang sudah tersedia sebelum gambar tiba, dan *layout shift* berkurang.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`aspect-ratio` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/aspect-ratio)
+- [`object-fit` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit)
+- [`object-position` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-position)
+- [Optimize Cumulative Layout Shift — web.dev](https://web.dev/articles/optimize-cls)

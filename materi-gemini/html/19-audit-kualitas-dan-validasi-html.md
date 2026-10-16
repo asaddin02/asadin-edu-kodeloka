@@ -80,7 +80,7 @@ Hasilnya: struktur HTML 100% valid (tidak ada `<button>` di dalam `<a>`), urutan
 Selain pohon DOM biasa, peramban membangun **Accessibility Tree (Pohon Aksesibilitas)** yang diserahkan kepada pembaca layar sistem operasi. Anda dapat memeriksanya secara langsung tanpa menginstal aplikasi tambahan:
 
 1. Buka **Developer Tools (`F12`)** → tab **Elements / Inspector**.
-2. Di panel sebelah kanan (tempat tab *Styles* dan *Computed* berada), buka sub-tab **Accessibility** (atau klik ikon orang kecil *"Switch to Accessibility Tree view"* di pojok kanan atas pohon DOM Chrome/Firefox).
+2. Di panel sebelah kanan (tempat tab *Styles* dan *Computed* berada), buka sub-tab **Accessibility** (atau, di Chrome, klik ikon orang kecil *"Switch to Accessibility Tree view"* di pojok kanan atas pohon DOM; di Firefox, buka panel **Accessibility** tersendiri di Developer Tools).
 3. Klik sebuah elemen (misalnya `<button>`, `<input>`, atau `<nav>`), lalu periksa tiga informasi kunci ini:
    - **Role (Peran):** Apakah perannya `button`, `link`, `navigation`, `dialog`, atau hanya `generic`?
    - **Computed Name (Nama Terhitung):** Apakah elemen tersebut memiliki nama yang jelas (misalnya `"Unduh Materi"`), atau justru kosong `""`?
@@ -136,7 +136,7 @@ Mengapa spesifikasi HTML melarang penempatan elemen `<button>` di dalam elemen `
 - D. Karena `<a>` hanya boleh berisi maksimal 3 kata.
 
 **Jawaban Benar:** B
-**Penjelasan:** Aturan model konten untuk `<a>` dan `<button>` secara tegas menyatakan: *transparent/phrasing content, but there must be no interactive content descendant*. Gunakan teknik CSS *stretched link* (`::after`) jika ingin membuat seluruh kartu dapat diklik sambil tetap memiliki tombol terpisah di dalamnya.
+**Penjelasan:** Aturan model konten untuk `<a>` dan `<button>` secara tegas menyatakan: isi `<a>` bersifat transparan dan isi `<button>` berupa *phrasing content*, tetapi keduanya tidak boleh memiliki turunan berupa *interactive content*. Gunakan teknik CSS *stretched link* (`::after`) jika ingin membuat seluruh kartu dapat diklik sambil tetap memiliki tombol terpisah di dalamnya.
 
 ### Soal 3
 Saat Anda memeriksa sebuah tombol ikon `<button><svg>...</svg></button>` di panel **Accessibility Tree** pada Browser DevTools dan melihat bahwa **Computed Name** bernilai `""` (kosong), apa artinya dan bagaimana cara memperbaikinya?

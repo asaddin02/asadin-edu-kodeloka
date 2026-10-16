@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Manajemen Fokus Papan Ketik, Urutan `Tab`, `autofocus`, dan Penguncian Latar dengan `inert`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`inert`** dan **`tabindex`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`inert`** dan **`tabindex`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interaction.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,49 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `inert` dan `tabindex`
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Manajemen Fokus Papan Ketik, Urutan `Tab`, `autofocus`, dan Penguncian Latar dengan `inert` — Kodeloka</title>
+    <title>Manajemen Fokus dan inert — Kodeloka</title>
   </head>
   <body>
-    <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Manajemen Fokus Papan Ketik, Urutan `Tab`, `autofocus`, dan Penguncian Latar dengan `inert`</h1>
-        <p>
-          Penerapan <code>inert</code> dan <code>tabindex</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
-    </main>
+    <!-- Seluruh halaman dibungkus agar dapat dikunci sekaligus -->
+    <div id="halaman">
+      <a href="#utama">Lompat ke konten utama</a>
+      <header><p>Kodeloka</p></header>
+      <main id="utama">
+        <h1>Pengaturan</h1>
+        <button type="button" id="buka-panel">Buka panel bantuan</button>
+      </main>
+    </div>
+
+    <!-- Panel berada di luar #halaman sehingga tidak ikut dikunci -->
+    <div id="panel" role="dialog" aria-modal="true" aria-labelledby="judul-panel" hidden>
+      <h2 id="judul-panel">Bantuan</h2>
+      <p>Latar belakang tidak dapat diklik atau difokuskan selama panel terbuka.</p>
+      <button type="button" id="tutup-panel">Tutup</button>
+    </div>
+
+    <script>
+      const halaman = document.getElementById("halaman");
+      const panel = document.getElementById("panel");
+      const buka = document.getElementById("buka-panel");
+      const tutup = document.getElementById("tutup-panel");
+
+      buka.addEventListener("click", () => {
+        panel.hidden = false;
+        halaman.inert = true;      // latar belakang tidak bisa difokuskan atau diklik
+        tutup.focus();             // pindahkan fokus ke dalam panel
+      });
+
+      tutup.addEventListener("click", () => {
+        halaman.inert = false;
+        panel.hidden = true;
+        buka.focus();              // kembalikan fokus ke pemicu
+      });
+    </script>
   </body>
 </html>
 ```
+
+> **Status dukungan (Oktober 2026):** `inert` berstatus *Baseline Widely Available* sejak Oktober 2025. Jika panel Anda berupa dialog modal, lebih sederhana memakai `<dialog>` dengan `showModal()` yang sudah membuat halaman di belakangnya inert.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `inert` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +123,7 @@ Bagaimana cara memverifikasi bahwa implementasi `inert` dan `tabindex` pada hala
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`inert` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert)
+- [`tabindex` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/tabindex)
+- [`autofocus` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/autofocus)
+- [User interaction — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interaction.html)

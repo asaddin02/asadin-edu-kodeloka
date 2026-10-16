@@ -9,11 +9,11 @@
 
 Kunci utama pencegahan XSS menurut [OWASP Cross Site Scripting Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) adalah **Contextual Output Encoding**: cara Anda mengodekan keluaran bergantung pada **di bagian mana dari dokumen** variabel tersebut disisipkan!
 
-```
+```text
 Di Mana Variabel Dicetak?                       Fungsi Pengaman yang Wajib Dipakai di PHP
 ─────────────────────────────────────────────   ──────────────────────────────────────────────────────
 1. Di dalam Isi Elemen HTML (<p>INI</p>)     ──> htmlspecialchars($val, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
-2. Di dalam Atribut Beranda Kutip ("INI")    ──> htmlspecialchars($val, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+2. Di dalam Atribut Berkutip ("INI")    ──> htmlspecialchars($val, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
 3. Di dalam Nilai Variabel JS (<script>)     ──> json_encode($val, JSON_HEX_TAG | JSON_HEX_AMP | ...)
 4. Di dalam Parameter Query URL (?q=INI)     ──> rawurlencode($val) atau http_build_query([...])
 5. Di dalam Atribut URL (href="INI")         ──> Validasi skema protokol ('https'/'http') + htmlspecialchars()
@@ -39,8 +39,8 @@ function e(string|int|float|null $nilai): string
 ```
 
 ### Mengapa Ketiga Argumen `htmlspecialchars()` Tersebut Penting?
-1. **`ENT_QUOTES`:** Memastikan bahwa baik tanda kutip ganda (`"` $\rightarrow$ `&quot;`) **maupun tanda kutip tunggal (`'` $\rightarrow$ `&apos;` / `&#039;`)** sama-sama diubah menjadi entitas aman!
-2. **`ENT_SUBSTITUTE`:** Jika di dalam string terdapat urutan byte UTF-8 yang rusak/tidak valid, daripada fungsi gagal dan mengembalikan string kosong `""` secara tiba-tiba, `ENT_SUBSTITUTE` mengganti byte rusak tersebut dengan simbol karakter pengganti Unicode `` (`U+FFFD`) yang aman!
+1. **`ENT_QUOTES`:** Memastikan bahwa baik tanda kutip ganda (`"` → `&quot;`) **maupun tanda kutip tunggal (`'` → `&apos;` pada ENT_HTML5 / `&#039;` pada HTML 4.01)** sama-sama diubah menjadi entitas aman!
+2. **`ENT_SUBSTITUTE`:** Jika di dalam string terdapat urutan byte UTF-8 yang rusak/tidak valid, daripada fungsi gagal dan mengembalikan string kosong `""` secara tiba-tiba, `ENT_SUBSTITUTE` mengganti byte rusak tersebut dengan simbol karakter pengganti Unicode `U+FFFD` (�) yang aman!
 3. **`'UTF-8'`:** Menjamin fungsi mengurai batas karakter multibyte sesuai pengodean UTF-8 dokumen Anda.
 
 > **🚫 Tiga Konteks HTML yang TIDAK Boleh Diisi Data Pengguna Meskipun Sudah Di-`htmlspecialchars()`:**
@@ -145,7 +145,7 @@ function kirimHeaderKeamananHtml(): void
 
 ## Latihan Praktik: Membuat Kelas Pembantu Template yang Aman Kontekstual
 
-Buatlah berkas `TemplateAman.php` yang menyediakan empat metode statis:
+Buatlah berkas `TemplateAman.php` yang menyediakan tiga metode statis:
 1. `TemplateAman::teks(string|int|float|null $val): string` (menggunakan `htmlspecialchars`).
 2. `TemplateAman::json(mixed $data): string` (menggunakan `json_encode` dengan `JSON_HEX_*`).
 3. `TemplateAman::url(string $url): string` (memvalidasi protokol `http`/`https` dan mengembalikan `'#'` jika berbahaya, lalu di-escape dengan `teks()`).
@@ -166,7 +166,7 @@ Mengapa memanggil `htmlspecialchars("javascript:alert(document.cookie)", ENT_QUO
 ### Soal 2
 Apa fungsi dari bendera `ENT_SUBSTITUTE` pada pemanggilan `htmlspecialchars($teks, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')`?
 - A. Mengganti semua spasi menjadi tanda hubung `-`.
-- B. Mengganti urutan byte karakter UTF-8 yang tidak valid dengan karakter pengganti Unicode `` (`U+FFFD`) alih-alih mengembalikan string kosong `""`, sehingga tampilan halaman tidak hilang secara tiba-tiba jika terselip byte yang rusak.
+- B. Mengganti urutan byte karakter UTF-8 yang tidak valid dengan karakter pengganti Unicode `U+FFFD` (�) alih-alih mengembalikan string kosong `""`, sehingga tampilan halaman tidak hilang secara tiba-tiba jika terselip byte yang rusak.
 - C. Mengubah semua huruf kecil menjadi huruf besar.
 - D. Menghapus tag HTML seperti `strip_tags()`.
 
@@ -186,4 +186,5 @@ Apa fungsi dari header respons HTTP `X-Content-Type-Options: nosniff`?
 ## Sumber
 - [`htmlspecialchars` — PHP Manual](https://www.php.net/manual/en/function.htmlspecialchars.php)
 - [Cross Site Scripting Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)
+- [`json_encode` — PHP Manual](https://www.php.net/manual/en/function.json-encode.php)
 - [Content Security Policy (CSP) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP)

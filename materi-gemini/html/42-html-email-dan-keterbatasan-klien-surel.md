@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Prinsip Penulisan HTML untuk Surat Elektronik (HTML Email) dan Kompatibilitas Klien** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`role="presentation"`** dan **`inline-style`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`role="presentation"`** dan **`inline-style`** berdasarkan [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/tables.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/presentation_role). Perlu dicatat bahwa dukungan HTML dan CSS pada klien surel tidak diatur oleh standar web, sehingga hasilnya harus diuji pada tiap klien yang Anda targetkan.
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,30 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `role="presentation"` 
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Prinsip Penulisan HTML untuk Surat Elektronik (HTML Email) dan Kompatibilitas Klien — Kodeloka</title>
+    <title>Kelas HTML Modern Telah Tersedia</title>
   </head>
-  <body>
-    <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Prinsip Penulisan HTML untuk Surat Elektronik (HTML Email) dan Kompatibilitas Klien</h1>
-        <p>
-          Penerapan <code>role="presentation"</code> dan <code>inline-style</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
-    </main>
+  <body style="margin: 0; padding: 0; background-color: #f1f5f9;">
+    <!-- Tabel tata letak: role="presentation" agar pembaca layar tidak mengumumkannya sebagai tabel data -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f1f5f9;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; background-color: #ffffff;">
+            <tr>
+              <td style="padding: 24px; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 24px; color: #0f172a;">
+                <h1 style="margin: 0 0 12px 0; font-size: 24px; line-height: 32px;">Kelas HTML Modern sudah tersedia</h1>
+                <p style="margin: 0 0 16px 0;">Halo! Kelas HTML terbaru di Kodeloka kini dapat diakses gratis.</p>
+                <a href="https://kodeloka.asadinedu.com/html/" style="display: inline-block; padding: 12px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px;">Mulai Belajar</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
 ```
+
+> **Catatan:** Atribut presentasi seperti `width`, `cellpadding`, `cellspacing`, `border`, dan `align` pada `<table>`/`<td>` sudah usang (*obsolete*) menurut spesifikasi HTML dan tidak boleh dipakai pada halaman web biasa (lihat pelajaran 43). Atribut itu dipertahankan di sini hanya karena sebagian klien surel, terutama Outlook desktop, masih mengandalkannya.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `role="presentation"` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +104,6 @@ Bagaimana cara memverifikasi bahwa implementasi `role="presentation"` dan `inlin
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`presentation` role — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/presentation_role)
+- [Tabular data — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/tables.html)
+- [`<table>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table)

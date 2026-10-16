@@ -60,7 +60,7 @@ abstract class DatabaseIntegrationTestCase extends TestCase
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mengandalkan 100% *Mock Object* untuk menguji class Repository yang berisi kueri SQL hanya membuktikan bahwa kode Anda memanggil metode mock sesuai skenario palsu, tetapi sama sekali tidak mendeteksi jika ada salah ketik nama kolom atau sintaks SQL yang tidak valid!*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena objek mock hanya memverifikasi pemanggilan metode palsu, sehingga salah ketik nama kolom atau sintaks SQL yang tidak valid tidak terdeteksi sampai kode berjalan di produksi
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -89,7 +89,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Pengujian Tingka
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Fixtures (`setUp`/`tearDown`) — PHPUnit 12.5 Manual](https://docs.phpunit.de/en/12.5/fixtures.html)
+- [PSR-7: HTTP Message Interface — PHP-FIG](https://www.php-fig.org/psr/psr-7/)
+- [Transactions and auto-commit — PHP Manual](https://www.php.net/manual/en/pdo.transactions.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

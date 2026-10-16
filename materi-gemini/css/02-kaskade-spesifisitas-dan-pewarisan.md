@@ -13,7 +13,7 @@ Di CSS, satu elemen HTML bisa menjadi target dari lima atau sepuluh aturan CSS y
 
 Ketika dua atau lebih deklarasi CSS memperebutkan properti yang sama pada satu elemen, peramban memutuskannya melalui tangga prioritas berikut (dari penentu tertinggi ke terendah):
 
-```
+```text
 1. Origin & Importance (!important)
    (Transisi aktif > !important User Agent > !important User > !important Author > Normal Author > User > User Agent)
           │

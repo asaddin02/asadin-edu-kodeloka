@@ -3,92 +3,123 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Memotong judul panjang dengan elipsis satu baris maupun multi-baris (`line-clamp`), mencegah URL panjang merusak lebar kartu dengan `overflow-wrap: anywhere`, serta mengaktifkan pemenggalan suku kata otomatis `hyphens: auto`.
 
-## Mengapa "Penanganan Teks Panjang: `text-overflow: ellipsis`, Multi-Baris `-webkit-line-clamp`, `overflow-wrap`, dan `hyphens`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Teks Panjang Perlu Ditangani?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`-webkit-line-clamp`** dan **`overflow-wrap: anywhere`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Isi web sering datang dari pengguna atau basis data: judul 80 karakter, nama berkas tanpa spasi, URL sepanjang satu baris. Tanpa penanganan, teks seperti itu meluber keluar kartu, melebarkan kolom, atau memunculkan bilah gulir horizontal. CSS menyediakan empat alat dengan tujuan berbeda: **memotong** (*truncate*) dengan tanda elipsis, **membatasi jumlah baris**, **memecah kata panjang** agar muat, dan **memenggal suku kata** agar paragraf lebih rapi.
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. Elipsis Satu Baris: `text-overflow: ellipsis`
 
-Fitur `-webkit-line-clamp` dan `overflow-wrap: anywhere` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`-webkit-line-clamp`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`overflow-wrap: anywhere`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `-webkit-line-clamp` dan `overflow-wrap: anywhere` sesuai praktik terbaik CSS modern:
+Tiga properti harus dipakai bersama pada elemen blok yang lebarnya terbatas:
 
 ```css
-/* Contoh penerapan Penanganan Teks Panjang: `text-overflow: ellipsis`, Multi-Baris `-webkit-line-clamp`, `overflow-wrap`, dan `hyphens` */
-.ringkasan-3-baris {
+.judul-ringkas {
+  white-space: nowrap;          /* tidak boleh membungkus */
+  overflow: hidden;             /* sembunyikan sisa yang meluber */
+  text-overflow: ellipsis;      /* tampilkan "..." di ujung */
+}
+```
+
+Jika salah satu hilang, elipsis tidak muncul: tanpa `overflow` selain `visible`, tidak ada yang dipotong; tanpa `white-space: nowrap`, teks membungkus ke baris berikut. Pada flex item atau grid item, tambahkan `min-inline-size: 0` agar item boleh menyusut (lihat Pelajaran 28).
+
+## 2. Elipsis Multi-Baris: `-webkit-line-clamp`
+
+Untuk membatasi teks pada jumlah baris tertentu (mis. 3 baris ringkasan kartu), gunakan pola berikut. Walaupun berawalan `-webkit-`, pola ini **didukung semua peramban utama** (Chrome, Edge, Firefox, dan Safari):
+
+```css
+.ringkasan {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 3;        /* maksimal 3 baris */
   overflow: hidden;
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan -webkit-line-clamp</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+Hal yang perlu diketahui:
+- Versi standar tanpa awalan, `line-clamp`, adalah bagian dari spesifikasi CSS Overflow Module Level 4, tetapi di MDN statusnya masih **ketersediaan terbatas** (belum aktif tanpa bendera di peramban utama). Karena itu, gunakan versi `-webkit-` untuk produksi.
+- Teks asli tetap berada di DOM dan tetap terbaca oleh pembaca layar; pemotongan hanya bersifat visual. Berikan cara untuk membaca seluruh teks (tautan "Selengkapnya" atau halaman detail) karena pengguna yang memperbesar teks akan kehilangan lebih banyak bagian.
+- Jangan memotong informasi penting seperti harga, tanggal, atau peringatan.
+
+## 3. Memecah Kata Panjang: `overflow-wrap`
+
+Kata yang tak punya spasi (URL, nama berkas, token) bisa meluber. `overflow-wrap` memungkinkan peramban memecahnya:
+
+```css
+.komentar {
+  overflow-wrap: anywhere;      /* boleh memecah di titik mana pun bila tidak muat */
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `-webkit-line-clamp` dan `overflow-wrap: anywhere`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+Dua nilai yang sering tertukar:
+- `overflow-wrap: break-word`: kata dipecah hanya bila **tidak muat**, tetapi pada penghitungan ukuran intrinsik (`min-content`) kata tetap dianggap utuh. Pada flex item atau sel tabel, kolom masih bisa menolak mengecil.
+- `overflow-wrap: anywhere`: sama, tetapi titik pemecahan **ikut dihitung** untuk `min-content`, sehingga kolom bisa menyusut sampai selebar satu huruf. Karena itu, `anywhere` lebih andal di flex dan grid.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+`word-break: break-all` memecah kata di titik mana pun **tanpa menunggu** tidak muat; hindari untuk teks bacaan biasa, karena kata pendek pun terpotong sembarangan.
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `-webkit-line-clamp` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## 4. Pemenggalan Suku Kata: `hyphens`
 
-## Latihan Praktik
+```css
+:lang(id) p {
+  hyphens: auto;                /* peramban menyisipkan tanda hubung di titik pemenggalan yang wajar */
+  overflow-wrap: break-word;    /* cadangan jika kata tak dapat dipenggal */
+}
+```
 
-Buatlah berkas `36-pemotongan-teks-ellipsis-line-clamp-dan-hyphens.html` dan stylesheet pendampingnya:
-1. Terapkan kode `-webkit-line-clamp` dan `overflow-wrap: anywhere` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+- Agar `auto` bekerja, dokumen harus memiliki **atribut `lang` yang benar** (mis. `<html lang="id">`), dan peramban harus memiliki kamus pemenggalan untuk bahasa itu. Dukungan kamus bergantung bahasa dan peramban, sehingga hasil untuk bahasa Indonesia perlu diuji pada peramban sasaran.
+- `hyphens: manual` (bawaan) hanya memenggal di tempat yang Anda tandai sendiri dengan `&shy;` (*soft hyphen*) atau `&#173;`. Ini paling dapat diprediksi untuk kata-kata teknis tertentu.
+- `hyphens: none` menonaktifkan pemenggalan, termasuk `&shy;`.
+- Properti `hyphens` berstatus **Baseline Widely Available** (sejak September 2023), sedangkan `text-overflow` dan `overflow-wrap` sudah **Widely Available** lebih lama.
+
+Gabungkan dengan `text-align: start` (bukan `justify`) bila ragu: perataan kiri-kanan pada kolom sempit menghasilkan celah antar-kata yang besar.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Elipsis tidak muncul.** Biasanya karena salah satu dari `overflow: hidden`, `white-space: nowrap`, atau lebar yang terbatas hilang; pada flex item juga karena `min-inline-size: 0` belum diberikan.
+2. **Memakai `-webkit-line-clamp` tanpa `display: -webkit-box`.** Tanpa itu, properti tidak berpengaruh.
+3. **Memakai `word-break: break-all` untuk paragraf.** Kata pendek pun terpotong; gunakan `overflow-wrap: anywhere` atau `break-word`.
+4. **Mengandalkan `hyphens: auto` tanpa atribut `lang`.** Peramban tidak tahu kamus bahasa yang harus dipakai.
+5. **Memotong teks penting.** Informasi kunci tidak boleh tersembunyi di balik elipsis.
+
+## Latihan Praktik: Kartu Berita yang Tahan Teks Panjang
+
+Buatlah berkas `teks-panjang.html` dan `teks.css`:
+1. Buat kartu dengan judul sepanjang 100 karakter. Tampilkan satu baris dengan elipsis, lalu ubah menjadi dua baris dengan `-webkit-line-clamp: 2`.
+2. Tambahkan komentar berisi URL panjang tanpa spasi di dalam flex item. Bandingkan `overflow-wrap: break-word` dengan `anywhere` serta pengaruh `min-inline-size: 0`.
+3. Aktifkan `hyphens: auto` dengan `lang="id"` pada paragraf sempit dan amati apakah peramban Anda memenggal kata; tambahkan `&shy;` manual pada satu kata panjang sebagai pembanding.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `-webkit-line-clamp` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `-webkit-line-clamp` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Kombinasi manakah yang diperlukan agar teks satu baris berakhir dengan tanda elipsis `...`?
+- A. `overflow: hidden`, `text-overflow: ellipsis`, dan `white-space: nowrap`
+- B. `overflow: visible`, `text-overflow: ellipsis`, dan `white-space: normal`
+- C. `text-overflow: ellipsis` saja
+- D. `word-break: break-all` dan `hyphens: auto`
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `-webkit-line-clamp` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** A
+**Penjelasan:** `white-space: nowrap` mencegah teks membungkus, `overflow: hidden` memotong bagian yang meluber, dan `text-overflow: ellipsis` mengganti bagian yang dipotong dengan `...`. Tanpa dua properti lainnya, `text-overflow` tidak berpengaruh.
 
 ### Soal 2
-Dalam konteks **Penanganan Teks Panjang: `text-overflow: ellipsis`, Multi-Baris `-webkit-line-clamp`, `overflow-wrap`, dan `hyphens`**, bagaimana `overflow-wrap: anywhere` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`overflow-wrap: anywhere`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Apa yang harus ada selain `-webkit-line-clamp: 3` agar teks dibatasi tiga baris di semua peramban utama?
+- A. `display: flex` dan `flex-wrap: wrap`
+- B. `text-overflow: clip`
+- C. `display: -webkit-box`, `-webkit-box-orient: vertical`, dan `overflow: hidden`
+- D. `position: relative`
 
-**Jawaban Benar:** B
-**Penjelasan:** `overflow-wrap: anywhere` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** Pola `-webkit-line-clamp` yang didukung luas memerlukan `display: -webkit-box`, `-webkit-box-orient: vertical`, dan `overflow: hidden`. Tanpa `display: -webkit-box`, properti tidak berpengaruh.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Mengapa `overflow-wrap: anywhere` lebih andal daripada `break-word` untuk URL panjang di dalam flex item tanpa `min-width: 0`?
+- A. Karena `anywhere` mengubah URL menjadi tautan yang dapat diklik.
+- B. Karena `anywhere` menyembunyikan teks yang meluber.
+- C. Karena `anywhere` menambahkan tanda hubung di tengah URL.
+- D. Karena titik pemecahan pada `anywhere` ikut dihitung dalam ukuran `min-content`, sehingga item boleh menyusut; pada `break-word` kata tetap dianggap utuh sehingga item menolak mengecil.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** D
+**Penjelasan:** Perbedaan kedua nilai terletak pada perhitungan ukuran intrinsik. `anywhere` memperhitungkan kemungkinan pemecahan saat menghitung `min-content`, sedangkan `break-word` tidak.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`text-overflow` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/text-overflow)
+- [`line-clamp` dan `-webkit-line-clamp` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/line-clamp)
+- [`overflow-wrap` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow-wrap)
+- [`hyphens` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/hyphens)

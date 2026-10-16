@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Pola Markup Aksesibel: Jejak Halaman (*Breadcrumbs*), Paginasi, dan Komponen Tab** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`breadcrumb`** dan **`tablist`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`breadcrumb`** dan **`tablist`** berdasarkan [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-current).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,18 +29,64 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `breadcrumb` dan `tabl
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Pola Markup Aksesibel: Jejak Halaman (*Breadcrumbs*), Paginasi, dan Komponen Tab — Kodeloka</title>
+    <title>Pola Navigasi Aksesibel — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Pola Markup Aksesibel: Jejak Halaman (*Breadcrumbs*), Paginasi, dan Komponen Tab</h1>
-        <p>
-          Penerapan <code>breadcrumb</code> dan <code>tablist</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Pola Navigasi Aksesibel</h1>
+
+      <nav aria-label="Jejak halaman">
+        <ol>
+          <li><a href="/">Beranda</a></li>
+          <li><a href="/html/">HTML</a></li>
+          <li><a href="/html/materi/" aria-current="page">Materi</a></li>
+        </ol>
+      </nav>
+
+      <nav aria-label="Paginasi">
+        <ul>
+          <li><a href="?hal=1" rel="prev">Sebelumnya</a></li>
+          <li><a href="?hal=1">1</a></li>
+          <li><a href="?hal=2" aria-current="page">2</a></li>
+          <li><a href="?hal=3">3</a></li>
+          <li><a href="?hal=3" rel="next">Berikutnya</a></li>
+        </ul>
+      </nav>
+
+      <div role="tablist" aria-label="Contoh kode">
+        <button type="button" role="tab" id="tab-html" aria-selected="true" aria-controls="panel-html">HTML</button>
+        <button type="button" role="tab" id="tab-css" aria-selected="false" aria-controls="panel-css" tabindex="-1">CSS</button>
+      </div>
+      <div role="tabpanel" id="panel-html" aria-labelledby="tab-html" tabindex="0">
+        <p>Isi panel HTML.</p>
+      </div>
+      <div role="tabpanel" id="panel-css" aria-labelledby="tab-css" tabindex="0" hidden>
+        <p>Isi panel CSS.</p>
+      </div>
     </main>
+
+    <script>
+      // Pola tab dari APG: panah kiri/kanan memindahkan pilihan, hanya tab aktif yang masuk urutan Tab
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+
+      function pilih(tab) {
+        for (const t of tabs) {
+          const aktif = t === tab;
+          t.setAttribute("aria-selected", String(aktif));
+          t.tabIndex = aktif ? 0 : -1;
+          document.getElementById(t.getAttribute("aria-controls")).hidden = !aktif;
+        }
+        tab.focus();
+      }
+
+      for (const [i, tab] of tabs.entries()) {
+        tab.addEventListener("click", () => pilih(tab));
+        tab.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowRight") pilih(tabs[(i + 1) % tabs.length]);
+          if (e.key === "ArrowLeft") pilih(tabs[(i - 1 + tabs.length) % tabs.length]);
+        });
+      }
+    </script>
   </body>
 </html>
 ```
@@ -95,7 +141,7 @@ Bagaimana cara memverifikasi bahwa implementasi `breadcrumb` dan `tablist` pada 
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [Breadcrumb Pattern — ARIA Authoring Practices Guide (W3C WAI)](https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/)
+- [Tabs Pattern — ARIA Authoring Practices Guide (W3C WAI)](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/)
+- [`aria-current` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-current)
+- [`<nav>` dan elemen lain — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/sections.html)

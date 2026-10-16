@@ -29,7 +29,10 @@ export function gabungObjekAman(target, sumber) {
     if (KUNCI_TERLARANG.has(kunci)) continue;
     const nilai = sumber[kunci];
     if (nilai && typeof nilai === "object" && !Array.isArray(nilai)) {
-      target[kunci] = gabungObjekAman(target[kunci] ?? Object.create(null), nilai);
+      // Pakai hanya objek yang benar-benar milik target sendiri, bukan properti warisan prototipe
+      const ada = Object.hasOwn(target, kunci) ? target[kunci] : undefined;
+      const wadah = ada && typeof ada === "object" ? ada : Object.create(null);
+      target[kunci] = gabungObjekAman(wadah, nilai);
     } else {
       target[kunci] = nilai;
     }
@@ -80,6 +83,7 @@ Saat mengintegrasikan fitur `Keamanan Lanjutan` ke dalam aplikasi produksi, lang
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`Object.hasOwn()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn)
+- [`Object.create()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
+- [Trusted Types API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)
+- [Prototype Pollution Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Prototype_Pollution_Prevention_Cheat_Sheet.html)

@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Keamanan Markup HTML: Subresource Integrity (`integrity`), `crossorigin`, dan `referrerpolicy`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`integrity`** dan **`referrerpolicy`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`integrity`** dan **`referrerpolicy`** berdasarkan spesifikasi [Subresource Integrity](https://www.w3.org/TR/sri/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Subresource_Integrity).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,32 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `integrity` dan `refer
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Keamanan Markup HTML: Subresource Integrity (`integrity`), `crossorigin`, dan `referrerpolicy` — Kodeloka</title>
+    <title>Subresource Integrity — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Keamanan Markup HTML: Subresource Integrity (`integrity`), `crossorigin`, dan `referrerpolicy`</h1>
-        <p>
-          Penerapan <code>integrity</code> dan <code>referrerpolicy</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Subresource Integrity</h1>
+      <!-- Peramban menolak menjalankan skrip jika hash isi berkas tidak cocok -->
+      <script
+        src="https://cdn.asadinedu.com/halo.js"
+        integrity="sha384-SofzUEmit+NqsjHwKor7buTsNR+Af94/XMW9op3H0BF3ciOJi2w94eqIO4/Nebsl"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+      ></script>
     </main>
   </body>
 </html>
 ```
+
+Hash pada atribut `integrity` dihitung dari isi berkas yang sebenarnya, misalnya dengan perintah berikut (nilai di atas adalah hash dari berkas yang hanya berisi `console.log("halo");` ditambah satu baris baru):
+
+```bash
+openssl dgst -sha384 -binary halo.js | openssl base64 -A
+```
+
+Untuk skrip lintas-origin, atribut `crossorigin="anonymous"` wajib ada dan server CDN harus mengirim header `Access-Control-Allow-Origin`; jika tidak, pemeriksaan integritas gagal dan skrip diblokir.
+
+> **Status dukungan (Oktober 2026):** Subresource Integrity (`integrity`) dan `referrerpolicy` berstatus *Baseline Widely Available*.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `integrity` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +106,7 @@ Bagaimana cara memverifikasi bahwa implementasi `integrity` dan `referrerpolicy`
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [Subresource Integrity — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Subresource_Integrity)
+- [Referrer-Policy — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Referrer-Policy)
+- [Cross-Origin Resource Sharing (CORS) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS)
+- [Subresource Integrity — W3C](https://www.w3.org/TR/sri/)

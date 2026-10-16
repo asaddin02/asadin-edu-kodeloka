@@ -76,6 +76,7 @@ Saat mengintegrasikan fitur `Arsitektur Lokalisasi (i18n & l10n) Aplikasi Web` k
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`Intl.Segmenter` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter)
+- [`Intl.PluralRules` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules)
+- [`Intl.Collator` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator)
+- [ECMAScript Internationalization API Specification (ECMA-402) — TC39](https://tc39.es/ecma402/)

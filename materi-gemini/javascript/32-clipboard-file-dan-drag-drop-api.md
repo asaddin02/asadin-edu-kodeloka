@@ -71,7 +71,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `await navigator.clipbo
 **Penjelasan:** `await navigator.clipboard.writeText(kodeSumber);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Interaksi Berkas Lokal, Papan Klip (`navigator.clipboard`), dan Drag and Drop API` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Interaksi Berkas Lokal, Papan Klip (`navigator.clipboard`), dan Drag and Drop API" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -82,6 +82,6 @@ Saat mengintegrasikan fitur `Interaksi Berkas Lokal, Papan Klip (`navigator.clip
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Clipboard API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API)
+- [Using files from web applications — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/File_API/Using_files_from_web_applications)
+- [HTML Drag and Drop API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)

@@ -1,91 +1,187 @@
-# Media Queries Aksesibilitas: `prefers-contrast`, `forced-colors`, `prefers-reduced-transparency`, dan ` inverted-colors`
+# Media Queries Aksesibilitas: `prefers-contrast`, `forced-colors`, `prefers-reduced-transparency`, dan `inverted-colors`
 
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memastikan antarmuka tetap terbaca tajam bagi pengguna mode Kontras Tinggi Windows (*Windows High Contrast Mode*) melalui `@media (forced-colors: active)`, kata kunci warna sistem `CanvasText`, dan `@media (prefers-contrast: more)`.
 
-## Mengapa "Media Queries Aksesibilitas: `prefers-contrast`, `forced-colors`, `prefers-reduced-transparency`, dan ` inverted-colors`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Preferensi Pengguna Perlu Dihormati?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`prefers-contrast: more`** dan **`forced-colors: active`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Tidak semua orang melihat halaman Anda dengan cara yang sama. Pengguna dengan penglihatan rendah mungkin mengaktifkan **kontras tinggi** di sistem operasi; pengguna yang peka cahaya menyalakan mode gelap atau mengurangi transparansi; sebagian lagi memakai **tema kontras Windows** yang menimpa seluruh warna halaman. Sistem operasi meneruskan preferensi ini ke peramban, dan CSS menyediakan *media feature* untuk menangkapnya. Mereka melengkapi `prefers-color-scheme` dan `prefers-reduced-motion` yang sudah Anda kenal.
 
-## 1. Konsep Kerja dan Dukungan Standar
+| Media feature | Status dukungan |
+|---|---|
+| `prefers-contrast` | **Baseline Widely Available** (sejak Mei 2022) |
+| `forced-colors` | **Baseline Widely Available** (sejak September 2022) |
+| `prefers-reduced-transparency` | Terbatas: Chrome 118+; Firefox di balik bendera; Safari belum |
+| `inverted-colors` | Terbatas: hanya Safari |
 
-Fitur `prefers-contrast: more` dan `forced-colors: active` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+Untuk fitur dengan dukungan terbatas, perlakukan sebagai **peningkatan progresif**: tampilan dasar Anda harus sudah baik tanpa mereka.
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`prefers-contrast: more`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`forced-colors: active`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
+## 1. `prefers-contrast`: Meminta Kontras Lebih (atau Kurang)
 
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `prefers-contrast: more` dan `forced-colors: active` sesuai praktik terbaik CSS modern:
+Nilai: `more` (kontras lebih tinggi), `less` (lebih rendah), `custom` (pengguna memilih palet sendiri), dan `no-preference`. Teknik yang efektif adalah menyimpan warna dalam variabel CSS lalu menggantinya:
 
 ```css
-/* Contoh penerapan Media Queries Aksesibilitas: `prefers-contrast`, `forced-colors`, `prefers-reduced-transparency`, dan ` inverted-colors` */
+:root {
+  --warna-teks: oklch(35% 0.02 250);
+  --warna-batas: oklch(88% 0.01 250);
+  --lebar-batas: 1px;
+}
+
 @media (prefers-contrast: more) {
-  :root { --garis-batas: oklch(25% 0 0); }
+  :root {
+    --warna-teks: oklch(15% 0.02 250);   /* teks lebih gelap */
+    --warna-batas: oklch(40% 0.02 250);  /* batas lebih tegas */
+    --lebar-batas: 2px;
+  }
+
+  .kartu {
+    box-shadow: none;                    /* hilangkan efek halus yang mengaburkan tepi */
+  }
+}
+
+.kartu {
+  color: var(--warna-teks);
+  border: var(--lebar-batas) solid var(--warna-batas);
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan prefers-contrast: more</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+Prinsipnya: naikkan kontras teks, tegaskan batas komponen, dan kurangi gradien atau transparansi yang membuat tepi sulit dikenali.
+
+## 2. `forced-colors: active`: Mode Warna Paksa
+
+Pada **mode warna paksa** (misalnya tema kontras Windows), peramban **menimpa warna** dengan palet sistem yang ditentukan pengguna. Perilaku utamanya (CSS Color Adjustment):
+- Properti warna seperti `color`, `background-color`, `border-color`, dan `outline-color` dipaksa ke warna sistem.
+- `box-shadow` dan `text-shadow` dihitung menjadi `none`.
+- `background-image` menjadi `none` kecuali nilainya mengandung `url()`.
+- Kata kunci warna sistem seperti `CanvasText` (teks), `Canvas` (latar), `LinkText`, `ButtonText`, `ButtonFace`, `Field`, `FieldText`, `Highlight`, `HighlightText`, dan `GrayText` dapat dipakai agar elemen kustom ikut serasi.
+
+```css
+@media (forced-colors: active) {
+  /* Kartu kehilangan bayangan: batas transparan menjadi terlihat dalam warna sistem */
+  .kartu {
+    border: 1px solid CanvasText;
+  }
+
+  /* Tombol kustom */
+  .tombol-ikon {
+    border: 1px solid ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+  .tombol-ikon:hover {
+    border-color: Highlight;
+  }
+
+  /* Ikon SVG mengikuti warna teks */
+  .ikon {
+    fill: currentColor;
+  }
+
+  /* Saklar kustom: status terpilih harus tetap dapat dibedakan tanpa warna latar */
+  .saklar[aria-checked="true"] {
+    background-color: Highlight;
+    border-color: HighlightText;
+  }
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `prefers-contrast: more` dan `forced-colors: active`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+Beberapa praktik penting:
+- **Beri border pada komponen yang batasnya hanya berupa bayangan atau latar** (tulis `border: 1px solid transparent`; pada mode paksa borders transparan dipaksa menjadi warna sistem sehingga komponen tetap terlihat).
+- Indikator fokus memakai `outline` (misalnya `outline: 2px solid transparent` sebagai cadangan) dan bukan `box-shadow`, karena bayangan dihapus (lihat Pelajaran 38).
+- Jangan bergantung pada **gambar latar gradien** atau **teks transparan** (`background-clip: text`) untuk informasi; sediakan cadangan dengan `CanvasText`.
+- Properti **`forced-color-adjust: none`** memungkinkan sebuah elemen menolak penimpaan, tetapi gunakan **hemat** (mis. untuk contoh warna pada pemilih warna). Properti ini juga belum didukung Safari.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+## 3. `prefers-reduced-transparency`
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `prefers-contrast: more` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+Sebagian pengguna meminta **transparansi dikurangi** karena efek kaca buram (*frosted glass*) dan latar semi-transparan menurunkan keterbacaan. Gunakan latar solid untuk mereka:
 
-## Latihan Praktik
+```css
+.header-kaca {
+  background-color: oklch(100% 0 0 / 0.7);
+  backdrop-filter: blur(12px);
+}
 
-Buatlah berkas `47-media-queries-preferensi-pengguna-kontras-dan-warna-paksa.html` dan stylesheet pendampingnya:
-1. Terapkan kode `prefers-contrast: more` dan `forced-colors: active` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+@media (prefers-reduced-transparency: reduce) {
+  .header-kaca {
+    background-color: oklch(100% 0 0);   /* solid */
+    backdrop-filter: none;
+  }
+}
+```
+
+Dukungannya terbatas (Chrome 118+), jadi pastikan tampilan dasar sudah memiliki kontras teks yang baik walau media feature ini tidak berlaku.
+
+## 4. `inverted-colors`
+
+`@media (inverted-colors: inverted)` cocok bila pengguna mengaktifkan inversi warna (di Safari lewat *Smart Invert*). Sistem membalik warna seluruh halaman termasuk gambar; agar foto tidak tampak negatif, balik lagi gambarnya:
+
+```css
+@media (inverted-colors: inverted) {
+  img, video {
+    filter: invert(1);
+  }
+}
+```
+
+Fitur ini hanya relevan di Safari; peramban lain mengabaikannya.
+
+## 5. Menguji
+
+- Chrome/Edge DevTools: tab **Rendering** memiliki emulasi untuk `prefers-contrast`, `forced-colors`, `prefers-reduced-transparency`, `prefers-color-scheme`, dan `prefers-reduced-motion`.
+- Windows: aktifkan **Contrast themes** (Pengaturan > Aksesibilitas > Contrast themes) dan periksa halaman Anda.
+- Pastikan setiap komponen interaktif tetap dapat dikenali, dibedakan statusnya, dan fokusnya terlihat tanpa mengandalkan warna merek.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mengandalkan `box-shadow` sebagai batas atau indikator fokus.** Hilang pada mode warna paksa; tambahkan `border` atau `outline`.
+2. **Memakai `forced-color-adjust: none` secara luas.** Merusak tema kontras pilihan pengguna.
+3. **Warna latar sebagai satu-satunya penanda status** (mis. saklar "aktif"). Tambahkan bentuk atau teks.
+4. **Ikon SVG dengan `fill` tetap.** Gunakan `currentColor`.
+5. **Menganggap media feature terbatas pasti didukung.** Pastikan desain dasar sudah aksesibel.
+
+## Latihan Praktik: Komponen yang Tahan Kontras Tinggi
+
+Buatlah berkas `preferensi-pengguna.html` dan `preferensi.css`:
+1. Buat kartu dengan bayangan, tombol ikon SVG, dan saklar kustom. Tambahkan `@media (prefers-contrast: more)` yang menegaskan batas dan menggelapkan teks.
+2. Tambahkan `@media (forced-colors: active)` dengan `CanvasText`, `ButtonText`, `Highlight`, dan `currentColor` agar semua komponen tetap terlihat.
+3. Aktifkan emulasi `forced-colors: active` dan `prefers-contrast: more` di tab Rendering DevTools dan bandingkan hasilnya.
+4. Ganti header kaca dengan versi solid memakai `prefers-reduced-transparency: reduce`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `prefers-contrast: more` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `prefers-contrast: more` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Sebuah kartu hanya dibatasi oleh `box-shadow` (tanpa border). Apa yang terjadi pada pengguna dengan `forced-colors: active`?
+- A. Bayangan tampil lebih tebal.
+- B. Bayangan dihitung menjadi `none`, sehingga kartu kehilangan batasnya kecuali diberi `border`.
+- C. Bayangan berubah menjadi warna `Highlight`.
+- D. Kartu disembunyikan.
 
 **Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `prefers-contrast: more` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Penjelasan:** Pada mode warna paksa, `box-shadow` dan `text-shadow` dihitung menjadi `none`. Karena itu batas komponen sebaiknya memakai `border` (bisa transparan, yang akan dipaksa menjadi warna sistem).
 
 ### Soal 2
-Dalam konteks **Media Queries Aksesibilitas: `prefers-contrast`, `forced-colors`, `prefers-reduced-transparency`, dan ` inverted-colors`**, bagaimana `forced-colors: active` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`forced-colors: active`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Kata kunci warna sistem manakah yang tepat untuk teks dan latar halaman pada mode warna paksa?
+- A. `Highlight` untuk teks, `GrayText` untuk latar.
+- B. `ButtonText` untuk teks, `Highlight` untuk latar.
+- C. `CanvasText` untuk teks dan `Canvas` untuk latar.
+- D. `LinkText` untuk teks dan `FieldText` untuk latar.
 
-**Jawaban Benar:** B
-**Penjelasan:** `forced-colors: active` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** `CanvasText` adalah warna teks standar pada area halaman dan `Canvas` adalah warna latar halaman. `ButtonText`, `LinkText`, dan lainnya ditujukan untuk jenis elemen tertentu.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Bagaimana sebaiknya `@media (prefers-reduced-transparency: reduce)` dipakai mengingat dukungannya terbatas?
+- A. Sebagai satu-satunya cara memastikan kontras teks.
+- B. Hanya setelah semua peramban mendukungnya.
+- C. Sebagai peningkatan progresif: desain dasar sudah terbaca baik, lalu preferensi ini menggantikan latar semi-transparan dan `backdrop-filter` dengan latar solid.
+- D. Untuk mengganti `prefers-contrast`.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** C
+**Penjelasan:** Fitur ini baru didukung Chrome 118+, jadi pengguna lain tidak akan terpengaruh. Tampilan dasar tetap harus memiliki kontras yang baik; media feature hanya menambah kenyamanan bagi yang memintanya.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`prefers-contrast` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-contrast)
+- [`forced-colors` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/forced-colors)
+- [`prefers-reduced-transparency` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-transparency)
+- [`forced-color-adjust` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/forced-color-adjust)
+- [CSS Color Adjustment Module Level 1 — W3C](https://www.w3.org/TR/css-color-adjust-1/)

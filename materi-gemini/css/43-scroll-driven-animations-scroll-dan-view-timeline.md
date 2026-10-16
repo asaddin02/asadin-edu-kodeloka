@@ -3,93 +3,140 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Menganimasikan kemunculan kartu dan grafik saat masuk ke jendela pandang menggunakan `animation-timeline: view()` dan mengatur rentang aktifnya dengan `animation-range: entry 0% cover 30%`.
 
-## Mengapa "Praktik Mendalam Scroll-Driven Animations: `scroll()`, `view()`, dan `animation-range`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Scroll-Driven Animations?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`animation-timeline: view()`** dan **`animation-range`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Efek seperti elemen yang memudar masuk saat digulir, bilah kemajuan baca, atau paralaks dahulu dibuat dengan JavaScript (`scroll` event atau `IntersectionObserver`). **Scroll-driven animations** memindahkan itu ke CSS: kemajuan animasi tidak lagi dihitung dari **waktu**, melainkan dari **posisi gulir** atau **posisi sebuah elemen di jendela pandang**. Karena dijalankan peramban, animasi `transform` dan `opacity` dapat berjalan di luar utas utama sehingga tetap mulus.
 
-## 1. Konsep Kerja dan Dukungan Standar
+**Dukungan peramban:** `animation-timeline`, `view()`, `scroll()`, dan `animation-range` didukung Chrome/Edge sejak versi 115 dan Safari 26. Firefox baru mendukungnya mulai versi 159, yang saat ini masih beta. Karena belum merata, MDN menandainya **Limited availability**; gunakan sebagai **peningkatan progresif** (lihat bagian 4).
 
-Fitur `animation-timeline: view()` dan `animation-range` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+## 1. Dua Jenis Linimasa (*Timeline*)
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`animation-timeline: view()`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`animation-range`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `animation-timeline: view()` dan `animation-range` sesuai praktik terbaik CSS modern:
+- **`scroll()`**: kemajuan mengikuti **posisi gulir sebuah kontainer** (0% di awal, 100% di ujung). Cocok untuk bilah kemajuan baca dan paralaks.
+- **`view()`**: kemajuan mengikuti **seberapa jauh sebuah elemen melintasi jendela pandang** kontainer gulirnya: 0% saat mulai masuk, 100% saat selesai keluar. Cocok untuk efek "muncul saat terlihat".
 
 ```css
-/* Contoh penerapan Praktik Mendalam Scroll-Driven Animations: `scroll()`, `view()`, dan `animation-range` */
-@supports (animation-timeline: view()) {
-  .kartu-muncul {
-    animation: pudar-naik linear both;
-    animation-timeline: view();
-    animation-range: entry 10% cover 25%;
+/* Bilah kemajuan baca di atas halaman */
+@keyframes isi-bilah {
+  from { scale: 0 1; }
+  to   { scale: 1 1; }
+}
+
+.bilah-baca {
+  position: fixed;
+  inset: 0 0 auto 0;
+  block-size: 4px;
+  background-color: oklch(55% 0.2 255);
+  transform-origin: 0 50%;
+  animation: isi-bilah linear both;
+  animation-timeline: scroll(root block);   /* ikuti gulir halaman utama (sumbu block) */
+}
+```
+
+Dua hal yang perlu diingat saat menulis animasi bertimeline gulir:
+- Tulis **`animation-timeline` setelah** singkatan `animation`, karena singkatan itu mereset `animation-timeline`.
+- Jangan menetapkan durasi dalam detik; durasi tidak berarti pada linimasa gulir (nilai bawaan `auto`). Gunakan fungsi easing `linear` bila ingin kemajuan sebanding dengan gulir.
+
+## 2. `view()`: Kartu yang Memudar Masuk
+
+```css
+@keyframes muncul {
+  from { opacity: 0; translate: 0 3rem; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.kartu {
+  animation: muncul linear both;
+  animation-timeline: view();               /* ikuti kemunculan elemen ini di jendela pandang */
+  animation-range: entry 0% cover 30%;      /* aktif dari mulai masuk hingga 30% rentang cover */
+}
+```
+
+## 3. `animation-range`: Rentang Aktif
+
+Animasi tidak harus membentang dari awal hingga akhir seluruh perjalanan elemen. **`animation-range`** menentukan awal dan akhirnya dengan nama rentang plus persentase:
+
+| Rentang | Arti |
+|---|---|
+| `cover` | Seluruh perjalanan: dari elemen mulai menyentuh jendela pandang hingga benar-benar meninggalkannya |
+| `contain` | Selama elemen **sepenuhnya berada di dalam** jendela pandang (atau menutupinya, bila lebih besar) |
+| `entry` | Fase elemen **masuk** (mulai terlihat hingga seluruhnya masuk) |
+| `exit` | Fase elemen **keluar** |
+| `entry-crossing`, `exit-crossing` | Varian yang mengukur saat tepi elemen melintasi tepi jendela pandang |
+
+Sintaks: `animation-range: <awal> <akhir>`. Contoh `entry 0% cover 30%` berarti **mulai** saat fase masuk 0% (elemen baru muncul) dan **berakhir** pada 30% dari seluruh rentang `cover`. Contoh lain:
+- `animation-range: entry` (fase masuk saja, dari 0% sampai 100% fase itu),
+- `animation-range: entry 25% entry 75%`,
+- `animation-range: exit 0% exit 100%` untuk efek keluar.
+
+Anda dapat menggabungkan dua animasi pada satu elemen (masuk dan keluar) dengan dua `@keyframes` dan dua rentang berbeda.
+
+## 4. Peningkatan Progresif dan Aksesibilitas
+
+Keadaan awal animasi seperti `opacity: 0` **tidak boleh** berlaku bagi peramban yang tidak mendukung linimasa gulir atau bagi pengguna yang meminta pengurangan gerak; konten akan **tetap tersembunyi**. Tulis semua efek di dalam `@supports` dan `prefers-reduced-motion`:
+
+```css
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .kartu {
+      animation: muncul linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
   }
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan animation-timeline: view()</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
-```
+Dengan susunan ini, peramban lama atau pengguna yang memilih gerakan berkurang melihat kartu langsung tampil dengan gaya normal. Hindari efek yang menyembunyikan konten penting sampai digulir.
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `animation-timeline: view()` dan `animation-range`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+## Kesalahan Umum dan Cara Menghindarinya
 
-## 3. Kesalahan Umum yang Harus Dihindari
+1. **Menyertakan `animation-timeline` sebelum singkatan `animation`.** Singkatan mereset nilainya.
+2. **Menaruh `opacity: 0` sebagai gaya dasar.** Di peramban tanpa dukungan, konten tak pernah muncul; letakkan di dalam `@supports`.
+3. **Mengira durasi `1s` menentukan kecepatan.** Pada linimasa gulir, kecepatan ditentukan jarak gulir.
+4. **Tidak menghormati `prefers-reduced-motion`.** Gerakan terkait gulir termasuk pemicu gangguan vestibular.
+5. **Menganimasikan properti yang memicu *layout*.** Pilih `transform` dan `opacity`.
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `animation-timeline: view()` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## Latihan Praktik: Halaman Artikel dengan Efek Gulir
 
-## Latihan Praktik
-
-Buatlah berkas `43-scroll-driven-animations-scroll-dan-view-timeline.html` dan stylesheet pendampingnya:
-1. Terapkan kode `animation-timeline: view()` dan `animation-range` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+Buatlah berkas `scroll-timeline.html` dan `scroll-timeline.css`:
+1. Buat bilah kemajuan baca dengan `animation-timeline: scroll(root block)`.
+2. Buat 6 kartu yang memudar masuk dengan `view()` dan `animation-range: entry 0% cover 30%`. Ubah rentang menjadi `entry 0% entry 100%` dan bandingkan.
+3. Bungkus semua efek dalam `@supports (animation-timeline: view())` dan `@media (prefers-reduced-motion: no-preference)`. Uji di peramban tanpa dukungan atau dengan emulasi gerakan berkurang, dan pastikan kartu tetap terlihat.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `animation-timeline: view()` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `animation-timeline: view()` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Apa beda utama `scroll()` dan `view()` sebagai nilai `animation-timeline`?
+- A. `scroll()` mengikuti posisi gulir sebuah kontainer, sedangkan `view()` mengikuti kemajuan sebuah elemen melintasi jendela pandang kontainer gulirnya.
+- B. `scroll()` hanya untuk desktop, `view()` hanya untuk ponsel.
+- C. `scroll()` menentukan durasi, `view()` menentukan warna.
+- D. Tidak ada beda; keduanya sinonim.
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `animation-timeline: view()` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** A
+**Penjelasan:** `scroll()` memetakan 0%-100% ke rentang gulir sebuah kontainer (cocok untuk bilah kemajuan), sedangkan `view()` memetakan ke perjalanan sebuah elemen melewati jendela pandang (cocok untuk efek muncul saat terlihat).
 
 ### Soal 2
-Dalam konteks **Praktik Mendalam Scroll-Driven Animations: `scroll()`, `view()`, dan `animation-range`**, bagaimana `animation-range` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`animation-range`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Apa arti `animation-range: entry 0% cover 30%`?
+- A. Animasi berjalan selama 30 detik.
+- B. Animasi mulai saat elemen baru mulai masuk jendela pandang dan berakhir ketika kemajuan mencapai 30% dari seluruh rentang `cover`.
+- C. Animasi hanya berjalan setelah elemen sepenuhnya keluar.
+- D. Animasi diulang 30 kali.
 
 **Jawaban Benar:** B
-**Penjelasan:** `animation-range` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Penjelasan:** Nilai pertama menentukan titik awal (`entry 0%`, tepat saat elemen mulai masuk) dan nilai kedua titik akhir (`cover 30%`, 30% dari keseluruhan perjalanan elemen melewati jendela pandang).
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Mengapa efek kemunculan yang memakai `opacity: 0` sebaiknya ditulis di dalam `@supports (animation-timeline: view())`?
+- A. Agar animasi berjalan lebih cepat.
+- B. Karena `@supports` mempercepat gulir.
+- C. Agar di peramban yang tidak mendukung linimasa gulir, kartu tidak terjebak dalam keadaan transparan dan tetap terlihat normal.
+- D. Karena `opacity` tidak boleh dipakai di luar `@supports`.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** C
+**Penjelasan:** Di peramban tanpa dukungan, `animation-timeline` diabaikan sehingga animasi tidak pernah maju. Jika `opacity: 0` berlaku sebagai gaya dasar, konten tidak akan pernah tampil. `@supports` menjaga efek hanya aktif bila didukung.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [CSS scroll-driven animations — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Scroll-driven_animations)
+- [`animation-timeline` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/animation-timeline)
+- [`animation-range` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/animation-range)
+- [Scroll-driven Animations — W3C](https://www.w3.org/TR/scroll-animations-1/)

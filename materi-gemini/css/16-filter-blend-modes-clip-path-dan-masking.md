@@ -5,7 +5,7 @@
 
 ## 1. `filter` vs `backdrop-filter`: Kapan Menggunakan Masing-Masing?
 
-CSS menyediakan fungsi pengolah piksel grafis langsung di peramban (status **Baseline Widely Available**):
+CSS menyediakan fungsi pengolah piksel grafis langsung di peramban (`filter` berstatus **Baseline Widely Available**, sedangkan `backdrop-filter` **Baseline Newly Available** sejak September 2024):
 - **`filter`:** Menerapkan efek grafis (seperti `blur()`, `brightness()`, `contrast()`, `grayscale()`, `drop-shadow()`) pada **elemen itu sendiri beserta seluruh anak di dalamnya**.
 - **`backdrop-filter`:** Menerapkan efek grafis hanya pada **area latar belakang yang berada di balik elemen transparan tersebut**, sementara teks di dalam elemen tetap tajam 100%! Inilah kunci untuk membuat bilah navigasi kaca buram (*frosted glass / glassmorphism*).
 
@@ -128,5 +128,7 @@ Fungsi gradien CSS manakah yang memutar transisi warna mengelilingi satu titik p
 **Penjelasan:** `conic-gradient()` menempatkan titik henti warna berdasarkan sudut putaran mengelilingi titik pusat (dalam derajat atau persentase putaran), menjadikannya alat yang sangat tepat untuk diagram lingkaran dan roda warna.
 
 ## Sumber
-- [CSS reference (`filter`, `backdrop-filter`, `clip-path`) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
+- [`filter` CSS property — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/filter)
+- [`backdrop-filter` CSS property — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/backdrop-filter)
+- [`clip-path` CSS property — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/clip-path)
 - [`oklch()` CSS function — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/oklch)

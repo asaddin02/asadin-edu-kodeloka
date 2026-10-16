@@ -21,7 +21,7 @@ Begitu Anda menulis **`display: flex`** pada sebuah elemen:
 
 Kunci utama agar Anda tidak pernah bingung antara `justify-content` dan `align-items` adalah memahami bahwa Flexbox bekerja berdasarkan **dua poros yang saling tegak lurus**:
 
-```
+```text
 A. Saat flex-direction: row (Bawaan):
    Main Axis (Poros Utama)  ===> Horizontal (Kiri ke Kanan)
    Cross Axis (Poros Silang) ===> Vertikal (Atas ke Bawah)
@@ -74,7 +74,7 @@ Ketiga properti ini dipasang pada **anak (Flex Item)**, bukan pada wadah indukny
 2. **`flex-grow` (Faktor Tumbuh):** Menentukan apakah item boleh membesar menyerap ruang kosong yang tersisa di dalam kontainer (bawaannya `0` = tidak ikut membesar).
 3. **`flex-shrink` (Faktor Susut):** Menentukan apakah item boleh menyusut ketika ruang kontainer lebih sempit dari jumlah ukuran item (bawaannya `1` = boleh menyusut).
 
-### Tiga Nilai Singkatan `flex` yang Wajib Anda Hafal
+### Empat Nilai Singkatan `flex` yang Wajib Anda Hafal
 
 | Deklarasi Singkatan | Ekivalen Lengkap | Perilaku Praktis |
 |---|---|---|
@@ -86,7 +86,7 @@ Ketiga properti ini dipasang pada **anak (Flex Item)**, bukan pada wadah indukny
 ## 4. Tiga Pola Komponen Dunia Nyata dengan Flexbox
 
 ```css
-/* Pola 1: Bilah Navigasi (Logo di kiri, Menu di tengah, Tombol Masuk mendorong ke ujung kanan) */
+/* Pola 1: Bilah Navigasi (Logo dan Menu di kiri, Tombol Masuk mendorong ke ujung kanan) */
 .navbar {
   display: flex;
   align-items: center;

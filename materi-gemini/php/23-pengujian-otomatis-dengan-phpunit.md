@@ -9,6 +9,8 @@ Bayangkan Anda mengubah satu baris rumus perhitungan pajak atau memperbarui kuer
 
 Dengan **PHPUnit 12**, seluruh logika domain, layanan, dan kueri repositori dapat diverifikasi secara otomatis dalam hitungan milidetik setiap kali Anda menjalankan `vendor/bin/phpunit` atau setiap kali kode di-*push* ke GitHub Actions!
 
+> Catatan versi: per Oktober 2026 PHPUnit 13 (membutuhkan PHP 8.4+) sudah dirilis. PHPUnit 12 (membutuhkan PHP 8.3+) masih mendapat perbaikan bug sampai 5 Februari 2027, dan contoh di pelajaran ini juga berlaku untuk PHPUnit 13.
+
 ## 1. Anatomi Test Case Modern di PHPUnit 12 (`#[Test]` & `#[DataProvider]`)
 
 Di PHPUnit modern (versi 10, 11, dan **PHPUnit 12**), kita menggunakan atribut asli PHP 8 dari namespace `PHPUnit\Framework\Attributes\`:
@@ -262,3 +264,5 @@ Mengapa metode penyedia data untuk atribut `#[DataProvider('namaMetode')]` di PH
 ## Sumber
 - [Writing Tests for PHPUnit — PHPUnit 12.5 Manual](https://docs.phpunit.de/en/12.5/writing-tests-for-phpunit.html)
 - [Organizing Tests — PHPUnit 12.5 Manual](https://docs.phpunit.de/en/12.5/organizing-tests.html)
+- [Test Doubles — PHPUnit 12.5 Manual](https://docs.phpunit.de/en/12.5/test-doubles.html)
+- [Supported Versions of PHPUnit](https://phpunit.de/supported-versions.html)

@@ -66,7 +66,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `const uuid = crypto.ra
 **Penjelasan:** `const uuid = crypto.randomUUID(); const hash = await crypto.subtle.digest('SHA-256', data);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Kriptografi Sisi Klien dengan Web Crypto API (`crypto.randomUUID`, `crypto.subtle`)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Kriptografi Sisi Klien dengan Web Crypto API (`crypto.randomUUID`, `crypto.subtle`)" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -77,6 +77,6 @@ Saat mengintegrasikan fitur `Kriptografi Sisi Klien dengan Web Crypto API (`cryp
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Web Crypto API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+- [`SubtleCrypto` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto)
+- [`Crypto.randomUUID()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)

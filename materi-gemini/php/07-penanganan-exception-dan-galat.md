@@ -7,7 +7,7 @@
 
 Di PHP modern, kesalahan sintaks, ketidakcocokan tipe data (`TypeError`), maupun kegagalan koneksi basis data (`PDOException`) semuanya direpresentasikan sebagai objek yang mengimplementasikan interface puncak **`Throwable`**:
 
-```
+```text
                            Throwable (Interface)
                                  │
           ┌──────────────────────┴──────────────────────┐
@@ -155,5 +155,8 @@ Apa fungsi dari pendaftaran `set_error_handler()` yang melempar `new ErrorExcept
 **Penjelasan:** Sebagian fungsi sistem berkas warisan di PHP masih mengeluarkan *Warning* alih-alih melempar `Exception` saat gagal. Mengonversinya menjadi `ErrorException` menyatukan seluruh penanganan galat aplikasi ke dalam mekanisme `Throwable`.
 
 ## Sumber
-- [Exceptions — PHP Manual](https://www.php.net/manual/en/langref.php)
+- [Error Handling — PHP Manual](https://www.php.net/manual/en/language.error-handling.php)
+- [The Throwable interface — PHP Manual](https://www.php.net/manual/en/language.error-handling.throwable.php)
+- [SPL Exceptions — PHP Manual](https://www.php.net/manual/en/spl.exceptions.php)
+- [`set_exception_handler` — PHP Manual](https://www.php.net/manual/en/function.set-exception-handler.php)
 - [PHP 8.5 Release Announcement (`get_error_handler`, `get_exception_handler`, Fatal Error Backtraces) — PHP.net](https://www.php.net/releases/8.5/en.php)

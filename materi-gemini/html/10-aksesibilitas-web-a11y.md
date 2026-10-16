@@ -1,7 +1,7 @@
 # Aksesibilitas Web (a11y) dan WAI-ARIA Dasar
 
 - **Tingkat:** Menengah
-- **Ringkasan:** Menerapkan prinsip WCAG (POUR), navigasi papan ketik dan manajemen fokus, lima aturan penggunaan WAI-ARIA, serta atribut penting seperti `aria-label`, `aria-labelledby`, `aria-describedby`, dan `aria-live`.
+- **Ringkasan:** Menerapkan prinsip WCAG (POUR), navigasi papan ketik dan manajemen fokus, aturan pertama penggunaan WAI-ARIA, serta atribut penting seperti `aria-label`, `aria-labelledby`, `aria-describedby`, dan `aria-live`.
 
 ## Apa Itu Aksesibilitas Web (a11y) dan Mengapa Bukan Fitur Tambahan?
 

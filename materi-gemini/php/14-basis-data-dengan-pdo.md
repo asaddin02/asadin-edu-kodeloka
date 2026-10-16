@@ -29,7 +29,7 @@ function buatKoneksiPdo(string $dsn, ?string $pengguna = null, ?string $sandi = 
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
 
-    // Sejak PHP 8.4, kita dapat menggunakan PDO::connect() (atau new PDO() di PHP 8.2+):
+    // Sejak PHP 8.4, kita dapat menggunakan PDO::connect() (atau new PDO(...) di versi PHP mana pun):
     return PDO::connect($dsn, $pengguna, $sandi, $opsi);
 }
 
@@ -141,11 +141,14 @@ function prosesPesananBarang(PDO $pdo, int $idProduk, int $idPengguna, int $juml
         $stmtStok = $pdo->prepare(
             'UPDATE produk
              SET stok = stok - :jumlah
-             WHERE id = :id_produk AND stok >= :jumlah'
+             WHERE id = :id_produk AND stok >= :jumlah_minimal'
         );
+        // Catatan: dengan ATTR_EMULATE_PREPARES => false, nama parameter yang sama
+        // tidak boleh dipakai dua kali dalam satu kueri, sehingga diberi dua nama berbeda.
         $stmtStok->execute([
-            'jumlah'    => $jumlah,
-            'id_produk' => $idProduk,
+            'jumlah'         => $jumlah,
+            'jumlah_minimal' => $jumlah,
+            'id_produk'      => $idProduk,
         ]);
 
         if ($stmtStok->rowCount() === 0) {
@@ -221,6 +224,7 @@ Apa nilai kembalian dari `$stmt->fetch()` ketika kueri `SELECT` tidak menemukan 
 
 ## Sumber
 - [PDO (PHP Data Objects) — PHP Manual](https://www.php.net/manual/en/book.pdo.php)
+- [`PDO::connect` — PHP Manual](https://www.php.net/manual/en/pdo.connect.php)
 - [`PDO::prepare` — PHP Manual](https://www.php.net/manual/en/pdo.prepare.php)
 - [Transactions and auto-commit — PHP Manual](https://www.php.net/manual/en/pdo.transactions.php)
 - [SQL Injection Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)

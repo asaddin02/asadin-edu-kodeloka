@@ -9,6 +9,8 @@ Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `$zi
 
 > **🚫 Kerentanan & Kesalahan Umum:** Memanggil `$zip->extractTo($folderTujuan)` secara mentah-mentah pada berkas `.zip` dari pengguna sangat berbahaya karena nama entri di dalam zip dapat berisi `../../../../var/www/html/shell.php` (*Zip Slip*) yang menimpa kode sumber server Anda!
 
+> Perlu dicek: sejauh mana `ZipArchive::extractTo()` pada versi PHP saat ini sudah menormalkan nama entri yang berisi `..` tidak dijelaskan di manual; validasi manual seperti pada contoh di bawah tetap wajib dilakukan sebagai pertahanan berlapis.
+
 ## Konsep Inti dan Perbandingan Praktik Terbaik
 
 | Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
@@ -90,7 +92,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Pengelolaan Arsi
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [The ZipArchive class — PHP Manual](https://www.php.net/manual/en/class.ziparchive.php)
+- [Zlib Compression — PHP Manual](https://www.php.net/manual/en/book.zlib.php)
+- [`gzencode` — PHP Manual](https://www.php.net/manual/en/function.gzencode.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

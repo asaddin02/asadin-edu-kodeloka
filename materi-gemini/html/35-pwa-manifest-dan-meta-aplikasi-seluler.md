@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Web App Manifest (`manifest.webmanifest`), `theme-color`, dan Ikon Aplikasi Seluler** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`theme-color`** dan **`webmanifest`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`theme-color`** dan **`webmanifest`** berdasarkan spesifikasi [Web Application Manifest](https://www.w3.org/TR/appmanifest/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,45 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `theme-color` dan `web
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Web App Manifest (`manifest.webmanifest`), `theme-color`, dan Ikon Aplikasi Seluler — Kodeloka</title>
+    <title>Aplikasi Web Kodeloka</title>
+
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="/assets/brand/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Web App Manifest (`manifest.webmanifest`), `theme-color`, dan Ikon Aplikasi Seluler</h1>
-        <p>
-          Penerapan <code>theme-color</code> dan <code>webmanifest</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Kodeloka</h1>
+      <p>Halaman ini terhubung ke manifest aplikasi web dan mengatur warna bilah peramban.</p>
     </main>
   </body>
 </html>
 ```
+
+Berkas `/manifest.webmanifest` yang dirujuk oleh `<link rel="manifest">` berisi JSON seperti berikut:
+
+```json
+{
+  "name": "Kodeloka",
+  "short_name": "Kodeloka",
+  "lang": "id",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "/assets/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/assets/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
+```
+
+Sajikan manifest dengan `Content-Type: application/manifest+json` (atau `application/json`).
+
+> **Status dukungan (Oktober 2026):** Web App Manifest dan `<meta name="theme-color">` belum berstatus Baseline karena dukungannya berbeda antar-peramban dan platform (misalnya Firefox desktop tidak memasang aplikasi web dan tidak memakai `theme-color`). Perlakukan keduanya sebagai peningkatan progresif.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `theme-color` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +119,6 @@ Bagaimana cara memverifikasi bahwa implementasi `theme-color` dan `webmanifest` 
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [Web app manifests — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest)
+- [`<meta name="theme-color">` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/name/theme-color)
+- [Web Application Manifest — W3C](https://www.w3.org/TR/appmanifest/)

@@ -3,90 +3,136 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Mengatur lebar dan tinggi elemen berdasarkan ukuran alami konten di dalamnya menggunakan kata kunci `min-content`, `max-content`, dan `fit-content` pada komponen lencana, judul, maupun jalur CSS Grid.
 
-## Mengapa "Ukuran Intrinsik Kotak: `min-content`, `max-content`, dan `fit-content`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Ukuran Intrinsik Penting?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`fit-content`** dan **`max-content`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Sampai sekarang kita menentukan ukuran dengan angka: `width: 20rem`, `inline-size: 50%`. Kadang yang kita inginkan justru ukuran yang **mengikuti isi**: lencana yang selebar teksnya, judul yang tidak lebih lebar dari kata terpanjangnya, atau kolom grid yang pas dengan isinya. CSS menyediakan tiga kata kunci untuk itu. Ketiganya tersedia lintas peramban dan berstatus **Baseline Widely Available** (`min-content` dan `max-content` sejak Januari 2020, `fit-content` sejak November 2021).
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. Tiga Ukuran Alami Sebuah Kotak
 
-Fitur `fit-content` dan `max-content` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+Bayangkan paragraf berisi kalimat "Belajar CSS modern bersama Kodeloka".
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`fit-content`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`max-content`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `fit-content` dan `max-content` sesuai praktik terbaik CSS modern:
+- **`min-content`**: ukuran **terkecil** yang masih memuat isi tanpa meluber. Untuk teks, ini sama dengan lebar **kata (atau potongan tak terputus) terpanjang**, karena peramban boleh memecah baris di setiap spasi. Paragraf di atas menjadi tumpukan kata satu per baris, selebar kata "Kodeloka" atau "bersama".
+- **`max-content`**: ukuran **ideal** bila isi tidak boleh membungkus, yaitu lebar seluruh teks dalam satu baris. Jika wadahnya lebih sempit, kotak akan meluber keluar.
+- **`fit-content`**: ukuran yang **pas dengan isi, tetapi tidak melebihi ruang yang tersedia**. Rumusnya: `min(max-content, max(min-content, ruang-tersedia))`.
 
 ```css
-/* Contoh penerapan Ukuran Intrinsik Kotak: `min-content`, `max-content`, dan `fit-content` */
-h2.judul-garis {
+.contoh-min   { inline-size: min-content; }   /* selebar kata terpanjang */
+.contoh-max   { inline-size: max-content; }   /* selebar seluruh teks dalam satu baris */
+.contoh-fit   { inline-size: fit-content; }   /* menyusut sesuai isi, tapi tak melebihi wadah */
+```
+
+## 2. Pola Praktis dengan `fit-content`
+
+### Lencana dan Judul yang "Membungkus" Isi
+
+`<div>` adalah elemen blok yang secara bawaan melebar penuh. Dengan `width: fit-content`, ia menyusut mengikuti isi namun tetap berwujud blok sehingga bisa ditengahkan dengan `margin-inline: auto`:
+
+```css
+.lencana-tengah {
   inline-size: fit-content;
-  border-block-end: 3px solid oklch(58% 0.2 255);
+  margin-inline: auto;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background-color: oklch(92% 0.05 255);
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan fit-content</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+### Judul Tidak Terlalu Lebar
+
+```css
+.judul-artikel {
+  inline-size: fit-content;
+  max-inline-size: 100%;   /* tidak melebihi wadah */
+  text-wrap: balance;
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `fit-content` dan `max-content`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+### Kolom Grid yang Pas dengan Isi
 
-## 3. Kesalahan Umum yang Harus Dihindari
+Pada `grid-template-columns`, tiga kata kunci ini dapat dipakai langsung sebagai ukuran jalur, ditambah fungsi `fit-content(<panjang>)` yang membatasi jalur agar tidak melebihi panjang tertentu:
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `fit-content` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+```css
+.tata-letak {
+  display: grid;
+  gap: 1.5rem;
+  /* Kolom 1: pas dengan isi tetapi tidak lebih lebar dari 16rem.
+     Kolom 2: mengambil sisa ruang. */
+  grid-template-columns: fit-content(16rem) minmax(0, 1fr);
+}
 
-## Latihan Praktik
+.tabel-ringkas {
+  display: grid;
+  /* Kolom label selebar label terpanjang (max-content), kolom nilai sisanya */
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1rem;
+}
+```
 
-Buatlah berkas `26-sizing-intrinsik-min-content-max-content-fit-content.html` dan stylesheet pendampingnya:
-1. Terapkan kode `fit-content` dan `max-content` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+> **💡 Catatan:** Fungsi `fit-content(<panjang>)` didukung untuk **jalur grid** (`grid-template-columns`, `grid-auto-columns`). Fungsi bentuk ini belum didukung untuk properti `width` di peramban utama; di sana gunakan kata kunci `fit-content` tanpa kurung.
+
+## 3. Intrinsik pada Sumbu Block
+
+Kata kunci `min-content`, `max-content`, dan `fit-content` terutama bermakna pada sumbu *inline* (lebar). Pada sumbu *block* (tinggi), tinggi kotak sudah mengikuti isi, sehingga ketiganya pada `block-size` berperilaku seperti `auto`. Untuk menentukan tinggi, ukuran intrinsik jarang diperlukan.
+
+## 4. Kapan Memakai Mana?
+
+| Kebutuhan | Pilihan |
+|---|---|
+| Kotak selebar teksnya, tetapi boleh membungkus bila wadah sempit | `fit-content` |
+| Kotak dipaksa satu baris (lencana, tombol, label) | `max-content` |
+| Kolom paling sempit yang masih menampilkan semua kata utuh | `min-content` |
+| Lebar kolom grid pas isi dengan batas maksimum | `fit-content(16rem)` |
+
+Perhatikan bahwa `max-content` bisa membuat kotak meluber di layar kecil. Kombinasikan dengan `max-inline-size: 100%` bila perlu: `inline-size: max-content; max-inline-size: 100%;`.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Memakai `max-content` untuk teks panjang tanpa batas.** Paragraf akan menolak membungkus dan meluber keluar layar ponsel.
+2. **Mengira `min-content` bergantung pada lebar wadah.** Nilainya hanya ditentukan isi, bukan wadah.
+3. **Menulis `width: fit-content(20rem)` dan berharap bekerja di semua peramban.** Bentuk fungsi hanya andal untuk jalur grid.
+4. **Lupa bahwa `fit-content` pada elemen blok tidak menengahkan sendiri.** Tambahkan `margin-inline: auto`.
+
+## Latihan Praktik: Komponen yang Mengikuti Isi
+
+Buatlah berkas `intrinsik.html` dan `intrinsik.css`:
+1. Buat lencana status dengan `inline-size: fit-content` yang berada di tengah halaman.
+2. Buat daftar spesifikasi dengan dua kolom grid: `grid-template-columns: max-content 1fr`. Coba perpanjang salah satu label dan amati kolom pertama ikut melebar.
+3. Buat tata letak dua kolom `fit-content(16rem) minmax(0, 1fr)` dan isi kolom pertama dengan teks yang sangat panjang untuk memastikan lebarnya berhenti di `16rem`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `fit-content` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `fit-content` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Sebuah `<div>` ditulis dengan `inline-size: fit-content; margin-inline: auto;`. Apa efeknya?
+- A. Lebarnya selalu `100%` dari wadah.
+- B. Lebarnya menyusut mengikuti isi (tidak melebihi wadah) dan kotaknya berada di tengah wadah.
+- C. Lebarnya sama dengan kata terpanjang di dalam div.
+- D. Div menjadi elemen `inline` sehingga margin otomatis diabaikan.
 
 **Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `fit-content` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Penjelasan:** `fit-content` membuat lebar pas dengan isi namun dibatasi ruang yang tersedia, dan elemen tetap berupa blok sehingga `margin-inline: auto` dapat menengahkannya.
 
 ### Soal 2
-Dalam konteks **Ukuran Intrinsik Kotak: `min-content`, `max-content`, dan `fit-content`**, bagaimana `max-content` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`max-content`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Sebuah teks memiliki `min-content` = `80px` dan `max-content` = `500px`. Pada wadah selebar `300px`, berapa lebar `fit-content`?
+- A. `80px`
+- B. `500px`
+- C. `300px`
+- D. `580px`
 
-**Jawaban Benar:** B
-**Penjelasan:** `max-content` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** `fit-content` = `min(max-content, max(min-content, ruang tersedia))` = `min(500, max(80, 300))` = `min(500, 300)` = `300px`.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Pada ukuran `min-content` untuk sebuah paragraf teks biasa, lebar kotak ditentukan oleh apa?
+- A. Jumlah seluruh karakter dalam paragraf.
+- B. Lebar wadah induk.
+- C. Tinggi baris paragraf.
+- D. Potongan teks tak terputus yang terpanjang, misalnya kata terpanjang.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** D
+**Penjelasan:** `min-content` adalah ukuran terkecil yang membuat isi tidak meluber. Teks dapat dipecah di setiap spasi, sehingga batas bawahnya adalah kata atau potongan tak terputus yang paling lebar.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`fit-content` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/fit-content)
+- [`min-content` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/min-content)
+- [`max-content` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/max-content)
+- [CSS Box Sizing Module Level 3 — W3C](https://www.w3.org/TR/css-sizing-3/)

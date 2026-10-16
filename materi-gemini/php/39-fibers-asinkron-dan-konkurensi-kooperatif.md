@@ -33,7 +33,8 @@ $fiber = new Fiber(function (string $url): string {
 
 $urlYangDitangguhkan = $fiber->start('https://api.kodeloka.id/status');
 echo "2. Pemanggil utama menangani I/O untuk: {$urlYangDitangguhkan}\n";
-$hasilAkhir = $fiber->resume('HTTP 200 OK');
+$fiber->resume('HTTP 200 OK'); // resume() mengembalikan nilai suspend berikutnya, atau null jika fiber sudah selesai
+$hasilAkhir = $fiber->getReturn(); // nilai return fungsi fiber diambil dengan getReturn()
 echo "4. Hasil: {$hasilAkhir}\n";
 ```
 
@@ -50,7 +51,7 @@ echo "4. Hasil: {$hasilAkhir}\n";
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menganggap `Fiber` secara ajaib menjalankan kode PHP secara paralel di banyak inti CPU (*multi-threading*) adalah kesalahpahaman umum; `Fiber` berjalan pada satu thread melalui penjadwalan kooperatif (*cooperative multitasking*) untuk menumpuk waktu tunggu I/O.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena `Fiber` hanya berjalan pada satu thread dengan penjadwalan kooperatif, bukan paralelisme CPU, sehingga kode yang berat secara CPU tetap memblokir semuanya dan asumsi paralel yang keliru menimbulkan bug performa dan keandalan di produksi
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -68,7 +69,7 @@ Manakah pernyataan yang benar mengenai penggunaan `$fiber = new Fiber(function (
 **Penjelasan:** Pola `$fiber = new Fiber(function (): void { $data = Fiber::suspend('menunggu IO'); });` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Konkurensi Kooperatif di PHP Modern dengan `Fiber` (`Fiber` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Konkurensi Kooperatif di PHP Modern dengan Fiber (Fiber" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -79,7 +80,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Konkurensi Koope
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Fibers — PHP Manual](https://www.php.net/manual/en/language.fibers.php)
+- [The Fiber class — PHP Manual](https://www.php.net/manual/en/class.fiber.php)
+- [RFC: Fibers — PHP Wiki](https://wiki.php.net/rfc/fibers)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

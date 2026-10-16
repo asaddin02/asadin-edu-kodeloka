@@ -60,7 +60,7 @@ const formatRingkas = new Intl.NumberFormat("id-ID", {
   notation: "compact",
   compactDisplay: "short"
 });
-console.log(formatRingkas.format(14500)); // "14,5 rb"
+console.log(formatRingkas.format(14500)); // "15 rb" (bawaannya dibulatkan ke dua digit signifikan; tambahkan maximumFractionDigits: 1 untuk "14,5 rb")
 ```
 
 ### C. Waktu Relatif (`Intl.RelativeTimeFormat`) dan Daftar Kalimat (`Intl.ListFormat`)
@@ -86,7 +86,7 @@ console.log(formatDaftar.format(["HTML", "CSS", "JavaScript", "PHP"]));
 
 ## 3. Masa Depan Tanggal di JavaScript: Mengenal Objek `Temporal`
 
-Karena objek `Date` klasik bersifat *mutable* (memanggil `tanggal.setMonth(5)` mengubah objek aslinya di tempat!) dan tidak memisahkan konsep "Tanggal Kalender Murni tanpa Jam" dari "Titik Waktu Zona Tertentu", TC39 menghadirkan API global baru bernama **`Temporal`** (mulai didukung di peramban modern 2025–2026):
+Karena objek `Date` klasik bersifat *mutable* (memanggil `tanggal.setMonth(5)` mengubah objek aslinya di tempat!) dan tidak memisahkan konsep "Tanggal Kalender Murni tanpa Jam" dari "Titik Waktu Zona Tertentu", TC39 menghadirkan API global baru bernama **`Temporal`** (sudah didukung Chrome/Edge 144+ dan Firefox 139+, tetapi belum Baseline karena Safari belum merilisnya; Node.js 24 juga belum mengaktifkannya secara bawaan):
 - Semua objek `Temporal` bersifat **100% Immutable** (seperti `DateTimeImmutable` di PHP).
 - Indeks bulan dimulai secara wajar dari **`1` (Januari) hingga `12` (Desember)**!
 - Memisahkan tipe dengan tegas:
@@ -142,5 +142,7 @@ Kelas bawaan manakah dari namespace `Intl` yang dirancang khusus untuk mengubah 
 **Penjelasan:** `Intl.ListFormat` memformat daftar item dengan kata hubung yang tepat sesuai bahasa dan tipe yang dipilih (`type: "conjunction"` untuk *"dan"*, atau `type: "disjunction"` untuk *"atau"*).
 
 ## Sumber
-- [Standard built-in objects (`Intl`, `Date`, `Temporal`) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [`Intl` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl)
+- [`Date` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
+- [`Temporal` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal)
 - [Numbers and Dates — TC39 ECMAScript Specification](https://tc39.es/ecma262/multipage/numbers-and-dates.html)

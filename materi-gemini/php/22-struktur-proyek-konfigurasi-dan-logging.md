@@ -7,7 +7,7 @@
 
 Mari kita telaah anatomi lengkap proyek aplikasi PHP modern yang siap di-deploy ke server Linux maupun kontainer Docker:
 
-```
+```text
 kodeloka-backend/
 ├── .env.example               <-- Contoh variabel lingkungan (Aman di-commit ke Git)
 ├── .gitignore                 <-- Mengabaikan /vendor/, /.env, dan /storage/*.log
@@ -88,7 +88,7 @@ readonly class KonfigurasiAplikasi
 Ketika terjadi masalah di server produksi pada pukul 02.00 dini hari, log adalah mata dan telinga Anda.
 Jangan menulis log sebagai kalimat bebas yang sulit dicari mesin seperti `"User 42 gagal bayar pesanan 99 karena saldo kurang"`.
 
-Menurut standar **PSR-3 (`Psr\Log\LoggerInterface`)** (yang diimplementasikan oleh pustaka populer **Monolog**), setiap catatan log harus terdiri dari:
+Menurut standar **PSR-3 (`Psr\Log\LoggerInterface`)** (yang diimplementasikan oleh pustaka populer **Monolog**), setiap catatan log terdiri dari tingkat keparahan, pesan, dan array konteks. PSR-3 tidak mengatur format keluaran; format JSON pada poin 3 dan kelas `PencatatLogJson` di bawah adalah praktik tambahan yang disederhanakan (kelas tersebut tidak mengimplementasikan `Psr\Log\LoggerInterface`):
 1. **Tingkat Keparahan (*Log Level* — RFC 5424):** `debug`, `info`, `notice`, `warning`, `error`, `critical`, `alert`, `emergency`.
 2. **Pesan Statis yang Jelas** disertai **Array Konteks Terstruktur (`$context`)**!
 3. **Format JSON Satu Baris (*JSON Lines*) ke `stderr` atau Berkas Log:** Memudahkan sistem observabilitas (seperti Grafana Loki, OpenTelemetry, atau Elasticsearch) memfilter berdasarkan `context.user_id` atau `context.order_id`!
@@ -201,6 +201,6 @@ Mengapa kelas-kelas di dalam lapisan `src/Domain/` dan `src/Service/` sebaiknya 
 **Penjelasan:** Membiarkan hanya lapisan terluar (*Controller*) yang membaca HTTP Request lalu meneruskan nilai/DTO bersih ke lapisan *Service/Domain* menjaga arsitektur aplikasi tetap modular, bersih, dan sangat mudah diuji.
 
 ## Sumber
-- [PHP Standards Recommendations (PSR-3: Logger Interface) — PHP-FIG](https://www.php-fig.org/psr/)
-- [Predefined Attributes (`#[\SensitiveParameter]`) — PHP Manual](https://www.php.net/manual/en/langref.php)
-- [Error Reporting — PHP Manual](https://www.php.net/manual/en/security.php)
+- [PSR-3: Logger Interface — PHP-FIG](https://www.php-fig.org/psr/psr-3/)
+- [The SensitiveParameter attribute — PHP Manual](https://www.php.net/manual/en/class.sensitiveparameter.php)
+- [Error Reporting (Security) — PHP Manual](https://www.php.net/manual/en/security.errors.php)

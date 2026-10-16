@@ -46,6 +46,8 @@ Secara bawaan, mesin pencari akan mengindeks halaman dan mengikuti tautan di dal
 <meta name="robots" content="noindex, nofollow">
 ```
 
+> **Catatan keamanan:** `noindex` hanya meminta mesin pencari tidak menampilkan halaman. Itu bukan pengamanan akses. Halaman dasbor atau data privat tetap harus dilindungi autentikasi di sisi server.
+
 ## 2. Protokol Open Graph untuk Pratinjau Media Sosial dan Chat
 
 Agar tautan yang dibagikan di aplikasi pesan dan media sosial menampilkan kartu pratinjau lengkap dengan gambar sampul, judul, dan deskripsi, gunakan atribut `property="og:..."` dari protokol **Open Graph**:
@@ -72,7 +74,7 @@ Agar tautan yang dibagikan di aplikasi pesan dan media sosial menampilkan kartu 
 
 ## 3. Set Favicon Modern yang Ringkas
 
-Di masa lalu, generator favicon menghasilkan belasan baris tag `<link>` untuk berbagai ukuran layar lama. Untuk peramban modern, Anda cukup menggunakan kombinasi **tiga baris** berikut (mendukung vektor SVG yang tajam sekaligus tema gelap/terang!):
+Di masa lalu, generator favicon menghasilkan belasan baris tag `<link>` untuk berbagai ukuran layar lama. Untuk peramban modern, Anda cukup menggunakan kombinasi **empat baris** berikut (mendukung vektor SVG yang tajam sekaligus tema gelap/terang!):
 
 ```html
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -134,7 +136,7 @@ Bagaimana cara yang benar untuk menuliskan nilai atribut `content` pada `<meta p
 - D. Menyematkan kode SVG mentah langsung di dalam atribut `content`.
 
 **Jawaban Benar:** C
-**Penjelasan:** Spesifikasi Open Graph mengharuskan nilai `og:image` dan `og:url` berupa URL absolut lengkap (`https://...`) agar perayap eksternal dari berbagai platform sosial dapat mengunduh gambar tersebut secara langsung tanpa salah menebak domain.
+**Penjelasan:** Platform pratinjau seperti Facebook, WhatsApp, dan LinkedIn mengharapkan nilai `og:image` dan `og:url` berupa URL absolut lengkap (`https://...`) agar perayap eksternal dapat mengunduh gambar tersebut secara langsung tanpa salah menebak domain.
 
 ### Soal 3
 Format manakah yang direkomendasikan di dalam elemen `<head>` untuk menyajikan data terstruktur (*structured data* berbasis Schema.org) kepada mesin pencari modern tanpa mengotori markup elemen visual di `<body>`?

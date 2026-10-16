@@ -5,13 +5,13 @@
 
 ## Mengapa Topik Ini Penting di Produksi?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `use BcMath\Number; $total = (new Number('150000.50')) * (new Number('1.11'));` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Dalam pengembangan backend modern dengan PHP 8.4 hingga PHP 8.5, penguasaan `use BcMath\Number; $total = (new Number('150000.50')) * (new Number('1.11'));` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
 
 > **🚫 Kerentanan & Kesalahan Umum:** Menghitung saldo dompet digital, bagi hasil, atau tagihan pajak menggunakan tipe `float` biasa (`0.1 + 0.2`) di PHP akan menghasilkan selisih pecahan biner IEEE 754 yang menyebabkan ketidakcocokan buku besar akuntansi (*ledger mismatch*).
 
 ## Konsep Inti dan Perbandingan Praktik Terbaik
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+| Aspek Rekayasa | Standar PHP Modern (PHP 8.4–8.5) | Praktik Warisan yang Berbahaya |
 | :--- | :--- | :--- |
 | **API / Pola Utama** | `use BcMath\Number; $total = (new Number('150000.50')) * (new Number('1.11'));` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
 | **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
@@ -65,7 +65,7 @@ Manakah pernyataan yang benar mengenai penggunaan `use BcMath\Number; $total = (
 **Penjelasan:** Pola `use BcMath\Number; $total = (new Number('150000.50')) * (new Number('1.11'));` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Komputasi Finansial & Angka Presisi Tinggi dengan Ekstensi `BCMath` (`BcMath\Number` PHP 8.4) dan `GMP`` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Komputasi Finansial & Angka Presisi Tinggi dengan Ekstensi BCMath (BcMath\Number PHP 8.4) dan GMP" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -76,7 +76,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Komputasi Finans
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [BC Math — PHP Manual](https://www.php.net/manual/en/book.bc.php)
+- [The BcMath\Number class — PHP Manual](https://www.php.net/manual/en/class.bcmath-number.php)
+- [GMP — PHP Manual](https://www.php.net/manual/en/book.gmp.php)
+- [Floating point numbers — PHP Manual](https://www.php.net/manual/en/language.types.float.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

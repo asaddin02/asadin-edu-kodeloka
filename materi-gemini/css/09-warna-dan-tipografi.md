@@ -22,7 +22,7 @@ Di atas kertas, `hsl(Hue Saturation Lightness)` tampak mudah untuk membuat varia
 
 Untuk mengatasi hal ini, CSS modern menghadirkan fungsi warna **`oklch(L C H)`** (status **Baseline Widely Available** sejak Mei 2023):
 
-```
+```text
 oklch( 60%   0.18   250  /  1.0 )
        ─┬─   ──┬─   ─┬─     ─┬─
         │      │     │       └── Opasitas / Alpha (opsional, 0–1 atau 0%–100%)
@@ -32,7 +32,7 @@ oklch( 60%   0.18   250  /  1.0 )
 ```
 
 Keunggulan utama **`oklch()`**:
-1. **Kecerahan yang Konsisten secara Persepsi (*Perceptually Uniform*):** Dua warna dengan nilai `L` (`Lightness`) yang sama di `oklch()` (misalnya biru `oklch(65% 0.15 250)` dan hijau `oklch(65% 0.15 145)`) akan memiliki tingkat kecerahan dan rasio kontras teks yang **setara di mata manusia**!
+1. **Kecerahan yang Konsisten secara Persepsi (*Perceptually Uniform*):** Dua warna dengan nilai `L` (`Lightness`) yang sama di `oklch()` (misalnya biru `oklch(65% 0.15 250)` dan hijau `oklch(65% 0.15 145)`) akan memiliki tingkat kecerahan yang **hampir setara di mata manusia** (rasio kontras teks akan mendekati sama, tetapi tetap ukur dengan rasio kontras WCAG)!
 2. **Akses ke Warna Layar Lebar (P3 Wide Gamut):** `oklch()` mampu menghasilkan warna yang lebih hidup pada layar modern yang mendukung ruang warna Display-P3.
 
 ```css
@@ -97,8 +97,8 @@ Jika Anda memuat fon kustom sendiri menggunakan `@font-face`, gunakan format **`
 2. **Perataan Baris Judul dan Paragraf dengan `text-wrap: balance` & `pretty`:**
    Pernahkah Anda melihat judul artikel yang baris pertamanya berisi 8 kata, lalu baris keduanya hanya menyisakan 1 kata pendek sendirian (*orphan word*)?
    CSS modern menyelesaikan masalah ini dengan properti **`text-wrap`**:
-   - **`text-wrap: balance`** (Baseline Widely Available): Menyeimbangkan panjang setiap baris pada blok teks pendek (maksimal sekitar 6 baris) sehingga lebar baris pertama dan kedua pada judul terlihat seimbang dan estetis!
-   - **`text-wrap: pretty`**: Mencegah satu kata tertinggal sendirian di baris paling akhir sebuah paragraf.
+   - **`text-wrap: balance`** (Baseline Newly Available sejak Mei 2024): Menyeimbangkan panjang setiap baris pada blok teks pendek (maksimal sekitar 6 baris) sehingga lebar baris pertama dan kedua pada judul terlihat seimbang dan estetis!
+   - **`text-wrap: pretty`** (ketersediaan terbatas: belum didukung Firefox, sehingga diperlakukan sebagai peningkatan progresif; peramban yang tidak mendukung mengabaikannya tanpa merusak tata letak): Mencegah satu kata tertinggal sendirian di baris paling akhir sebuah paragraf.
 
 ```css
 h1, h2, h3, blockquote {
@@ -160,4 +160,4 @@ Apa fungsi dari deklarasi `font-display: swap;` di dalam aturan `@font-face`?
 ## Sumber
 - [`oklch()` CSS function — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/oklch)
 - [`font-family` CSS property — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family)
-- [What's New in WCAG 2.2 (Contrast) — W3C WAI](https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/)
+- [Understanding Success Criterion 1.4.3: Contrast (Minimum) — W3C WAI](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)

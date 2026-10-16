@@ -11,7 +11,7 @@ Kini, CSS modern menyediakan properti khusus yang membuat penataan formulir menj
 
 ## 1. Mengubah Warna Kontrol Bawaan dalam Satu Baris dengan `accent-color`
 
-Properti **`accent-color`** (status **Baseline Widely Available**) memungkinkan Anda mengubah warna centang pada `<input type="checkbox">`, bulatan `<input type="radio">`, batang `<input type="range">`, dan `<progress>` cukup dengan **satu baris deklarasi**—dan peramban secara otomatis memilih warna tanda centang (putih atau hitam) yang kontras dengan warna aksen pilihan Anda!
+Properti **`accent-color`** (di MDN berstatus *Limited availability*: Chrome untuk Android dan Safari sebelum 26.2 belum menjaga kontras minimum kontrol) memungkinkan Anda mengubah warna centang pada `<input type="checkbox">`, bulatan `<input type="radio">`, batang `<input type="range">`, dan `<progress>` cukup dengan **satu baris deklarasi**—dan peramban desktop umumnya otomatis memilih warna tanda centang (putih atau hitam) yang kontras dengan warna aksen pilihan Anda. Namun Chrome untuk Android dan Safari sebelum 26.2 tidak menjamin kontras minimum tersebut, jadi tetap pilih warna aksen yang cukup kontras!
 
 ```css
 :root {
@@ -34,7 +34,7 @@ textarea {
 ```
 
 > **💡 Fitur Progresif Baru: `field-sizing: content` pada `<textarea>`!**
-> Pada peramban Chromium terbaru, menambahkan `field-sizing: content;` pada `<textarea>` membuat tinggi kotak teks **otomatis membesar dan menyusut mengikuti jumlah baris yang diketikkan pengguna** tanpa memerlukan satu baris JavaScript pun! Tetap pasangkan dengan `min-block-size: 4rem` dan `max-block-size: 20rem` sebagai batas aman.
+> Menambahkan `field-sizing: content;` pada `<textarea>` (didukung Chrome/Edge sejak versi 123, Safari 26.2, dan Firefox 152; Baseline Newly Available sejak Juni 2026, peramban lama mengabaikannya) membuat tinggi kotak teks **otomatis membesar dan menyusut mengikuti jumlah baris yang diketikkan pengguna** tanpa memerlukan satu baris JavaScript pun! Tetap pasangkan dengan `min-block-size: 4rem` dan `max-block-size: 20rem` sebagai batas aman.
 
 ## 2. Kustomisasi Penuh Checkbox/Radio dengan `appearance: none`
 
@@ -153,7 +153,7 @@ Untuk tabel data yang memiliki puluhan baris dan kolom angka:
 ```
 
 > **⚠️ Catatan Teknis `position: sticky` pada Tabel:**
-> Jangan memasang `position: sticky` pada elemen `<thead>` atau `<tr>`, melainkan pasang langsung pada elemen **`<th>` di dalam `<thead>`** (`thead th { position: sticky; top: 0; }`) dan berikan `background-color` yang solid agar teks baris di bawahnya tidak tembus membayang saat digulir!
+> Sebaiknya jangan memasang `position: sticky` pada elemen `<thead>` atau `<tr>` (dukungannya secara historis tidak konsisten antar-peramban), melainkan pasang langsung pada elemen **`<th>` di dalam `<thead>`** (`thead th { position: sticky; top: 0; }`) dan berikan `background-color` yang solid agar teks baris di bawahnya tidak tembus membayang saat digulir!
 
 ## Latihan Praktik: Formulir Pengaturan Akun dan Tabel Riwayat Transaksi
 

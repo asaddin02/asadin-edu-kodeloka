@@ -29,7 +29,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $opsi = getopt('u:p::', ['user:', 'dry-run']);
-$ adalahSimulasi = array_key_exists('dry-run', $opsi);
+$adalahSimulasi = array_key_exists('dry-run', $opsi);
 
 fwrite(STDOUT, "Memulai sinkronisasi data..." . PHP_EOL);
 // Jika terjadi kegagalan, tulis ke STDERR dan keluar dengan kode non-nol:
@@ -49,7 +49,7 @@ fwrite(STDOUT, "Memulai sinkronisasi data..." . PHP_EOL);
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mencetak pesan kesalahan ke `echo` (`STDOUT`) dan keluar dengan `exit(0)` saat skrip CLI gagal akan menipu pipa CI/CD atau cronjob sehingga menganggap pekerjaan berhasil dijalankan.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena pipa CI/CD atau cronjob hanya membaca kode keluar proses, sehingga kegagalan dianggap berhasil, masalah tidak terdeteksi, dan langkah berikutnya tetap dijalankan di atas hasil yang rusak
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -78,7 +78,8 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Membangun Aplika
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [`getopt` — PHP Manual](https://www.php.net/manual/en/function.getopt.php)
+- [Using PHP from the command line — PHP Manual](https://www.php.net/manual/en/features.commandline.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

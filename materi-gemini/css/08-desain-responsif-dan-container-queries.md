@@ -40,7 +40,7 @@ Sejak Media Queries Level 4 (status **Baseline Widely Available** sejak 2023), A
 ```
 
 > **💡 Mengapa Menggunakan `rem` (atau `em`) pada `@media` alih-alih `px`?**
-> Ketika seorang pengguna memperbesar ukuran huruf bawaan perambannya menjadi `24px` (atau melakukan *zoom* `200%` di monitor laptop), penggunaan `@media (width >= 48rem)` memastikan tata letak otomatis beralih kembali ke mode satu kolom yang lega sehingga teks besar tidak berdesakan di dalam kolom yang sempit!
+> Ketika seorang pengguna memperbesar ukuran huruf bawaan perambannya menjadi `24px`, penggunaan `@media (width >= 48rem)` memastikan tata letak otomatis beralih kembali ke mode satu kolom yang lega (di dalam *media query*, `rem`/`em` mengacu pada ukuran huruf bawaan peramban, bukan nilai `html { font-size }` buatan Anda) sehingga teks besar tidak berdesakan di dalam kolom yang sempit!
 
 ### Media Queries Berbasis Kemampuan Perangkat dan Preferensi Pengguna
 Selain ukuran layar, `@media` dapat mendeteksi perangkat penunjuk dan preferensi sistem operasi pengguna:
@@ -76,7 +76,7 @@ Jika Anda menggunakan `@media (width >= 600px)`, **keduanya akan terpaksa tampil
 
 Solusinya adalah **CSS Container Queries (`@container`)** (status **Baseline Widely Available** sejak Februari 2023):
 
-```
+```text
 Jendela Layar (Viewport = 1280px)
 +-------------------------------------------+ +---------------------+
 | Area Utama (.kolom-utama = 860px)         | | Sidebar (280px)     |

@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Media `<audio>`, `<video>`, dan Penulisan Takarir WebVTT (`<track>`) untuk Aksesibilitas** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`track`** dan **`captions`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`track`** dan **`captions`** berdasarkan spesifikasi [WebVTT](https://www.w3.org/TR/webvtt1/) dan [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/media.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,39 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `track` dan `captions`
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Media `<audio>`, `<video>`, dan Penulisan Takarir WebVTT (`<track>`) untuk Aksesibilitas — Kodeloka</title>
+    <title>Video dengan Takarir WebVTT — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Media `<audio>`, `<video>`, dan Penulisan Takarir WebVTT (`<track>`) untuk Aksesibilitas</h1>
-        <p>
-          Penerapan <code>track</code> dan <code>captions</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Video dengan Takarir WebVTT</h1>
+      <video controls preload="metadata" width="640" height="360">
+        <source src="/media/demo.webm" type="video/webm">
+        <source src="/media/demo.mp4" type="video/mp4">
+        <track kind="captions" src="/media/demo.id.vtt" srclang="id" label="Bahasa Indonesia" default>
+        <track kind="subtitles" src="/media/demo.en.vtt" srclang="en" label="English">
+        <p>Peramban Anda tidak mendukung video HTML5. <a href="/media/demo.mp4">Unduh video MP4</a>.</p>
+      </video>
     </main>
   </body>
 </html>
 ```
+
+Berkas `demo.id.vtt` yang dirujuk oleh `<track>` di atas harus diawali baris `WEBVTT`, lalu berisi cue dengan rentang waktu `jam:menit:detik.milidetik`:
+
+```text
+WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+Selamat datang di Kodeloka.
+
+00:00:04.500 --> 00:00:08.000
+[suara papan ketik]
+Mari mulai dengan struktur dokumen HTML.
+```
+
+Berkas `.vtt` sebaiknya dilayani dengan `Content-Type: text/vtt` (sebagian peramban menolak tipe MIME lain), dan jika berasal dari origin lain, server harus mengirim header CORS serta elemen `<video>` diberi `crossorigin`.
+
+> **Status dukungan (Oktober 2026):** `<track>` dan WebVTT berstatus *Baseline Widely Available*. Ingat bahwa `<audio>` tidak menampilkan teks `<track>` secara visual (lihat pelajaran 25); takarir hanya tampil pada `<video>`.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `track` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +113,7 @@ Bagaimana cara memverifikasi bahwa implementasi `track` dan `captions` pada hala
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [WebVTT API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API)
+- [Web Video Text Tracks Format (WebVTT) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API/Web_Video_Text_Tracks_Format)
+- [`<track>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track)
+- [WebVTT: The Web Video Text Tracks Format — W3C](https://www.w3.org/TR/webvtt1/)

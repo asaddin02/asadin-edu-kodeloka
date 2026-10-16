@@ -64,7 +64,7 @@ Untuk situs edukasi bahasa atau istilah teknis yang membutuhkan panduan cara bac
 Dulu, menampilkan rumus matematika kompleks di web mengharuskan pengiriman gambar statis atau pustaka JavaScript besar. Kini, **MathML Core (`<math>`)** telah berstatus **Baseline Widely Available** (didukung secara asli di Chrome, Edge, Firefox, dan Safari tanpa plugin atau JavaScript)!
 
 Tag dasar di dalam `<math>` (gunakan atribut `display="block"` untuk rumus yang berdiri di tengah baris baru, atau biarkan bawaan untuk rumus sebaris):
-- **`<mi>` (*math identifier*):** Nama variabel atau konstanta (misalnya $x$, $n$, $\pi$ — otomatis dicetak miring).
+- **`<mi>` (*math identifier*):** Nama variabel atau konstanta (misalnya `x`, `n`, `π`; satu karakter otomatis dicetak miring).
 - **`<mn>` (*math number*):** Angka (misalnya `2`, `10`).
 - **`<mo>` (*math operator*):** Operator matematika (`+`, `=`, `−`, `∑`).
 - **`<msup>` / `<msub>`:** Pangkat (*superscript*) dan indeks bawah (*subscript*).
@@ -117,14 +117,14 @@ Tag dasar di dalam `<math>` (gunakan atribut `display="block"` untuk rumus yang 
 </math>
 ```
 
-Keunggulan menggunakan `<math>` bawaan: rumus langsung tajam di semua tingkat perbesaran layar, mengikuti warna teks CSS (`color`) dan ukuran huruf (`font-size`), serta **dapat dibacakan secara akurat oleh pembaca layar bagi pelajar tunanetra**!
+Keunggulan menggunakan `<math>` bawaan: rumus langsung tajam di semua tingkat perbesaran layar, mengikuti warna teks CSS (`color`) dan ukuran huruf (`font-size`), serta dapat dibacakan oleh pembaca layar yang mendukung MathML (tingkat dukungan masih bervariasi antar-peramban dan pembaca layar, jadi uji dengan teknologi bantu yang dipakai pembaca Anda).
 
 ## Latihan Praktik: Halaman Materi Algoritma Multibahasa dan Matematika
 
 Buatlah berkas `mathml-dan-bidi.html`:
 1. Buat daftar 3 kontributor dari berbagai negara menggunakan elemen `<bdi>` agar tanda baca di sekitarnya terlindungi.
 2. Tambahkan blok kode perintah terminal yang dilindungi dengan `translate="no"`.
-3. Tulis rumus Teorema Pythagoras ($a^2 + b^2 = c^2$) dan rumus rata-rata pecahan menggunakan elemen `<math display="block">`, `<msup>`, `<mfrac>`, `<mi>`, `<mn>`, dan `<mo>`.
+3. Tulis rumus Teorema Pythagoras (`a² + b² = c²`) dan rumus rata-rata pecahan menggunakan elemen `<math display="block">`, `<msup>`, `<mfrac>`, `<mi>`, `<mn>`, dan `<mo>`.
 
 ## Kuis Pemahaman
 

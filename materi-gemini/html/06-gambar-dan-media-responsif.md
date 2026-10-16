@@ -18,7 +18,7 @@ Sebelum menulis tag `<img>`, pastikan Anda memilih format berkas yang sesuai den
 | Format | Karakteristik Utama | Penggunaan Terbaik |
 |---|---|---|
 | **SVG** (`.svg`) | Berbasis vektor XML; tajam di ukuran berapa pun dan berukuran sangat kecil untuk bentuk geometris. | Logo, ikon antarmuka, diagram arsitektur, ilustrasi garis. |
-| **AVIF** (`.avif`) | Kompresi generasi terbaru (berbasis AV1); ukuran berkas 20–50% lebih kecil dari JPEG/WebP pada kualitas setara (Baseline Widely Available sejak 2024). | Foto utama (*hero image*), tangkapan layar produk, katalog fotografi. |
+| **AVIF** (`.avif`) | Kompresi generasi terbaru (berbasis AV1); ukuran berkas 20–50% lebih kecil dari JPEG/WebP pada kualitas setara (Baseline *Newly available* sejak Januari 2024 dan *Widely available* sejak Juli 2026). | Foto utama (*hero image*), tangkapan layar produk, katalog fotografi. |
 | **WebP** (`.webp`) | Mendukung kompresi *lossy*, *lossless*, transparansi, dan animasi dengan dukungan peramban yang sangat luas. | Foto artikel, gambar ilustrasi dengan latar transparan, pengganti GIF animasi. |
 | **PNG / JPEG** | Format klasik dengan kompatibilitas universal. | Cadangan (*fallback*) atau aset unduhan yang harus dibuka di perangkat lunak lama. |
 

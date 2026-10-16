@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Strategi Resource Hints Mendalam: `dns-prefetch`, `preconnect`, `preload`, dan `modulepreload`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`preconnect`** dan **`preload`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`preconnect`** dan **`preload`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/links.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/preload).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,34 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `preconnect` dan `prel
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Strategi Resource Hints Mendalam: `dns-prefetch`, `preconnect`, `preload`, dan `modulepreload` — Kodeloka</title>
+    <title>Resource Hints — Kodeloka</title>
+
+    <!-- Buka koneksi lebih awal ke domain yang pasti dipakai segera -->
+    <link rel="preconnect" href="https://cdn.asadinedu.com" crossorigin>
+    <!-- Cadangan ringan untuk domain yang kurang kritis -->
+    <link rel="dns-prefetch" href="https://analitik.contoh.id">
+
+    <!-- Unduh aset kritis untuk layar pertama; as wajib, crossorigin wajib untuk fon -->
+    <link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/sampul-1200.avif" as="image" fetchpriority="high">
+
+    <link rel="stylesheet" href="/assets/learning.css">
+    <link rel="modulepreload" href="/assets/app.js">
+    <script type="module" src="/assets/app.js"></script>
+
+    <!-- Tebakan navigasi berikutnya, diunduh saat peramban sedang senggang -->
+    <link rel="prefetch" href="/html/materi/02-struktur-dokumen-html/">
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Strategi Resource Hints Mendalam: `dns-prefetch`, `preconnect`, `preload`, dan `modulepreload`</h1>
-        <p>
-          Penerapan <code>preconnect</code> dan <code>preload</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Resource Hints</h1>
+      <p>Hint hanyalah petunjuk; peramban boleh mengabaikannya dan terlalu banyak preload justru memperlambat halaman.</p>
     </main>
   </body>
 </html>
 ```
+
+> **Status dukungan (Oktober 2026):** `preconnect`, `preload`, dan `modulepreload` berstatus *Baseline Widely Available*. `dns-prefetch` baru *Baseline Newly Available* sejak September 2025, sedangkan `prefetch` belum berstatus Baseline (Safari belum mendukungnya), jadi anggap keduanya sebagai optimasi opsional.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `preconnect` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +108,8 @@ Bagaimana cara memverifikasi bahwa implementasi `preconnect` dan `preload` pada 
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`rel="preload"` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/preload)
+- [`rel="preconnect"` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/preconnect)
+- [`rel="modulepreload"` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/modulepreload)
+- [Establish network connections early — web.dev](https://web.dev/articles/preconnect-and-dns-prefetch)
+- [Preload critical assets — web.dev](https://web.dev/articles/preload-critical-assets)

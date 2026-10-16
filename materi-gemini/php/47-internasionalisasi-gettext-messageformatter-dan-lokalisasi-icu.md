@@ -43,7 +43,7 @@ echo MessageFormatter::formatMessage('id_ID', $polaPesan, [
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menyusun kalimat terjemahan dengan menggabungkan potongan string `'Anda memiliki ' . $jumlah . ' pesan'` rusak ketika aplikasi diterjemahkan ke bahasa yang urutan kata atau bentuk kata bendanya berubah tergantung jumlah angka.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena urutan kata dan bentuk jamak berbeda antarbahasa, sehingga kalimat hasil penggabungan string menjadi salah atau tidak bisa diterjemahkan, sedangkan pola ICU MessageFormat memisahkan teks terjemahan dari logika jamak
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -61,7 +61,7 @@ Manakah pernyataan yang benar mengenai penggunaan `MessageFormatter::formatMessa
 **Penjelasan:** Pola `MessageFormatter::formatMessage('id_ID', '{jumlah, plural, =0{Kosong} other{# barang}}', ['jumlah' => 5]);` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Internasionalisasi Skala Penuh dengan `MessageFormatter` (ICU MessageFormat) dan `Spoofchecker`` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Internasionalisasi Skala Penuh dengan MessageFormatter (ICU MessageFormat) dan Spoofchecker" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -72,7 +72,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Internasionalisa
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [The MessageFormatter class — PHP Manual](https://www.php.net/manual/en/class.messageformatter.php)
+- [The Spoofchecker class — PHP Manual](https://www.php.net/manual/en/class.spoofchecker.php)
+- [ICU MessageFormat — ICU User Guide](https://unicode-org.github.io/icu/userguide/format_parse/messages/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

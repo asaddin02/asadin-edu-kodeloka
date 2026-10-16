@@ -172,4 +172,5 @@ Apa fungsi dari berkas `package-lock.json` di dalam proyek JavaScript/Node.js?
 
 ## Sumber
 - [JavaScript modules — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
+- [`<script type="importmap">` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap)
 - [ECMAScript Language Specification (Modules) — TC39](https://tc39.es/ecma262/)

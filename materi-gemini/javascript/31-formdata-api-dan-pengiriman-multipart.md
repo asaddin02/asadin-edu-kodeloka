@@ -69,7 +69,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `const dataFormulir = n
 **Penjelasan:** `const dataFormulir = new FormData(elemenForm, tombolSubmit);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Mengelola Data Formulir & Unggahan Berkas dengan `FormData` API` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Mengelola Data Formulir & Unggahan Berkas dengan `FormData` API" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -80,6 +80,5 @@ Saat mengintegrasikan fitur `Mengelola Data Formulir & Unggahan Berkas dengan `F
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`FormData` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
+- [Using FormData objects — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)

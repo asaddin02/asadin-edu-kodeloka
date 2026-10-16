@@ -103,7 +103,7 @@ console.log(buatUrlPencarian("Git & CI/CD", "infra", 1));
 Tanpa batas waktu (*timeout*), permintaan `fetch()` ke server yang sedang macet dapat menggantung selama lebih dari satu menit. Selain itu, pada fitur pencarian langsung (*live search*), ketika pengguna mengetik huruf baru, permintaan pencarian dari huruf sebelumnya harus dibatalkan agar balasannya yang terlambat tidak menimpa hasil terbaru (*race condition*).
 
 ### A. Batas Waktu Otomatis Satu Baris dengan `AbortSignal.timeout()`
-Sejak 2023 (status **Baseline Widely Available**), Anda tidak perlu lagi membuat `setTimeout` manual untuk membatalkan `fetch()`. Cukup pasang **`signal: AbortSignal.timeout(milidetik)`**:
+Sejak April 2024 (status **Baseline Newly Available**), Anda tidak perlu lagi membuat `setTimeout` manual untuk membatalkan `fetch()`. Cukup pasang **`signal: AbortSignal.timeout(milidetik)`**:
 
 ```js
 async function ambilDataDenganBatasWaktu(url, batasMs = 5000) {
@@ -179,7 +179,7 @@ Mengapa Anda **tidak boleh** menetapkan header `"Content-Type": "multipart/form-
 **Penjelasan:** Saat `body` diisi dengan instans `FormData`, peramban secara otomatis menyusun header lengkap seperti `Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW`. Menimpa header tersebut secara manual akan menghilangkan informasi `boundary` tersebut.
 
 ### Soal 3
-Cara manakah yang paling ringkas dan modern (Baseline Widely Available) untuk membatalkan permintaan `fetch(url)` secara otomatis apabila server tidak merespons dalam waktu 3 detik (`3000 ms`)?
+Cara manakah yang paling ringkas dan modern (Baseline Newly Available) untuk membatalkan permintaan `fetch(url)` secara otomatis apabila server tidak merespons dalam waktu 3 detik (`3000 ms`)?
 - A. `fetch(url, { timeout: 3000 })`
 - B. `fetch(url, { signal: AbortSignal.timeout(3000) })`
 - C. `fetch(url, { maxWait: "3s" })`

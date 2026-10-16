@@ -26,7 +26,7 @@ Oleh karena itu, pengembang front-end profesional memilih satuan berdasarkan **k
 > Jika Anda menulis `ul { font-size: 0.85em; }`, maka daftar `<ul>` tingkat pertama berukuran `85%`. Namun jika di dalamnya terdapat sub-daftar `<ul>` bersarang, ukurannya menjadi `0.85 × 0.85 = 72%`, dan tingkat ketiganya menyusut menjadi `61%`! Gunakan **`rem`** untuk `font-size` agar ukurannya selalu mengacu ke akar `<html>`.
 
 > **🚫 Jangan Mengubah `html { font-size: 10px }`!**
-> Hanya demi mempermudah hitungan matematika di kepala (`1.6rem = 16px`), sebagian tutorial lama menyarankan `html { font-size: 10px }` atau `62.5%`. Hindari pola `10px` karena memaksa ukuran dasar menjadi terlalu kecil bagi halaman atau komponen yang belum terdefinisi, dan biasakan menghitung dengan kelipatan `1rem = 16px` (`0.75rem = 12px`, `0.875rem = 14px`, `1rem = 16px`, `1.25rem = 20px`, `1.5rem = 24px`, `2rem = 32px`) atau gunakan fungsi `calc(14 / 16 * 1rem)`.
+> Hanya demi mempermudah hitungan matematika di kepala (`1.6rem = 16px`), sebagian tutorial lama menyarankan `html { font-size: 10px }` atau `62.5%`. Hindari pola `10px` karena nilai piksel tetap pada `<html>` menimpa preferensi ukuran huruf pengguna di peramban dan memaksa ukuran dasar menjadi terlalu kecil bagi halaman atau komponen yang belum terdefinisi, dan biasakan menghitung dengan kelipatan `1rem = 16px` (`0.75rem = 12px`, `0.875rem = 14px`, `1rem = 16px`, `1.25rem = 20px`, `1.5rem = 24px`, `2rem = 32px`) atau gunakan fungsi `calc(14 / 16 * 1rem)`.
 
 ## 2. Satuan Viewport: Mengapa `100dvh` Menggantikan `100vh` di Perangkat Seluler?
 
@@ -35,7 +35,7 @@ Satuan *viewport* mengukur persentase dari jendela layar peramban yang sedang te
 Namun, pada peramban ponsel (Safari iOS dan Chrome Android), bilah alamat (*address bar*) di bagian atas/bawah layar dapat **menyusut dan membesar secara dinamis** saat pengguna menggulir halaman.
 - Satuan lama **`100vh`** selalu dihitung seolah-olah bilah alamat peramban sedang tersembunyi (ukuran paling besar). Akibatnya, saat halaman pertama kali dibuka (ketika bilah alamat masih muncul), bagian bawah elemen `height: 100vh` (seperti tombol aksi di bawah layar) **terpotong dan tertutup oleh bilah alamat peramban**!
 
-CSS modern (status **Baseline Widely Available** sejak akhir 2023) menyelesaikan masalah ini dengan tiga satuan viewport baru:
+CSS modern (status **Baseline Widely Available** sejak Desember 2022) menyelesaikan masalah ini dengan tiga satuan viewport baru:
 
 1. **`svh` (*Small Viewport Height*):** Tinggi layar saat bilah alamat peramban sedang terbuka penuh (ukuran teraman agar konten dijamin tidak pernah tertutup bilah peramban).
 2. **`lvh` (*Large Viewport Height*):** Tinggi layar saat bilah alamat peramban menyusut/tersembunyi.

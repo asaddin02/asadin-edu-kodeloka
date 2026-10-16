@@ -1,7 +1,7 @@
 # Proyek Akhir Kelas JavaScript: Aplikasi Pelacak Belajar & Pencari Modul Interaktif
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Membangun aplikasi front-end modular yang utuh dengan menggabungkan ES Modules, Fetch API (`AbortController`), manipulasi DOM yang aman dari XSS (`<template>`, `replaceChildren`, *Event Delegation*), penyimpanan state di `localStorage` dengan sinkronisasi lintas tab, serta pengujian unit.
+- **Ringkasan:** Membangun aplikasi front-end modular yang utuh dengan menggabungkan ES Modules, manipulasi DOM yang aman dari XSS (`<template>`, `replaceChildren`, *Event Delegation*), penyimpanan state di `localStorage` dengan sinkronisasi lintas tab, serta pengujian unit.
 
 ## Gambaran Proyek
 
@@ -272,4 +272,4 @@ Apa peran dari `cetakanKartu.content.cloneNode(true)` saat merender daftar kartu
 - [JavaScript Guide — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
 - [Document Object Model (DOM) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model)
 - [Using the Web Storage API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API)
-- [Using the Fetch API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
+- [`<template>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/template)

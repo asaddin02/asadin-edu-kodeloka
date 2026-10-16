@@ -142,4 +142,5 @@ Sintaks manakah yang digunakan untuk melakukan perulangan terhadap nilai-nilai y
 
 ## Sumber
 - [Iterators and generators — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_generators)
+- [`Iterator` (Iterator helpers) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator)
 - [Control abstraction objects (`Generator`, `AsyncGenerator`) — TC39 ECMAScript Specification](https://tc39.es/ecma262/multipage/control-abstraction-objects.html)

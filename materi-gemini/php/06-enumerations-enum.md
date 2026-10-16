@@ -103,7 +103,7 @@ $peranSah = PeranPengguna::tryFrom((string) $inputDariForm) ?? PeranPengguna::Pe
 Di PHP, `enum` memiliki banyak kemampuan layaknya `class` (meskipun tidak boleh memiliki properti/state dinamis dan tidak boleh diwariskan dengan `extends`):
 - Enum **boleh memiliki metode publik/privat** dan metode `static`.
 - Enum **boleh memiliki konstanta (`public const`)** dan memakai `trait` (selama trait tidak berisi properti).
-- Enum **boleh mengimplementasikan `interface`** (termasuk interface bawaan `JsonSerializable` agar ketika di-`json_encode()` otomatis menghasilkan nilai skalarnya!).
+- Enum **boleh mengimplementasikan `interface`** (termasuk interface bawaan `JsonSerializable`). Catatan: Backed Enum sudah otomatis di-`json_encode()` menjadi nilai skalarnya tanpa interface ini, sedangkan Pure Enum akan menimbulkan galat; `JsonSerializable` hanya dipakai untuk mengubah perilaku bawaan tersebut (contoh di bawah menampilkannya secara eksplisit).
 
 ```php
 <?php

@@ -169,6 +169,6 @@ Apa nilai kembalian dari `sapa(undefined)` dan `sapa(null)`?
 **Penjelasan:** Parameter bawaan (*default parameters*) di JavaScript hanya diaktifkan apabila argumen tidak diberikan atau bernilai tepat `undefined`. Nilai `null` dianggap sebagai nilai eksplisit yang sah, sehingga tidak memicu parameter bawaan.
 
 ## Sumber
-- [JavaScript Guide: Control flow and error handling — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [JavaScript Guide: Functions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
+- [Control flow and error handling — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling)
+- [Functions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions)
 - [ECMAScript Language Specification — TC39](https://tc39.es/ecma262/)

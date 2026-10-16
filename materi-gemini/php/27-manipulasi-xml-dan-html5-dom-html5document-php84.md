@@ -1,17 +1,17 @@
 # Pemrosesan HTML5 & XML Modern dengan `Dom\HTMLDocument` (PHP 8.4) dan `XMLReader`
 
 - **Tingkat:** Menengah
-- **Ringkasan:** Mengurai, memodifikasi, dan mengekstrak dokumen HTML5 secara akurat sesuai spesifikasi WHATWG menggunakan kelas baru **`Dom\HTMLDocument`** di PHP 8.4 (menggantikan `DOMDocument` warisan berbasis libxml2 lama), serta membaca berkas XML raksasa secara streaming dengan `XMLReader`.
+- **Ringkasan:** Mengurai, memodifikasi, dan mengekstrak dokumen HTML5 secara akurat sesuai spesifikasi WHATWG menggunakan kelas baru **`Dom\HTMLDocument`** di PHP 8.4 (sebagai pelengkap `DOMDocument` warisan yang berbasis libxml2 dan tetap tersedia), serta membaca berkas XML raksasa secara streaming dengan `XMLReader`.
 
 ## Mengapa Topik Ini Penting di Produksi?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `Dom\HTMLDocument::createFromString($html, LIBXML_NOERROR)` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Dalam pengembangan backend modern dengan PHP 8.4 hingga PHP 8.5, penguasaan `Dom\HTMLDocument::createFromString($html, LIBXML_NOERROR)` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
 
 > **🚫 Kerentanan & Kesalahan Umum:** Menggunakan `DOMDocument::loadHTML()` lama pada markup HTML5 modern sering gagal mengenali tag semantik baru, merusak pengodean UTF-8 jika tidak diberi deklarasi meta khusus, dan tidak mendukung selektor CSS sebaik `Dom\HTMLDocument` di PHP 8.4.
 
 ## Konsep Inti dan Perbandingan Praktik Terbaik
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+| Aspek Rekayasa | Standar PHP Modern (PHP 8.4–8.5) | Praktik Warisan yang Berbahaya |
 | :--- | :--- | :--- |
 | **API / Pola Utama** | `Dom\HTMLDocument::createFromString($html, LIBXML_NOERROR)` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
 | **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
@@ -44,7 +44,7 @@ echo $judul; // "Belajar PHP 8.5"
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menggunakan `DOMDocument::loadHTML()` lama pada markup HTML5 modern sering gagal mengenali tag semantik baru, merusak pengodean UTF-8 jika tidak diberi deklarasi meta khusus, dan tidak mendukung selektor CSS sebaik `Dom\HTMLDocument` di PHP 8.4.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena parser HTML 4 lama dapat salah mengurai markup HTML5 modern dan merusak pengodean UTF-8, sehingga data yang diekstrak menjadi salah atau rusak
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -62,7 +62,7 @@ Manakah pernyataan yang benar mengenai penggunaan `Dom\HTMLDocument::createFromS
 **Penjelasan:** Pola `Dom\HTMLDocument::createFromString($html, LIBXML_NOERROR)` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Pemrosesan HTML5 & XML Modern dengan `Dom\HTMLDocument` (PHP 8.4) dan `XMLReader`` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Pemrosesan HTML5 & XML Modern dengan Dom\HTMLDocument (PHP 8.4) dan XMLReader" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -73,7 +73,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Pemrosesan HTML5
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [DOM — PHP Manual](https://www.php.net/manual/en/book.dom.php)
+- [The Dom\HTMLDocument class — PHP Manual](https://www.php.net/manual/en/class.dom-htmldocument.php)
+- [XMLReader — PHP Manual](https://www.php.net/manual/en/book.xmlreader.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

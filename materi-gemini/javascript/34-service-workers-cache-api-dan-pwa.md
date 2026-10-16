@@ -82,6 +82,6 @@ Saat mengintegrasikan fitur `Service Workers, Cache Storage API, dan Aplikasi We
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Service Worker API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
+- [Using Service Workers — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers)
+- [`Cache` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Cache)

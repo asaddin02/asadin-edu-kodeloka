@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Menguasai `<details>` dan `<summary>`: Akordeon Eksklusif (`name`), Event `toggle`, dan Penataan Ikon** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`name`** dan **`open`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`name`** dan **`open`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interactive-elements.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,44 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `name` dan `open` seca
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Menguasai `<details>` dan `<summary>`: Akordeon Eksklusif (`name`), Event `toggle`, dan Penataan Ikon — Kodeloka</title>
+    <title>Akordeon Eksklusif dengan Details — Kodeloka</title>
+    <style>
+      summary { cursor: pointer; }
+      summary::marker { color: #2563eb; }
+      details[open] > summary { font-weight: 700; }
+    </style>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Menguasai `<details>` dan `<summary>`: Akordeon Eksklusif (`name`), Event `toggle`, dan Penataan Ikon</h1>
-        <p>
-          Penerapan <code>name</code> dan <code>open</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Pertanyaan yang Sering Diajukan</h1>
+
+      <!-- name yang sama: membuka satu <details> otomatis menutup yang lain -->
+      <details name="faq" open>
+        <summary>Apakah semua kelas gratis?</summary>
+        <p>Ya, semua kelas, latihan, dan kuis dapat diakses gratis.</p>
+      </details>
+      <details name="faq">
+        <summary>Apakah saya perlu membuat akun?</summary>
+        <p>Tidak, progres belajar disimpan di peramban Anda.</p>
+      </details>
+      <details name="faq">
+        <summary>Dari mana sebaiknya saya mulai?</summary>
+        <p>Mulailah dari kelas HTML, lalu lanjut ke CSS dan JavaScript.</p>
+      </details>
     </main>
+
+    <script>
+      for (const d of document.querySelectorAll('details[name="faq"]')) {
+        d.addEventListener("toggle", () => {
+          console.log(d.querySelector("summary").textContent, "terbuka:", d.open);
+        });
+      }
+    </script>
   </body>
 </html>
 ```
+
+> **Status dukungan (Oktober 2026):** `<details>` sendiri berstatus *Baseline Widely Available*, sedangkan atribut `name` (akordeon eksklusif) berstatus *Baseline Newly Available* sejak September 2024 (Chrome/Edge 120+, Safari 17.2+, Firefox 130+).
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `name` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +118,5 @@ Bagaimana cara memverifikasi bahwa implementasi `name` dan `open` pada halaman A
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`<details>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details)
+- [Interactive elements — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interactive-elements.html)

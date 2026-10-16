@@ -14,7 +14,7 @@ Namun, setiap `<iframe>` menciptakan **konteks penjelajahan (*browsing context*)
 ```html
 <iframe
   title="Video Tutorial Instalasi PostgreSQL di Linux"
-  src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
+  src="https://www.youtube-nocookie.com/embed/ID_VIDEO_ANDA"
   width="560"
   height="315"
   loading="lazy"
@@ -45,7 +45,7 @@ Anda kemudian dapat membuka izin **hanya yang benar-benar diperlukan** satu per 
 |---|---|---|
 | `allow-scripts` | Mengizinkan eksekusi JavaScript di dalam iframe. | Aman untuk widget interaktif selama tidak digabung sembarangan dengan origin yang sama. |
 | `allow-forms` | Mengizinkan pengiriman formulir di dalam iframe. | Diperlukan untuk widget survei atau halaman pembayaran tersemat. |
-| `allow-popups` | Mengizinkan pembukaan tab/jendela baru (`target="_blank"`). | Otomatis memaksa tab baru bersifat `noopener` kecuali `allow-popups-to-escape-sandbox` diberikan. |
+| `allow-popups` | Mengizinkan pembukaan tab/jendela baru (`target="_blank"`). | Tab atau jendela baru yang dibuka mewarisi pembatasan sandbox yang sama, kecuali `allow-popups-to-escape-sandbox` juga diberikan. |
 | `allow-same-origin` | Mengizinkan isi iframe mempertahankan *origin* aslinya (sehingga bisa mengakses cookie/storage milik domain iframe tersebut). | Lihat peringatan kritis di bawah! |
 | `allow-top-navigation-by-user-activation` | Mengizinkan iframe mengalihkan halaman utama **hanya jika** pengguna mengeklik langsung di dalam iframe. | Jauh lebih aman daripada `allow-top-navigation` biasa. |
 

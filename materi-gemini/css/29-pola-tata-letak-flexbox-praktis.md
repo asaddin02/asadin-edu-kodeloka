@@ -3,92 +3,198 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menerapkan Flexbox untuk menyelesaikan sepuluh pola tata letak komponen yang paling sering ditemui dalam pekerjaan sehari-hari dengan kode minimal dan responsif.
 
-## Mengapa "10 Pola Tata Letak Antarmuka Nyata dengan Flexbox (Navbar, Sidebar, Holy Grail, Sticky Footer, Media Object)" Penting dalam Pengembangan CSS Modern?
+## Mengapa Belajar Lewat Pola?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`margin-inline-start: auto`** dan **`margin-block-start: auto`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Setelah memahami sumbu dan perhitungan Flexbox (Pelajaran 06 dan 28), cara terbaik untuk mengasahnya adalah mengenali **pola yang berulang**. Sepuluh pola berikut muncul hampir di setiap proyek. Semua contoh memakai properti logis dan `gap`, sehingga tetap bekerja pada halaman kiri-ke-kanan maupun kanan-ke-kiri.
 
-## 1. Konsep Kerja dan Dukungan Standar
-
-Fitur `margin-inline-start: auto` dan `margin-block-start: auto` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`margin-inline-start: auto`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`margin-block-start: auto`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `margin-inline-start: auto` dan `margin-block-start: auto` sesuai praktik terbaik CSS modern:
+## Pola 1: Navbar (Logo di Kiri, Aksi di Kanan)
 
 ```css
-/* Contoh penerapan 10 Pola Tata Letak Antarmuka Nyata dengan Flexbox (Navbar, Sidebar, Holy Grail, Sticky Footer, Media Object) */
-.halaman {
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-inline: 1.25rem;
+  min-block-size: 3.5rem;
+}
+.navbar .aksi {
+  margin-inline-start: auto;   /* menyerap seluruh ruang kosong di sisi awalnya */
+}
+```
+
+## Pola 2: Menengahkan di Dua Arah
+
+```css
+.pusat {
+  display: flex;
+  justify-content: center;   /* poros utama */
+  align-items: center;       /* poros silang */
   min-block-size: 100dvh;
+}
+/* Ringkasnya: display: grid; place-content: center; */
+```
+
+## Pola 3: Sidebar dengan Konten Fleksibel
+
+```css
+.tata-letak { display: flex; gap: 1.5rem; }
+.sidebar    { flex: 0 0 16rem; }                  /* lebar tetap, tidak tumbuh maupun menyusut */
+.konten     { flex: 1; min-inline-size: 0; }      /* mengisi sisa; min-inline-size: 0 mencegah meluber karena <pre> */
+```
+
+## Pola 4: Holy Grail (Header, Tiga Kolom, Footer)
+
+```css
+body {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+}
+.tengah {
+  display: flex;
+  flex: 1;                   /* bagian tengah mengambil tinggi sisa */
+  gap: 1.5rem;
+}
+.tengah > nav,
+.tengah > aside { flex: 0 0 14rem; }
+.tengah > main  { flex: 1; min-inline-size: 0; }
+```
+
+Urutan HTML sebaiknya `header`, `nav`, `main`, `aside`, `footer` (urutan baca yang logis). Hindari memakai `order` untuk memindahkan `main` ke depan (lihat bagian aksesibilitas di bawah).
+
+## Pola 5: Sticky Footer
+
+Footer berada di dasar layar walau konten pendek, dan terdorong turun bila konten panjang:
+
+```css
+body {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+}
+main { flex: 1; }            /* menyerap ruang kosong sehingga footer terdorong ke bawah */
+```
+
+## Pola 6: Objek Media (Gambar + Teks)
+
+```css
+.media {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.media > img {
+  flex: none;                /* gambar tidak menyusut meski teks panjang */
+  inline-size: 4rem;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.media > .isi { min-inline-size: 0; }
+```
+
+## Pola 7: Deretan Kartu Setara Tinggi dengan Tombol di Dasar
+
+```css
+.baris-kartu { display: flex; gap: 1rem; }       /* align-items: stretch (bawaan) membuat kartu setara tinggi */
+.kartu {
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
-.halaman > footer { margin-block-start: auto; }
+.kartu .tombol { margin-block-start: auto; }     /* tombol selalu di dasar kartu */
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan margin-inline-start: auto</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+## Pola 8: Daftar Tag yang Membungkus
+
+```css
+.tag-daftar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `margin-inline-start: auto` dan `margin-block-start: auto`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+## Pola 9: Grup Input dan Tombol
 
-## 3. Kesalahan Umum yang Harus Dihindari
+```css
+.cari { display: flex; gap: 0.5rem; }
+.cari input  { flex: 1; min-inline-size: 0; }    /* input mengisi sisa ruang */
+.cari button { flex: none; }
+```
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `margin-inline-start: auto` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## Pola 10: Kolom Fleksibel yang Membungkus Otomatis
 
-## Latihan Praktik
+```css
+.kolom-fleksibel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.kolom-fleksibel > * {
+  flex: 1 1 15rem;   /* tumbuh sama rata, basis 15rem, pindah baris bila tidak muat */
+}
+```
 
-Buatlah berkas `29-pola-tata-letak-flexbox-praktis.html` dan stylesheet pendampingnya:
-1. Terapkan kode `margin-inline-start: auto` dan `margin-block-start: auto` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+Perhatikan bahwa item pada baris terakhir tetap melebar mengisi baris tersebut. Bila Anda menginginkan lebar kolom yang seragam di setiap baris, gunakan CSS Grid dengan `repeat(auto-fill, minmax(15rem, 1fr))` (lihat Pelajaran 07).
+
+## Catatan Aksesibilitas: Hati-hati dengan `order` dan `row-reverse`
+
+Properti `order` dan nilai `row-reverse`/`column-reverse` hanya mengubah **urutan visual**. Urutan fokus papan ketik dan urutan baca pembaca layar tetap mengikuti **urutan DOM**. Akibatnya pengguna papan ketik bisa mengalami fokus yang melompat-lompat. WCAG menuntut urutan yang bermakna (SC 1.3.2) dan urutan fokus yang logis (SC 2.4.3). Ubah urutan di HTML bila urutannya memang penting; pakai `order` hanya untuk perubahan visual yang tidak mengubah makna.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Lupa `min-inline-size: 0` pada kolom isi.** Blok `<pre>` atau URL panjang membuat kolom meluber.
+2. **Menengahkan dengan `margin` manual padahal cukup `justify-content` dan `align-items`.**
+3. **Memakai `height: 100vh` untuk tata letak penuh layar di ponsel.** Gunakan `min-block-size: 100dvh` (lihat Pelajaran 04).
+4. **Memakai `order` untuk menukar konten yang penting.** Fokus papan ketik tetap mengikuti DOM.
+5. **Menyangka `flex-wrap` menyeragamkan lebar kolom antarbaris.** Item pada baris terakhir tetap tumbuh; gunakan Grid untuk kolom seragam.
+
+## Latihan Praktik: Halaman Dokumentasi dengan Flexbox
+
+Buatlah berkas `pola-flexbox.html` dan `pola.css` yang memuat:
+1. Navbar dengan logo, tautan, dan tombol masuk di ujung (`margin-inline-start: auto`).
+2. Tata letak Holy Grail dengan footer yang menempel di dasar (sticky footer).
+3. Satu baris tiga kartu setara tinggi dengan tombol di dasar kartu.
+4. Satu objek media (avatar dan komentar) dengan avatar yang tidak menyusut.
+5. Satu daftar tag yang membungkus ke baris baru.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `margin-inline-start: auto` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `margin-inline-start: auto` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Manakah kombinasi yang membuat footer tetap berada di dasar layar walau konten halaman pendek?
+- A. `footer { position: absolute; }` dan `body { height: 100%; }`
+- B. `body { display: flex; flex-direction: column; min-block-size: 100dvh; }` dan `main { flex: 1; }`
+- C. `body { display: flex; justify-content: center; }` dan `footer { flex: none; }`
+- D. `footer { float: bottom; }`
 
 **Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `margin-inline-start: auto` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Penjelasan:** `body` menjadi kolom flex setinggi minimal layar, dan `main { flex: 1 }` menyerap ruang yang tersisa sehingga footer terdorong ke dasar. Opsi A dapat menutupi konten, opsi C tidak mengatur tinggi, dan `float: bottom` bukan nilai yang valid.
 
 ### Soal 2
-Dalam konteks **10 Pola Tata Letak Antarmuka Nyata dengan Flexbox (Navbar, Sidebar, Holy Grail, Sticky Footer, Media Object)**, bagaimana `margin-block-start: auto` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`margin-block-start: auto`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Apa efek `margin-inline-start: auto` pada sebuah flex item di dalam kontainer baris pada halaman kiri-ke-kanan?
+- A. Item pindah ke ujung kanan karena margin otomatis menyerap seluruh ruang kosong di sisi kirinya.
+- B. Item tetap di kiri dan margin kanan menjadi otomatis.
+- C. Item berada di tengah vertikal.
+- D. Tidak berpengaruh, karena margin otomatis hanya bekerja pada blok biasa.
 
-**Jawaban Benar:** B
-**Penjelasan:** `margin-block-start: auto` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** A
+**Penjelasan:** Pada flex item, margin `auto` menyerap ruang bebas pada sumbu itu. Margin awal inline yang otomatis mendorong item (dan item sesudahnya) ke sisi akhir kontainer.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Apa dampak penggunaan `order` untuk memindahkan elemen `<aside>` ke posisi pertama secara visual?
+- A. Urutan Tab dan pembacaan pembaca layar ikut berubah mengikuti tampilan.
+- B. Hanya urutan visual yang berubah; urutan fokus papan ketik dan urutan baca pembaca layar tetap mengikuti urutan DOM.
+- C. HTML otomatis ditulis ulang oleh peramban.
+- D. `order` tidak dapat memengaruhi tampilan.
 
 **Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Penjelasan:** `order` hanya mengatur susunan visual. Karena fokus dan pembacaan mengikuti DOM, perubahan visual yang besar dapat membingungkan pengguna papan ketik dan pembaca layar.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [Typical use cases of flexbox — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Flexible_box_layout/Use_cases)
+- [Basic concepts of flexbox — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Flexible_box_layout/Basic_concepts)
+- [`order` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/order)
+- [Understanding Success Criterion 2.4.3: Focus Order — W3C WAI](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html)

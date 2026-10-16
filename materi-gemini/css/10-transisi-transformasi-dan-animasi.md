@@ -61,7 +61,7 @@ Ingat kembali tahapan **Critical Rendering Path** dari Pelajaran 01 HTML:
    Kedua properti ini **melewati tahap Layout dan Paint sepenuhnya**! Peramban cukup menyerahkan lapisan tekstur elemen ke **GPU (Compositor Thread)** untuk digeser, diubah skalanya, atau diatur ketembusannya dengan mulus pada 60fps–120fps, bahkan ketika utas utama JavaScript sedang sibuk!
 
 ```css
-/* BURUK: Menggeser elemen dengan menganimasikan 'left' или 'margin-left' (memicu Layout tiap frame!) */
+/* BURUK: Menggeser elemen dengan menganimasikan 'left' atau 'margin-left' (memicu Layout tiap frame!) */
 .geser-lambat {
   position: relative;
   left: 0;
@@ -168,4 +168,4 @@ Apa tujuan penggunaan `@media (prefers-reduced-motion: reduce)` di dalam stylesh
 ## Sumber
 - [CSS animations — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Animations)
 - [CSS transitions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Transitions)
-- [Interaction to Next Paint (INP) — web.dev](https://web.dev/articles/inp)
+- [CSS and JavaScript animation performance — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/CSS_JavaScript_animation_performance)

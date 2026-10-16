@@ -171,3 +171,6 @@ Mengapa kita wajib menggunakan fungsi `move_uploaded_file($tmpName, $tujuan)` da
 ## Sumber
 - [Handling file uploads — PHP Manual](https://www.php.net/manual/en/features.file-upload.php)
 - [Filesystem Security — PHP Manual](https://www.php.net/manual/en/security.filesystem.php)
+- [`move_uploaded_file` — PHP Manual](https://www.php.net/manual/en/function.move-uploaded-file.php)
+- [The finfo class — PHP Manual](https://www.php.net/manual/en/class.finfo.php)
+- [File Upload Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)

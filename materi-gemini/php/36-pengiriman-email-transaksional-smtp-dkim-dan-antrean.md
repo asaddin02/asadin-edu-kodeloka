@@ -72,7 +72,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Pengiriman Email
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [`mail` — PHP Manual](https://www.php.net/manual/en/function.mail.php)
+- [RFC 7208: Sender Policy Framework (SPF) — IETF](https://www.rfc-editor.org/rfc/rfc7208)
+- [RFC 6376: DomainKeys Identified Mail (DKIM) Signatures — IETF](https://www.rfc-editor.org/rfc/rfc6376)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

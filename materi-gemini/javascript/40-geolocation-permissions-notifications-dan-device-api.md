@@ -76,6 +76,7 @@ Saat mengintegrasikan fitur `API Perangkat & Perizinan` ke dalam aplikasi produk
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Geolocation API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API)
+- [Permissions API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
+- [Notifications API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API)
+- [Screen Wake Lock API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API)

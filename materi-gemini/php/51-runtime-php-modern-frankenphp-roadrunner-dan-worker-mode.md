@@ -82,7 +82,8 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Runtime PHP Mode
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Worker Mode — FrankenPHP Documentation](https://frankenphp.dev/docs/worker/)
+- [RoadRunner Documentation](https://docs.roadrunner.dev/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

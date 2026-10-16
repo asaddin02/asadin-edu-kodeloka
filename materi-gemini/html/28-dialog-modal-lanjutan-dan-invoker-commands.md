@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Pola `<dialog>` Lanjutan: `returnValue`, Event `cancel`/`close`, `closedby`, dan Invoker Commands** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`closedby`** dan **`commandfor`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`closedby`** dan **`commandfor`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interactive-elements.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,49 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `closedby` dan `comman
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Pola `<dialog>` Lanjutan: `returnValue`, Event `cancel`/`close`, `closedby`, dan Invoker Commands — Kodeloka</title>
+    <title>Dialog Konfirmasi Lanjutan — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Pola `<dialog>` Lanjutan: `returnValue`, Event `cancel`/`close`, `closedby`, dan Invoker Commands</h1>
-        <p>
-          Penerapan <code>closedby</code> dan <code>commandfor</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Dialog Konfirmasi Lanjutan</h1>
+
+      <!-- Invoker Commands: membuka dialog modal tanpa JavaScript -->
+      <button type="button" command="show-modal" commandfor="dialog-hapus">Hapus Proyek</button>
+
+      <!-- closedby="any": Esc dan klik di luar dialog menutupnya (light dismiss) -->
+      <dialog id="dialog-hapus" closedby="any" aria-labelledby="judul-dialog">
+        <h2 id="judul-dialog">Hapus proyek ini?</h2>
+        <p>Tindakan ini tidak dapat dibatalkan.</p>
+        <form method="dialog">
+          <button value="batal" autofocus>Batal</button>
+          <button value="hapus">Ya, hapus</button>
+        </form>
+      </dialog>
+
+      <output id="hasil"></output>
     </main>
+
+    <script>
+      const dialog = document.getElementById("dialog-hapus");
+      const hasil = document.getElementById("hasil");
+
+      // Dipicu sebelum dialog tertutup lewat Esc atau klik di luar dialog
+      dialog.addEventListener("cancel", () => {
+        hasil.textContent = "Penghapusan dibatalkan lewat Esc atau klik di luar.";
+      });
+
+      // Dipicu setelah dialog tertutup; returnValue berisi value tombol yang ditekan
+      dialog.addEventListener("close", () => {
+        if (dialog.returnValue === "hapus") {
+          hasil.textContent = "Proyek dihapus.";
+        }
+      });
+    </script>
   </body>
 </html>
 ```
+
+> **Status dukungan (Oktober 2026):** `command` dan `commandfor` berstatus *Baseline Newly Available* sejak Desember 2025. Atribut `closedby` belum berstatus Baseline: didukung Chrome/Edge 134+ dan Firefox 141+, tetapi belum di Safari. Sediakan tombol "Batal" yang jelas di dalam dialog agar pengguna Safari tetap dapat menutupnya.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `closedby` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +123,7 @@ Bagaimana cara memverifikasi bahwa implementasi `closedby` dan `commandfor` pada
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`<dialog>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog)
+- [`HTMLDialogElement.returnValue` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/returnValue)
+- [Invoker Commands API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Invoker_Commands_API)
+- [Interactive elements — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interactive-elements.html)

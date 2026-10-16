@@ -3,90 +3,155 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menumpuk beberapa lapisan gambar dan gradien pada satu properti `background`, membuat pola kisi titik/garis murni dengan `repeating-linear-gradient`, serta mewarnai teks dengan gradien menggunakan `background-clip: text`.
 
-## Mengapa "Latar Belakang Multi-Lapis (*Multiple Backgrounds*), Pola Geometris Gradien, dan `background-clip: text`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Latar Belakang Berlapis?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`background-clip: text`** dan **`repeating-linear-gradient`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Gradien CSS adalah **gambar** yang dibuat peramban, sehingga ia bisa dipakai di mana pun gambar diterima, termasuk sebagai `background-image`. Dan satu elemen dapat memiliki **banyak** lapisan latar sekaligus. Kombinasi keduanya memungkinkan pola titik, garis, kotak-kotak, dan kilau lembut tanpa berkas gambar tambahan (nol permintaan jaringan), yang cocok untuk latar hero, kartu, dan ilustrasi dekoratif.
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. Lapisan Ganda dalam Satu Properti
 
-Fitur `background-clip: text` dan `repeating-linear-gradient` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`background-clip: text`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`repeating-linear-gradient`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `background-clip: text` dan `repeating-linear-gradient` sesuai praktik terbaik CSS modern:
+Pisahkan lapisan dengan koma. **Lapisan pertama berada paling atas**, lapisan terakhir paling bawah:
 
 ```css
-/* Contoh penerapan Latar Belakang Multi-Lapis (*Multiple Backgrounds*), Pola Geometris Gradien, dan `background-clip: text` */
-.kisi-titik {
-  background-image: radial-gradient(oklch(75% 0.02 250) 1px, transparent 1px);
-  background-size: 16px 16px;
+.hero {
+  background:
+    linear-gradient(to bottom, transparent 60%, oklch(98% 0.01 250)),   /* lapisan atas: pudar ke bawah */
+    radial-gradient(circle at 20% 20%, oklch(85% 0.12 255 / 0.6), transparent 50%),
+    url("pola.svg") center / 24rem repeat,                              /* gambar berulang */
+    oklch(98% 0.01 250);                                                /* warna dasar: hanya boleh di lapisan TERAKHIR */
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan background-clip: text</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+Aturan penting:
+- Pada singkatan `background`, **warna latar hanya boleh ditulis pada lapisan terakhir**.
+- Bila memakai properti terpisah (`background-image`, `background-size`, `background-position`, `background-repeat`), tulis daftar yang dipisahkan koma dengan urutan lapisan yang sama. Jika daftar nilai lebih pendek daripada daftar gambar, nilai diulang.
+- Pada singkatan, ukuran ditulis setelah posisi dengan garis miring: `center / 24rem`.
+
+## 2. Pola Geometris dengan Gradien
+
+### Kisi Titik
+
+```css
+.kisi-titik {
+  background-color: oklch(98% 0.005 250);
+  background-image: radial-gradient(circle, oklch(75% 0.02 250) 1px, transparent 1.5px);
+  background-size: 16px 16px;        /* satu titik setiap 16px */
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `background-clip: text` dan `repeating-linear-gradient`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+### Kisi Garis
 
-## 3. Kesalahan Umum yang Harus Dihindari
+```css
+.kisi-garis {
+  background-image:
+    linear-gradient(to right,  oklch(90% 0.01 250) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(90% 0.01 250) 1px, transparent 1px);
+  background-size: 24px 24px;        /* garis vertikal dan horizontal setiap 24px */
+}
+```
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `background-clip: text` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+### Garis Diagonal dengan `repeating-linear-gradient`
 
-## Latihan Praktik
+Titik henti dengan **dua posisi** (`warna awal akhir`) memudahkan pola bergaris:
 
-Buatlah berkas `37-latar-belakang-multi-layer-dan-gradien-artistik.html` dan stylesheet pendampingnya:
-1. Terapkan kode `background-clip: text` dan `repeating-linear-gradient` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+```css
+.garis-diagonal {
+  background: repeating-linear-gradient(
+    45deg,
+    oklch(94% 0.01 250) 0 10px,       /* 0 sampai 10px: warna terang */
+    oklch(98% 0.005 250) 10px 20px    /* 10px sampai 20px: warna lebih terang */
+  );
+}
+```
+
+Pola dengan `background-size` yang kecil dan berulang sangat ringan bagi peramban; hindari gradien raksasa yang dianimasikan terus-menerus karena memicu *repaint* penuh pada setiap bingkai.
+
+> **💡 Catatan Aksesibilitas:** Pola latar yang padat di bawah teks dapat menurunkan keterbacaan. Gunakan pola dengan kontras rendah di belakang teks, atau beri lapisan warna solid semi-transparan di antara pola dan teks. Tetap pastikan rasio kontras teks minimal 4,5:1.
+
+## 3. Teks Bergradien dengan `background-clip: text`
+
+`background-clip: text` memotong latar belakang menurut **bentuk huruf**. Dengan membuat warna teks transparan, gradien tampak "mewarnai" huruf:
+
+```css
+.judul-gradien {
+  color: oklch(50% 0.2 255);                       /* warna cadangan yang selalu terbaca */
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .judul-gradien {
+    background-image: linear-gradient(90deg, oklch(55% 0.22 255), oklch(65% 0.2 330));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;           /* membuat isi huruf transparan */
+    color: transparent;
+  }
+}
+```
+
+Hal yang perlu diperhatikan:
+- Versi berawalan `-webkit-background-clip: text` didukung luas; versi tanpa awalan tersedia di Chrome sejak versi 120 dan di Safari, tetapi di MDN statusnya masih belum merata di semua peramban, sehingga tulis **keduanya**.
+- Tanpa warna cadangan, teks akan **tidak terlihat** di peramban yang tidak mendukungnya. Karena itu, definisikan `color` biasa lebih dulu dan override di dalam `@supports`.
+- Periksa **kontras di seluruh gradien**, bukan hanya di ujungnya.
+- Pada mode **warna paksa** (*forced colors*, mis. Windows High Contrast) peramban menghitung `background-image` menjadi `none` kecuali nilainya mengandung `url()`, sehingga gradien tidak tampil dan teks dengan `color: transparent` bisa menghilang. Pulihkan warnanya:
+
+```css
+@media (forced-colors: active) {
+  .judul-gradien {
+    background: none;
+    -webkit-text-fill-color: CanvasText;
+    color: CanvasText;
+  }
+}
+```
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menaruh warna latar di lapisan pertama singkatan `background`.** Warna hanya sah pada lapisan terakhir; deklarasi menjadi tidak valid.
+2. **Mengira lapisan pertama berada di bawah.** Lapisan pertama justru paling atas.
+3. **Menulis gradien tanpa `background-size` untuk pola berulang.** Tanpa ukuran, gradien meregang memenuhi seluruh elemen dan tidak membentuk pola.
+4. **Teks bergradien tanpa cadangan.** Di peramban atau mode yang tidak mendukungnya, teks hilang.
+5. **Pola terlalu kontras di bawah teks bacaan.** Turunkan kontras pola atau beri lapisan penyangga.
+
+## Latihan Praktik: Hero dengan Pola dan Judul Bergradien
+
+Buatlah berkas `latar-berlapis.html` dan `latar.css`:
+1. Buat hero dengan tiga lapisan: gradien pudar di atas, cahaya radial lembut di tengah, dan kisi titik di bawah, ditambah warna dasar pada lapisan terakhir.
+2. Buat kartu dengan latar kisi garis `24px` dan garis diagonal pada satu kartu lain.
+3. Buat judul bergradien dengan `background-clip: text`, dilengkapi warna cadangan, `@supports`, dan penyesuaian `forced-colors`. Uji tampilannya dengan mengemulasikan `forced-colors: active` di tab Rendering DevTools.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `background-clip: text` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `background-clip: text` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Pada `background: A, B, C;` (tiga lapisan gambar), lapisan manakah yang berada **paling atas**?
+- A. `C`
+- B. `A`
+- C. `B`
+- D. Ketiganya sejajar.
 
 **Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `background-clip: text` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Penjelasan:** Pada beberapa latar belakang, lapisan pertama dalam daftar digambar paling atas dan lapisan terakhir paling bawah.
 
 ### Soal 2
-Dalam konteks **Latar Belakang Multi-Lapis (*Multiple Backgrounds*), Pola Geometris Gradien, dan `background-clip: text`**, bagaimana `repeating-linear-gradient` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`repeating-linear-gradient`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Manakah deklarasi yang menghasilkan titik kecil berulang setiap `16px`?
+- A. `background-image: radial-gradient(circle, #94a3b8 1px, transparent 1.5px); background-size: 16px 16px;`
+- B. `background-image: radial-gradient(circle, #94a3b8 1px, transparent 1.5px);` (tanpa `background-size`)
+- C. `background-color: radial-gradient(circle, #94a3b8 1px, transparent 1.5px);`
+- D. `background-repeat: dots 16px;`
 
-**Jawaban Benar:** B
-**Penjelasan:** `repeating-linear-gradient` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** A
+**Penjelasan:** Gradien radial menggambar satu titik, dan `background-size: 16px 16px` mengecilkan gambar menjadi petak 16px yang kemudian berulang. Tanpa ukuran, gradien meregang memenuhi elemen (B). Gradien adalah gambar sehingga tidak valid sebagai `background-color` (C), dan `dots` bukan nilai `background-repeat` (D).
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Agar teks tampak diwarnai gradien, kombinasi apa yang diperlukan?
+- A. `color: red` dan `text-shadow: none`.
+- B. `background-image` berupa gradien, `background-clip: text` (dengan awalan `-webkit-` untuk jangkauan lebih luas), dan warna isi huruf yang transparan.
+- C. `filter: gradient()` pada elemen teks.
+- D. `text-decoration: gradient`.
 
 **Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Penjelasan:** Latar gradien dipotong sesuai bentuk huruf oleh `background-clip: text`, dan warna isi huruf dibuat transparan agar gradien terlihat. Sediakan warna cadangan dan penanganan `forced-colors` agar teks tidak hilang.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [Using multiple backgrounds — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Backgrounds_and_borders/Using_multiple_backgrounds)
+- [`repeating-linear-gradient()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/gradient/repeating-linear-gradient)
+- [`radial-gradient()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/gradient/radial-gradient)
+- [`background-clip` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/background-clip)

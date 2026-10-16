@@ -80,7 +80,7 @@ Jawabannya adalah **Stacking Context (Konteks Tumpukan)**:
 - Nilai `z-index` **hanya dibandingkan di antara elemen-elemen yang berada di dalam *Stacking Context* yang sama**.
 - Bayangkan *Stacking Context* seperti nomor lantai gedung (`Lantai 1`, `Lantai 2`), dan `z-index` anak di dalamnya seperti tinggi meja di dalam lantai tersebut (`Meja 99999`). Setiggi apa pun meja Anda di **Lantai 1** (`z-index: 99999`), meja itu tidak akan pernah bisa berada di atas karpet tipis yang berada di **Lantai 2** (`z-index: 2`)!
 
-```
+```text
 Gedung Halaman Web (Root Stacking Context)
 ├── Header Navigasi (position: sticky; z-index: 10)  --> "Lantai 10"
 └── Kontainer Artikel (position: relative; z-index: 1) --> "Lantai 1"
@@ -90,7 +90,7 @@ Gedung Halaman Web (Root Stacking Context)
 
 ### Hal-Hal yang Menciptakan *Stacking Context* Baru:
 Sebuah elemen otomatis membentuk "lantai" (*stacking context*) baru yang mengurung seluruh `z-index` anak-anaknya apabila elemen tersebut memiliki salah satu dari:
-1. `position: relative/absolute/fixed/sticky` yang disertai `z-index` selain `auto`.
+1. `position: relative` atau `absolute` yang disertai `z-index` selain `auto`; sedangkan `position: fixed` dan `position: sticky` selalu membentuk *stacking context* baru, bahkan ketika `z-index`-nya `auto`.
 2. Anak dari Flexbox atau CSS Grid yang diberi `z-index` selain `auto`.
 3. Nilai `opacity` kurang dari `1` (mis. `opacity: 0.99`).
 4. Properti `transform`, `filter`, `backdrop-filter`, atau `perspective` selain `none`.

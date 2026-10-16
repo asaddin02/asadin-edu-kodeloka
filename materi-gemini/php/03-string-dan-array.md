@@ -68,7 +68,7 @@ Sejak PHP 7.4 dan PHP 8.1, Anda dapat membongkar isi array (baik list maupun aso
 declare(strict_types=1);
 
 $konfigurasiDasar = ['host' => 'localhost', 'port' => 5432, 'timeout' => 5];
-$konfigurasiProduksi = ['host' => 'db.kodeloka.internal', ' sslmode' => 'require'];
+$konfigurasiProduksi = ['host' => 'db.kodeloka.internal', 'sslmode' => 'require'];
 
 // Menggabungkan dua array asosiatif dengan spread '...'; kunci yang sama di kanan akan menimpa yang kiri!
 $konfigurasiAkhir = [...$konfigurasiDasar, ...$konfigurasiProduksi];
@@ -177,7 +177,8 @@ Fungsi bawaan manakah yang diperkenalkan di **PHP 8.4** untuk mengembalikan nila
 **Penjelasan:** Sejak PHP 8.4, `array_find(array $array, callable $callback)` (beserta `array_find_key()`, `array_any()`, dan `array_all()`) tersedia secara bawaan untuk mencari elemen berdasarkan kondisi fungsi *callback*.
 
 ## Sumber
-- [Strings — PHP Manual](https://www.php.net/manual/en/language.types.php)
-- [Human Language and Character Encoding Support (`mbstring`) — PHP Manual](https://www.php.net/manual/en/refs.international.php)
+- [Strings — PHP Manual](https://www.php.net/manual/en/language.types.string.php)
+- [Multibyte String (`mbstring`) — PHP Manual](https://www.php.net/manual/en/book.mbstring.php)
+- [Arrays — PHP Manual](https://www.php.net/manual/en/language.types.array.php)
 - [PHP 8.4 Release Announcement (`array_find`, `mb_trim`) — PHP.net](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement (`array_first`, `array_last`) — PHP.net](https://www.php.net/releases/8.5/en.php)

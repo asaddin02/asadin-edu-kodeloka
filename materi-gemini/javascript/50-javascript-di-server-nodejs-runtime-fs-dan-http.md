@@ -33,6 +33,10 @@ const server = createServer(async (req, res) => {
   }
   res.writeHead(404).end("Tidak ditemukan");
 });
+
+server.listen(3000, () => {
+  console.log("Server berjalan di http://localhost:3000");
+});
 ```
 
 > **💡 Tips Arsitektur:** Selalu bungkus utilitas infrastruktur seperti di atas ke dalam modul ES tersendiri (`utils/`) yang dilengkapi dengan pengujian unit otomatis (`node:test`) agar dapat digunakan kembali secara konsisten di seluruh proyek.
@@ -56,14 +60,14 @@ Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Menggunakan fungs
 **Penjelasan:** Menggunakan fungsi pembaca berkas sinkron seperti `fs.readFileSync()` di dalam handler permintaan HTTP server Node.js akan memblokir *Event Loop* utama sehingga seluruh pengguna lain terpaksa mengantre hingga pembacaan disk selesai.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `import { readFile, writeFile } from 'node:fs/promises';` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
+Manakah pernyataan yang paling tepat mengenai `import { readFile, writeFile } from 'node:fs/promises';`?
+- A. Modul bawaan Node.js untuk operasi berkas berbasis `Promise`; modul ini bukan bagian dari standar ECMAScript maupun Web Platform API sehingga tidak tersedia di peramban.
+- B. Fungsi bawaan semua peramban yang dapat dipanggil langsung dari objek `window`.
+- C. Bagian dari spesifikasi ECMAScript (TC39) yang wajib ada di setiap mesin JavaScript.
+- D. Hanya dapat dipakai bersama `fs.readFileSync()` dan tidak mendukung `async`/`await`.
 
 **Jawaban Benar:** A
-**Penjelasan:** `import { readFile, writeFile } from 'node:fs/promises';` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** Awalan `node:` menandai modul inti Node.js (juga didukung Deno dan Bun lewat lapisan kompatibilitas). `node:fs/promises` menyediakan API berkas berbasis `Promise` yang bisa dipakai dengan `await`, tetapi ia adalah API runtime server, bukan standar ECMAScript atau API peramban.
 
 ### Soal 3
 Saat mengintegrasikan fitur `JavaScript di Luar Peramban` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
@@ -77,6 +81,5 @@ Saat mengintegrasikan fitur `JavaScript di Luar Peramban` ke dalam aplikasi prod
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [File system — Node.js Documentation](https://nodejs.org/docs/latest/api/fs.html)
+- [HTTP — Node.js Documentation](https://nodejs.org/docs/latest/api/http.html)

@@ -67,7 +67,7 @@ Access-Control-Allow-Headers: Content-Type, Authorization
 ## 3. Pertahanan Berlapis dengan *Content Security Policy (CSP)*
 
 Bagaimana jika meskipun tim sudah berhati-hati, tetap ada satu celah XSS yang lolos di salah satu halaman?
-Kita menerapkan pertahanan lapis kedua menggunakan header HTTP **Content Security Policy (`Content-Security-Policy`)** yang dikirim oleh server (seperti yang dikonfigurasi Kodeloka di berkas `_headers`):
+Kita menerapkan pertahanan lapis kedua menggunakan header HTTP **Content Security Policy (`Content-Security-Policy`)** yang dikirim oleh server (Kodeloka sendiri mengirim CSP lewat berkas `_headers`, tetapi kebijakannya lebih longgar karena mesin kelasnya memakai skrip dan gaya inline sehingga masih memakai `'unsafe-inline'`; contoh di bawah adalah bentuk yang lebih ketat):
 
 ```http
 Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
@@ -75,7 +75,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
 
 Dengan kebijakan CSP di atas:
 - **`script-src 'self'`:** Peramban **hanya** mengizinkan eksekusi berkas `.js` yang dimuat dari domain situs itu sendiri (`'self'`).
-- **Semua skrip inline gelap (`<script>...</script>` liar, `onclick="..."`, `onerror="..."`, dan `eval()`) otomatis diblokir oleh peramban!** Jadi meskipun penyerang berhasil menyuntikkan `<img src="x" onerror="curiData()">` ke halaman Anda, peramban menolak menjalankan kode `onerror` tersebut!
+- **Semua skrip inline (`<script>...</script>` liar, `onclick="..."`, `onerror="..."`, dan `eval()`) otomatis diblokir oleh peramban!** Jadi meskipun penyerang berhasil menyuntikkan `<img src="x" onerror="curiData()">` ke halaman Anda, peramban menolak menjalankan kode `onerror` tersebut!
 
 ## Latihan Praktik: Mengaudit dan Memperbaiki Kode Front-End yang Rentan XSS
 

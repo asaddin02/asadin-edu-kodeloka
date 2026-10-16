@@ -79,7 +79,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Pemrosesan Gamba
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Image Processing and Generation (GD) — PHP Manual](https://www.php.net/manual/en/book.image.php)
+- [`imagewebp` — PHP Manual](https://www.php.net/manual/en/function.imagewebp.php)
+- [`imageavif` — PHP Manual](https://www.php.net/manual/en/function.imageavif.php)
+- [`getimagesize` — PHP Manual](https://www.php.net/manual/en/function.getimagesize.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

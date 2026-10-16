@@ -7,7 +7,7 @@
 
 Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `composer install --no-dev --prefer-dist --no-interaction --classmap-authoritative` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
 
-> **🚫 Kerentanan & Kesalahan Umum:** Menjalankan `composer install` tanpa `--no-dev` atau membiarkan `opcache.validate_timestamps=1` pada container Docker produksi yang *immutable* membuang waktu CPU untuk mengecek perubahan berkas di disk pada setiap permintaan.
+> **🚫 Kerentanan & Kesalahan Umum:** Menjalankan `composer install` tanpa `--no-dev` memasang paket pengembangan ke image produksi (memperbesar ukuran image dan permukaan serangan), dan membiarkan `opcache.validate_timestamps=1` pada container Docker produksi yang *immutable* membuang waktu CPU untuk mengecek perubahan berkas di disk pada setiap permintaan.
 
 ## Konsep Inti dan Perbandingan Praktik Terbaik
 
@@ -48,14 +48,14 @@ foreach ($daftarFileInti as $berkas) {
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menjalankan `composer install` tanpa `--no-dev` atau membiarkan `opcache.validate_timestamps=1` pada container Docker produksi yang *immutable* membuang waktu CPU untuk mengecek perubahan berkas di disk pada setiap permintaan.*?
+Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menjalankan `composer install` tanpa `--no-dev` memasang paket pengembangan ke image produksi (memperbesar ukuran image dan permukaan serangan), dan membiarkan `opcache.validate_timestamps=1` pada container Docker produksi yang *immutable* membuang waktu CPU untuk mengecek perubahan berkas di disk pada setiap permintaan.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena paket pengembangan memperbesar ukuran image dan permukaan serangan, serta pengecekan timestamp berkas pada container yang tidak berubah membuang waktu CPU pada setiap permintaan
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
 **Jawaban Benar:** B
-**Penjelasan:** Menjalankan `composer install` tanpa `--no-dev` atau membiarkan `opcache.validate_timestamps=1` pada container Docker produksi yang *immutable* membuang waktu CPU untuk mengecek perubahan berkas di disk pada setiap permintaan.
+**Penjelasan:** Menjalankan `composer install` tanpa `--no-dev` memasang paket pengembangan ke image produksi (memperbesar ukuran image dan permukaan serangan), dan membiarkan `opcache.validate_timestamps=1` pada container Docker produksi yang *immutable* membuang waktu CPU untuk mengecek perubahan berkas di disk pada setiap permintaan.
 
 ### Soal 2
 Manakah pernyataan yang benar mengenai penggunaan `composer install --no-dev --prefer-dist --no-interaction --classmap-authoritative` di PHP modern?
@@ -68,7 +68,7 @@ Manakah pernyataan yang benar mengenai penggunaan `composer install --no-dev --p
 **Penjelasan:** Pola `composer install --no-dev --prefer-dist --no-interaction --classmap-authoritative` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Kontainerisasi Docker Multi-Stage untuk PHP 8.4/8.5 dan OPcache Preloading (`opcache.preload`)` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Kontainerisasi Docker Multi-Stage untuk PHP 8.4/8.5 dan OPcache Preloading (opcache.preload)" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -79,7 +79,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Kontainerisasi D
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Preloading — PHP Manual](https://www.php.net/manual/en/opcache.preloading.php)
+- [OPcache Runtime Configuration — PHP Manual](https://www.php.net/manual/en/opcache.configuration.php)
+- [Multi-stage builds — Docker Documentation](https://docs.docker.com/build/building/multi-stage/)
+- [Command-line interface (`install`) — Composer Documentation](https://getcomposer.org/doc/03-cli.md)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

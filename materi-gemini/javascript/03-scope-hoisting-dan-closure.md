@@ -66,7 +66,7 @@ Rentang baris sejak awal blok `{` hingga baris tempat `let` atau `const` didekla
 
 Secara sederhana: **ketika sebuah fungsi dalam (*inner function*) dikembalikan keluar dari fungsi induknya, fungsi dalam tersebut membawa "tas ransel" berisi variabel-variabel milik fungsi induk yang masih ia butuhkan**, sehingga variabel-variabel tersebut tidak dihapus oleh *Garbage Collector* meskipun fungsi induknya sudah selesai dijalankan!
 
-```
+```text
 buatPenghitung(awal = 0) selesai dijalankan, TETAPI:
 +-------------------------------------------------------+
 | Fungsi yang dikembalikan (tambah)                     |
@@ -131,7 +131,7 @@ function buatDebounce(fungsiTarget, jedaMs = 300) {
 ## 4. Jebakan Klasik Closure di Dalam Perulangan (`var` vs `let`)
 
 Mengapa dulu `setTimeout` di dalam perulangan `for (var i = 0; ...)` selalu mencetak angka terakhir yang sama?
-- Karena **`var` memiliki cakupan fungsi**, sehingga kelima callback `setTimeout` berbagi **satu variabel `i` yang sama** di dalam closure mereka!
+- Karena **`var` memiliki cakupan fungsi**, sehingga semua callback `setTimeout` berbagi **satu variabel `i` yang sama** di dalam closure mereka!
 - Sebaliknya, **`let` memiliki cakupan blok**, dan JavaScript menciptakan **ikatan variabel `i` yang baru dan terpisah untuk setiap putaran iterasi**:
 
 ```js
@@ -146,7 +146,7 @@ for (let i = 1; i <= 3; i++) {
 ## Latihan Praktik: Membangun Fungsi *Memoization* (Cache Hasil Perhitungan) dengan Closure
 
 Buatlah berkas `closure-cache.js` dan jalankan dengan Node.js:
-1. Buat fungsi ` denganCache(fungsiHitung)` yang menyimpan sebuah `const tembolok = new Map()` di dalam closure-nya.
+1. Buat fungsi `denganCache(fungsiHitung)` yang menyimpan sebuah `const tembolok = new Map()` di dalam closure-nya.
 2. Fungsi yang dikembalikan menerima satu argumen `input`. Jika `tembolok.has(input)` bernilai `true`, langsung kembalikan nilai dari `tembolok.get(input)` tanpa menjalankan ulang `fungsiHitung`.
 3. Jika belum ada, jalankan `const hasil = fungsiHitung(input)`, simpan ke `tembolok.set(input, hasil)`, lalu kembalikan `hasil`.
 

@@ -199,5 +199,7 @@ Apa manfaat menambahkan atribut `#[\Override]` (sejak PHP 8.3) di atas sebuah me
 
 ## Sumber
 - [Classes and Objects: The Basics — PHP Manual](https://www.php.net/manual/en/language.oop5.basic.php)
+- [Property hooks — PHP Manual](https://www.php.net/manual/en/language.oop5.property-hooks.php)
+- [The Override attribute — PHP Manual](https://www.php.net/manual/en/class.override.php)
 - [PHP 8.4 Release Announcement (Property Hooks, Asymmetric Visibility) — PHP.net](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement (Clone With) — PHP.net](https://www.php.net/releases/8.5/en.php)

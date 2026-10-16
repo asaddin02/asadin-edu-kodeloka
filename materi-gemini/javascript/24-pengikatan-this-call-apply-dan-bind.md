@@ -7,7 +7,7 @@
 
 Dalam rekayasa perangkat lunak modern, penguasaan `const handlerTerikat = objek.metode.bind(objek);` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
 
-> **⚠️ Jebakan Umum di Lapangan:** Meneruskan metode objek secara langsung sebagai callback ke `addEventListener` atau `setTimeout(user.sapa, 1000)` tanpa `.bind()` atau pembungkus *arrow function* membuat konteks `this` di dalam metode tersebut lepas menjadi `undefined` (di strict mode) atau elemen DOM pemicu.
+> **⚠️ Jebakan Umum di Lapangan:** Meneruskan metode objek secara langsung sebagai callback ke `addEventListener` atau `setTimeout(user.sapa, 1000)` tanpa `.bind()` atau pembungkus *arrow function* membuat konteks `this` di dalam metode tersebut tidak lagi menunjuk ke objek asalnya: menjadi `undefined` pada pemanggilan biasa di strict mode, elemen DOM pemicu pada `addEventListener`, atau objek global (`window`) pada `setTimeout` di peramban.
 
 ## Konsep Inti dan Mekanisme di Balik Layar
 
@@ -49,14 +49,14 @@ class PenghitungWaktu {
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Meneruskan metode objek secara langsung sebagai callback ke `addEventListener` atau `setTimeout(user.sapa, 1000)` tanpa `.bind()` atau pembungkus *arrow function* membuat konteks `this` di dalam metode tersebut lepas menjadi `undefined` (di strict mode) atau elemen DOM pemicu.*?
+Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Meneruskan metode objek secara langsung sebagai callback ke `addEventListener` atau `setTimeout(user.sapa, 1000)` tanpa `.bind()` atau pembungkus *arrow function* membuat konteks `this` di dalam metode tersebut tidak lagi menunjuk ke objek asalnya: menjadi `undefined` pada pemanggilan biasa di strict mode, elemen DOM pemicu pada `addEventListener`, atau objek global (`window`) pada `setTimeout` di peramban.*?
 - A. Karena hanya berdampak pada ukuran berkas CSS eksternal
 - B. Karena dapat memicu bug akurasi data, kebocoran memori, celah keamanan, atau penurunan kinerja antarmuka pada kondisi nyata Pengguna
 - C. Karena fitur tersebut hanya berjalan pada peramban tahun 1999
 - D. Karena JavaScript tidak mendukung fungsi asinkron
 
 **Jawaban Benar:** B
-**Penjelasan:** Meneruskan metode objek secara langsung sebagai callback ke `addEventListener` atau `setTimeout(user.sapa, 1000)` tanpa `.bind()` atau pembungkus *arrow function* membuat konteks `this` di dalam metode tersebut lepas menjadi `undefined` (di strict mode) atau elemen DOM pemicu.
+**Penjelasan:** Meneruskan metode objek secara langsung sebagai callback ke `addEventListener` atau `setTimeout(user.sapa, 1000)` tanpa `.bind()` atau pembungkus *arrow function* membuat konteks `this` di dalam metode tersebut tidak lagi menunjuk ke objek asalnya: menjadi `undefined` pada pemanggilan biasa di strict mode, elemen DOM pemicu pada `addEventListener`, atau objek global (`window`) pada `setTimeout` di peramban.
 
 ### Soal 2
 Manakah pernyataan yang paling tepat mengenai penggunaan `const handlerTerikat = objek.metode.bind(objek);` di JavaScript modern?
@@ -69,7 +69,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `const handlerTerikat =
 **Penjelasan:** `const handlerTerikat = objek.metode.bind(objek);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Mekanisme Konteks `this`, `call()`, `apply()`, `bind()`, dan Lexical `this`` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Mekanisme Konteks `this`, `call()`, `apply()`, `bind()`, dan Lexical `this`" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -80,6 +80,6 @@ Saat mengintegrasikan fitur `Mekanisme Konteks `this`, `call()`, `apply()`, `bin
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [`this` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this)
+- [`Function.prototype.bind()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
 - [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)

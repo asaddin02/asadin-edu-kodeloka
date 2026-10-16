@@ -14,8 +14,8 @@ Tahukah Anda bahwa Anda bisa mengubah tulisan dan ikon tombol `Enter` di pojok k
 |---|---|---|
 | `search` | Ikon Kaca Pembesar / "Cari" | Kotak pencarian (`<input type="search">`). |
 | `send` | "Kirim" / Ikon Pesawat Kertas | Kotak ketik pesan obrolan (*chat*) atau komentar cepat. |
-| `next` | "Berikutnya" ($ightarrow$) | Kolom formulir yang masih memiliki kolom lanjutan di bawahnya. |
-| `done` | "Selesai" ($\checkmark$) | Kolom terakhir pada formulir. |
+| `next` | "Berikutnya" (→) | Kolom formulir yang masih memiliki kolom lanjutan di bawahnya. |
+| `done` | "Selesai" (✓) | Kolom terakhir pada formulir. |
 | `go` | "Buka" / "Masuk" | Bilah alamat URL atau input kode akses langsung. |
 
 ### B. `autocapitalize` dan `spellcheck`
@@ -41,7 +41,7 @@ Perilaku ini **sangat mengganggu** ketika pengguna sedang mengetik **nama penggu
 Atribut global **`contenteditable`** mengubah elemen HTML biasa (seperti `<div>`, `<p>`, atau `<td>`) menjadi area yang teksnya dapat langsung disunting oleh pengguna:
 
 - **`contenteditable="true"`:** Mengizinkan penyuntingan kaya (*rich text*). Namun, kelemahan besarnya adalah ketika pengguna menyalin-tempel (*paste*) teks dari situs lain atau Microsoft Word, peramban ikut menyisipkan puluhan tag `<span style="font-family: Comic Sans...">` yang mengotori DOM Anda!
-- **`contenteditable="plaintext-only"` (Baseline Newly Available sejak Maret 2025 di semua peramban utama!):** Mengizinkan penyuntingan teks murni saja! Ketika pengguna melakukan *paste*, seluruh pemformatan HTML luar otomatis dibuang dan hanya teks bersih yang masuk!
+- **`contenteditable="plaintext-only"` (Baseline Newly Available sejak Maret 2025, ketika Firefox ikut mendukungnya di semua peramban utama):** Mengizinkan penyuntingan teks murni saja! Ketika pengguna melakukan *paste*, seluruh pemformatan HTML luar otomatis dibuang dan hanya teks bersih yang masuk!
 
 ```html
 <div
@@ -100,5 +100,5 @@ Atribut global apakah yang mengubah label atau ikon tombol `Enter` pada papan ke
 **Penjelasan:** Atribut global `enterkeyhint` (dengan nilai `search`, `send`, `next`, `done`, `go`, `previous`, `enter`) menyesuaikan tampilan visual tombol aksi pada papan ketik virtual perangkat layar sentuh.
 
 ## Sumber
-- [Global attributes (contenteditable, enterkeyhint, autocapitalize, spellcheck) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [User interaction — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/)
+- [Global attributes (contenteditable, enterkeyhint, autocapitalize, spellcheck) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes)
+- [User interaction — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interaction.html)

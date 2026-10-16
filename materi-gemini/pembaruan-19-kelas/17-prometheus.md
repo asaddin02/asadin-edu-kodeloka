@@ -1,35 +1,57 @@
 # Audit Kelengkapan & Paket Pembaruan Materi 2026: Kelas Prometheus Modern (Prometheus 3.0): Native Histograms, OTLP Ingestion, Multi-Window Burn-Rate SLO Alerts, & High Availability (Thanos/Mimir)
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Laporan audit kelengkapan atas 0 modul yang sudah ada di kelas `prometheus/` beserta 3 modul perluasan penuh berstandar 2025/2026 lengkap dengan contoh kode produksi dan kuis pemahaman untuk diintegrasikan oleh Claude Code ke `prometheus/data/modules.json`.
+- **Ringkasan:** Laporan audit kelengkapan atas 15 modul yang sudah ada di kelas `prometheus/` beserta 3 modul perluasan penuh berstandar 2025/2026 lengkap dengan contoh kode produksi dan kuis pemahaman untuk diintegrasikan oleh Claude Code ke `prometheus/app.js` (larik `PROM_MOD_C`).
 
-## 1. Audit Modul Saat Ini di Repositori (`prometheus/data/modules.json`)
+## 1. Audit Modul Saat Ini di Repositori (`prometheus/app.js`)
 
-Saat ini, kelas **`prometheus`** di repositori Kodeloka memiliki **0 modul**. Berikut adalah pemetaan kondisinya serta celah fitur modern (2025–2026) yang telah kami lengkapi di berkas ini:
+Saat ini, kelas **`prometheus`** di repositori Kodeloka memiliki **15 modul**. Berikut adalah pemetaan kondisinya serta celah fitur modern (2025–2026) yang telah kami lengkapi di berkas ini:
 
 | No | Judul Modul Saat Ini | Tingkat | Status di Repo |
 | :--- | :--- | :--- | :--- |
+| 1 | Konsep Prometheus: Model Pull, Time Series & Label | Dasar | Sudah ada |
+| 2 | Instalasi Prometheus: Docker, Binary, systemd & Windows | Dasar | Sudah ada |
+| 3 | Empat Tipe Metrik: Counter, Gauge, Histogram, Summary | Dasar | Sudah ada |
+| 4 | Instrumentasi Aplikasi: Go, Python, Node.js & Metode RED | Menengah | Sudah ada |
+| 5 | Exporter: node, blackbox, postgres, cAdvisor & Textfile | Menengah | Sudah ada |
+| 6 | PromQL Dasar: Selector, Matcher & Tipe Vektor | Dasar | Sudah ada |
+| 7 | rate, irate, increase & Jebakan Counter | Menengah | Sudah ada |
+| 8 | Agregasi, Operator & Menghitung SLI | Menengah | Sudah ada |
+| 9 | Vector Matching Lanjutan: group_left, Subquery & Info Metric | Lanjut | Sudah ada |
+| 10 | Scrape Config, Service Discovery & Relabeling | Lanjut | Sudah ada |
+| 11 | Recording Rules: Mempercepat Query & Menstabilkan Dashboard | Menengah | Sudah ada |
+| 12 | Alerting Rules: Menulis Alert yang Layak Dibunyikan | Menengah | Sudah ada |
+| 13 | Alertmanager: Routing, Grouping, Inhibition & Silence | Lanjut | Sudah ada |
+| 14 | Storage, Retensi, Remote Write, HA & Federation | Lanjut | Sudah ada |
+| 15 | Kardinalitas, Performa & Troubleshooting | Lanjut | Sudah ada |
 
 
 > **⚠️ Temuan Audit & Apa yang Dilengkapi di Berkas Ini:**
-> 1. **Penambahan Fitur Rilis Terbaru (2024–2026):** Tiga modul perluasan penuh di bawah ini menambahkan kapabilitas rilis terbaru yang belum tercakup di modul lama.
+> 1. **Penambahan Fitur Rilis Terbaru (2024–2026):** Tiga modul perluasan di bawah ini menambahkan pembaruan 2024–2026, tetapi sebagian topiknya sudah ada di kelas. Kelas sudah membahas Native Histograms (modul 2 dan 3, sebagai fitur eksperimental), penerima OTLP dan UTF-8 (modul 2), burn rate (modul 8, 11, dan 12), `promtool test rules` (modul 12), serta Thanos/Mimir dan remote write (modul 14). Ketiga modul di bawah ini berupa pendalaman.
 > 2. **Penyelarasan Bahasa Indonesia:** Beberapa judul atau istilah di kelas yang diadaptasi dari seri bahasa Inggris kini dilengkapi padanan penjelasan bahasa Indonesia yang baku dan konsisten dengan standar `GEMINI.md`.
 
 ## Modul Pembaruan 16: Fitur Baru Prometheus 3.0 — Native Histograms, Penerimaan Langsung OTLP, dan Dukungan UTF-8 pada Nama Metrik/Label
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Memahami bagaimana **Native Histograms** di Prometheus 3.0 menyediakan resolusi bucket eksponensial berpresisi tinggi secara otomatis tanpa perlu menebak batas `le` secara manual dan dengan konsumsi memori yang jauh lebih hemat.
+- **Ringkasan:** Memahami bagaimana **Native Histograms** di Prometheus 3.0 menyediakan resolusi bucket eksponensial berpresisi tinggi secara otomatis tanpa perlu menebak batas `le` secara manual dan dengan konsumsi memori yang jauh lebih hemat. Di Prometheus 3.0 fitur ini masih eksperimental dan harus dinyalakan dengan `--enable-feature=native-histograms`; sejak v3.8 statusnya stabil, tetapi pengambilan (*scrape*) tetap perlu diaktifkan lewat `scrape_native_histograms: true`.
 
 ### Penjelasan Mendalam & Praktik Terbaik Produksi (Standar 2025/2026)
 
-Memahami bagaimana **Native Histograms** di Prometheus 3.0 menyediakan resolusi bucket eksponensial berpresisi tinggi secara otomatis tanpa perlu menebak batas `le` secara manual dan dengan konsumsi memori yang jauh lebih hemat. Dalam lingkungan produksi modern, penerapan pola ini memastikan layanan Anda bebas dari celah keamanan, mudah diamati (*observable*), dan siap menangani lonjakan beban kerja nyata.
+Memahami bagaimana **Native Histograms** di Prometheus 3.0 menyediakan resolusi bucket eksponensial berpresisi tinggi secara otomatis tanpa perlu menebak batas `le` secara manual dan dengan konsumsi memori yang jauh lebih hemat. Di Prometheus 3.0 fitur ini masih eksperimental dan harus dinyalakan dengan `--enable-feature=native-histograms`; sejak v3.8 statusnya stabil, tetapi pengambilan (*scrape*) tetap perlu diaktifkan lewat `scrape_native_histograms: true`. Dalam lingkungan produksi modern, penerapan pola ini membantu mengurangi risiko keamanan, memudahkan pengamatan (*observability*), dan menyiapkan layanan menghadapi lonjakan beban kerja nyata.
 
-```
-# Mengirim metrik dari OpenTelemetry Collector langsung ke endpoint OTLP bawaan Prometheus 3.0:
+```bash
+# Penerima OTLP bawaan Prometheus nonaktif secara bawaan; nyalakan dengan flag berikut:
+prometheus --web.enable-otlp-receiver
 # Endpoint penerima: http://prometheus:9090/api/v1/otlp/v1/metrics
+# Contoh exporter di OpenTelemetry Collector:
+#   exporters:
+#     otlphttp/prometheus:
+#       metrics_endpoint: http://prometheus:9090/api/v1/otlp/v1/metrics
+# Native histogram: aktifkan scrape_native_histograms: true (global atau per scrape_config);
+# sebelum v3.8 gunakan juga --enable-feature=native-histograms
 ```
 
-> **💡 Catatan Integrasi Kodeloka:** Modul ini dirancang untuk langsung ditambahkan ke akhir array di `prometheus/data/modules.json` (dan `prometheus/app.js`) sehingga memperluas cakupan kelas `prometheus` dari **0 modul** menjadi **3 modul** berstandar terbaru.
+> **💡 Catatan Integrasi Kodeloka:** Modul ini dirancang untuk langsung ditambahkan ke akhir larik `PROM_MOD_C` di `prometheus/app.js` (lalu jalankan `npm run extract`) sehingga memperluas cakupan kelas `prometheus` dari **15 modul** menjadi **18 modul** berstandar terbaru.
 
 
 ## Modul Pembaruan 17: Rekayasa Peringatan Berbasis SLO (*Service Level Objective*) dan Multi-Window Multi-Burn-Rate Alerting
@@ -39,9 +61,9 @@ Memahami bagaimana **Native Histograms** di Prometheus 3.0 menyediakan resolusi 
 
 ### Penjelasan Mendalam & Praktik Terbaik Produksi (Standar 2025/2026)
 
-Menghilangkan kelelahan peringatan palsu (*alert fatigue*) dengan beralih dari ambang gejala semata menuju peringatan kecepatan pembakaran *Error Budget* (*Burn Rate* 1 jam dan 5 menit vs 6 jam dan 30 menit). Dalam lingkungan produksi modern, penerapan pola ini memastikan layanan Anda bebas dari celah keamanan, mudah diamati (*observable*), dan siap menangani lonjakan beban kerja nyata.
+Menghilangkan kelelahan peringatan palsu (*alert fatigue*) dengan beralih dari ambang gejala semata menuju peringatan kecepatan pembakaran *Error Budget* (*Burn Rate* 1 jam dan 5 menit vs 6 jam dan 30 menit). Dalam lingkungan produksi modern, penerapan pola ini membantu mengurangi risiko keamanan, memudahkan pengamatan (*observability*), dan menyiapkan layanan menghadapi lonjakan beban kerja nyata.
 
-```
+```yaml
 groups:
   - name: slo-api-kodeloka
     rules:
@@ -63,7 +85,7 @@ groups:
           severity: page
 ```
 
-> **💡 Catatan Integrasi Kodeloka:** Modul ini dirancang untuk langsung ditambahkan ke akhir array di `prometheus/data/modules.json` (dan `prometheus/app.js`) sehingga memperluas cakupan kelas `prometheus` dari **0 modul** menjadi **3 modul** berstandar terbaru.
+> **💡 Catatan Integrasi Kodeloka:** Modul ini dirancang untuk langsung ditambahkan ke akhir larik `PROM_MOD_C` di `prometheus/app.js` (lalu jalankan `npm run extract`) sehingga memperluas cakupan kelas `prometheus` dari **15 modul** menjadi **18 modul** berstandar terbaru.
 
 
 ## Modul Pembaruan 18: Pengujian Unit Aturan Rekaman & Alert dengan `promtool test rules` serta Arsitektur Penyimpanan Jangka Panjang (Thanos / Grafana Mimir)
@@ -73,34 +95,34 @@ groups:
 
 ### Penjelasan Mendalam & Praktik Terbaik Produksi (Standar 2025/2026)
 
-Menguji ekspresi PromQL dan aturan `Alerting` secara otomatis di pipa CI/CD menggunakan berkas skenario `promtool test rules` sebelum aturan tersebut diterapkan ke server produksi. Dalam lingkungan produksi modern, penerapan pola ini memastikan layanan Anda bebas dari celah keamanan, mudah diamati (*observable*), dan siap menangani lonjakan beban kerja nyata.
+Menguji ekspresi PromQL dan aturan `Alerting` secara otomatis di pipa CI/CD menggunakan berkas skenario `promtool test rules` sebelum aturan tersebut diterapkan ke server produksi. Dalam lingkungan produksi modern, penerapan pola ini membantu mengurangi risiko keamanan, memudahkan pengamatan (*observability*), dan menyiapkan layanan menghadapi lonjakan beban kerja nyata.
 
-```
+```bash
 # Menjalankan verifikasi sintaks dan unit test aturan Prometheus di CI
 promtool check rules alerts.yml
 promtool test rules alerts_test.yml
 ```
 
-> **💡 Catatan Integrasi Kodeloka:** Modul ini dirancang untuk langsung ditambahkan ke akhir array di `prometheus/data/modules.json` (dan `prometheus/app.js`) sehingga memperluas cakupan kelas `prometheus` dari **0 modul** menjadi **3 modul** berstandar terbaru.
+> **💡 Catatan Integrasi Kodeloka:** Modul ini dirancang untuk langsung ditambahkan ke akhir larik `PROM_MOD_C` di `prometheus/app.js` (lalu jalankan `npm run extract`) sehingga memperluas cakupan kelas `prometheus` dari **15 modul** menjadi **18 modul** berstandar terbaru.
 
 
 ## Latihan Praktik Mandiri
 
 1. Terapkan konfigurasi dan kode dari ketiga modul pembaruan `prometheus` di atas pada lingkungan lokal atau *staging* Anda.
 2. Verifikasi perilaku saat terjadi kegagalan (*fault injection*): hentikan salah satu komponen atau kirimkan beban tinggi, lalu amati metrik dan log yang dihasilkan.
-3. Integrasikan ketiga modul di atas ke dalam `prometheus/data/modules.json` menggunakan panduan di `materi-gemini/README.md`.
+3. Integrasikan ketiga modul di atas ke dalam `prometheus/app.js` menggunakan panduan di `materi-gemini/README.md`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
 Apa tujuan utama penambahan modul perluasan berstandar 2025/2026 pada kelas `prometheus` ini?
 - A. Mengganti seluruh materi dasar dengan bahasa pemrograman yang sama sekali berbeda
-- B. Melengkapi kurikulum yang sudah ada (0 modul) dengan fitur rilis terbaru, praktik penguatan keamanan produksi, dan observabilitas modern
+- B. Melengkapi kurikulum yang sudah ada (15 modul) dengan fitur rilis terbaru, praktik penguatan keamanan produksi, dan observabilitas modern
 - C. Menghapus seluruh latihan praktik dari kelas `prometheus`
 - D. Mematikan fitur kuis interaktif di platform Kodeloka
 
 **Jawaban Benar:** B
-**Penjelasan:** Paket pembaruan ini melengkapi 0 modul yang sudah ada di `prometheus/data/modules.json` dengan kapabilitas versi terbaru, arsitektur produksi, dan keamanan modern tanpa merusak struktur kelas yang sudah berjalan.
+**Penjelasan:** Paket pembaruan ini melengkapi 15 modul yang sudah ada di `prometheus/app.js` dengan kapabilitas versi terbaru, arsitektur produksi, dan keamanan modern tanpa merusak struktur kelas yang sudah berjalan.
 
 ### Soal 2
 Manakah prinsip yang wajib dijaga saat mengoperasikan teknologi `prometheus` di lingkungan produksi?
@@ -115,13 +137,16 @@ Manakah prinsip yang wajib dijaga saat mengoperasikan teknologi `prometheus` di 
 ### Soal 3
 Bagaimana cara mengintegrasikan ketiga modul baru di berkas ini ke dalam situs Kodeloka?
 - A. Menghapus seluruh folder `prometheus/`
-- B. Mengekstrak objek `judul`, `tingkat`, `ringkas`, `isi`, contoh kode, dan `kuis` dari berkas ini ke dalam `prometheus/data/modules.json` serta memperbarui jumlah modul di `scripts/courses.json`
+- B. Mengekstrak judul, tingkat, ringkasan, isi, contoh kode, dan kuis setiap modul dari berkas ini ke dalam larik `PROM_MOD_C` di `prometheus/app.js` (bentuk objeknya mengikuti mesin kelas tersebut), memperbarui jumlah modul di `scripts/courses.json`, lalu menjalankan `npm run extract`
 - C. Mengubah ekstensi berkas menjadi `.exe`
 - D. Tidak perlu melakukan apa pun karena peramban membaca berkas Markdown secara acak
 
 **Jawaban Benar:** B
-**Penjelasan:** Sesuai arsitektur Kodeloka, setiap modul baru ditambahkan ke `prometheus/data/modules.json` (dan disinkronkan ke `prometheus/app.js` serta `scripts/courses.json`).
+**Penjelasan:** Sesuai arsitektur Kodeloka, setiap modul baru ditambahkan ke larik `PROM_MOD_C` di `prometheus/app.js`, jumlah modulnya diperbarui di `scripts/courses.json`, dan `data/modules.json` dibangkitkan ulang lewat `npm run extract`.
 
 ## Sumber
 
 - [Dokumentasi Resmi — Prometheus Modern (Prometheus 3.0)](https://prometheus.io/docs/introduction/overview/)
+- [Prometheus — Panduan Menggunakan OpenTelemetry (penerima OTLP)](https://prometheus.io/docs/guides/opentelemetry/)
+- [Prometheus — Spesifikasi Native Histograms](https://prometheus.io/docs/specs/native_histograms/)
+- [Prometheus — Pengujian Unit Aturan](https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/)

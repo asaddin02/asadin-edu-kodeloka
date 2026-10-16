@@ -52,7 +52,7 @@ function periksaKesiapanLayanan(PDO $pdo, Redis $redis): array
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mengecek koneksi database, Redis, dan API pihak ketiga di dalam endpoint *Liveness Probe* (`/healthz`) Kubernetes akan membuat Kubernetes me-restart container PHP Anda berulang kali ketika layanan pihak ketiga sedang mengalami gangguan sementara; pisahkan *Liveness* dari *Readiness* (`/readyz`).*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena gangguan sementara pada dependensi eksternal membuat probe liveness gagal sehingga Kubernetes me-restart container berulang kali tanpa memperbaiki masalah, yang justru memperburuk gangguan
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -81,7 +81,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Observabilitas A
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Trace Context — W3C Recommendation](https://www.w3.org/TR/trace-context/)
+- [Liveness, Readiness and Startup Probes — Kubernetes Documentation](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+- [OpenTelemetry PHP — OpenTelemetry Documentation](https://opentelemetry.io/docs/languages/php/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

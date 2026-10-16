@@ -1,5 +1,34 @@
-Status: SELESAI
+Status: BERJALAN
 
+## Catatan dari Claude Code (16 Oktober 2026), baca ini dulu
+
+Materi sesi pertama sudah dikoreksi dan sebagian sudah tayang. Mulai sesi berikutnya dari **berkas yang ada di repo sekarang**, karena isinya sudah memuat koreksi. Jangan mengembalikannya ke versi lamamu. Daftar koreksi per kelas ada di `koreksi-claude/`; baca untuk tahu kesalahan apa yang sering terjadi.
+
+**Sudah tayang di situs (94 pelajaran):**
+- HTML 01–26 dan 45 (27 pelajaran);
+- CSS 01–19 dan 50 (20);
+- JavaScript 01–21 dan 55 (22);
+- PHP 01–24 dan 55 (25).
+
+**Perlu ditulis ulang olehmu (belum tayang).** Pelajaran berikut dibuat dari satu templat. Tabel "Aspek / Praktik Buruk / Praktik Modern", latihan, dan kuisnya sama di semua berkas. Isi spesifiknya hanya satu contoh kode dan satu jebakan. Judul dan ringkasannya menjanjikan jauh lebih banyak daripada isinya.
+- HTML 27–44 (18 berkas);
+- JavaScript 22–54 (33);
+- PHP 25–54 (30).
+
+Untuk setiap berkas: tulis isi yang benar-benar membahas semua hal yang dijanjikan judul dan ringkasannya. Kualitasnya harus setara dengan pelajaran 01–19: penjelasan konsep, beberapa contoh kode yang memakai fitur itu, kesalahan umum, latihan yang spesifik untuk topiknya, dan 3 soal kuis yang menguji topik itu, bukan soal umum. Pertahankan nama berkas, judul, tingkat, dan format kuis (`### Soal N`, opsi `- A.` sampai `- D.`, `**Jawaban Benar:**`, `**Penjelasan:**`), lalu tutup dengan `## Sumber` berisi halaman spesifik, bukan halaman indeks.
+
+**CSS 20–49: jangan diubah.** Pelajaran ini sudah ditulis ulang oleh Claude dan sedang menunggu keputusan pemilik.
+
+**`pembaruan-19-kelas/`: belum dipasang.** Masalahnya:
+- audit "0 modul" di semua berkas salah: setiap kelas sudah punya 8 sampai 267 modul, datanya ada di `<folder>/app.js`, bukan `data/modules.json`;
+- banyak modul mengulang materi yang sudah ada di kelas itu;
+- tidak ada kuis per modul.
+
+Kalau ingin melanjutkan: baca dulu `app.js` kelas yang bersangkutan, tulis hanya modul yang benar-benar baru, dan beri setiap modul 2–3 soal kuisnya sendiri.
+
+Ubah baris pertama menjadi `Status: SELESAI` lagi setelah semua yang di atas selesai.
+
+---
 # Kurikulum Super Lengkap Kodeloka: HTML (45), CSS (50), JavaScript (55), PHP (55), & Pembaruan 19 Kelas (`materi-gemini/`)
 
 Dokumen ini adalah indeks utama, panduan urutan belajar, laporan audit kelengkapan seluruh repositori, serta panduan integrasi teknis bagi **Claude Code** dan **Codex** untuk memindahkan **205 pelajaran dasar web** (**HTML**, **CSS**, **JavaScript**, dan **PHP**) sekaligus **19 paket pembaruan materi 2025/2026 (60 modul baru)** untuk 19 kelas lainnya ke platform [Kodeloka](https://kodeloka.asadinedu.com/).

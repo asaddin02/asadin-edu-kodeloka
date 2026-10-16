@@ -47,7 +47,7 @@ Karena di dalam kode komponen, Anda hanya menulis `background-color: var(--permu
 
 Sebuah komponen tombol produksi harus:
 1. Bekerja konsisten baik saat dipasang pada `<button>` maupun `<a class="tombol">`.
-2. Memiliki ukuran target sentuh minimal **`2.5rem` (`40px`)** agar ramah jari di layar ponsel (memenuhi syarat WCAG 2.2 Target Size).
+2. Memiliki ukuran target sentuh minimal **`2.5rem` (`40px`)** agar ramah jari di layar ponsel (melampaui syarat minimum `24px` WCAG 2.2 SC 2.5.8 Target Size (Minimum); tingkat AAA pada SC 2.5.5 meminta `44px`).
 3. Mendukung ikon SVG di kiri atau kanan teks dengan sejajar sempurna (`inline-flex`).
 4. Memiliki varian warna dan ukuran cukup lewat pengubahan variabel lokal (**Lapis 3: Token Komponen**)!
 
@@ -178,4 +178,4 @@ Mengapa pada komponen `.tombol` kita menambahkan `:hover:not(:disabled)` alih-al
 ## Sumber
 - [CSS custom properties for cascading variables — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascading_variables)
 - [Organizing your CSS — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Organizing)
-- [What's New in WCAG 2.2 (Target Size) — W3C WAI](https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/)
+- [Understanding Success Criterion 2.5.8: Target Size (Minimum) — W3C WAI](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html)

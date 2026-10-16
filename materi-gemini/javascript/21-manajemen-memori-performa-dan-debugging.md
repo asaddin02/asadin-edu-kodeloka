@@ -7,7 +7,7 @@
 
 Di JavaScript, Anda tidak perlu memanggil `free()` secara manual untuk membebaskan RAM seperti di bahasa C. Mesin JavaScript memiliki **Garbage Collector (GC)** otomatis yang menggunakan algoritma **Mark-and-Sweep berbasis Keterjangkauan (*Reachability*)**:
 
-```
+```text
                      [ AKAR (ROOTS) ]
    (Variabel Global window, Tumpukan Call Stack Aktif,
                 Pohon DOM Dokumen Aktif)
@@ -140,5 +140,5 @@ Apa yang dimaksud dengan **Detached DOM Node** di dalam profil memori peramban?
 
 ## Sumber
 - [`EventTarget: addEventListener()` method (`signal` option) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
-- [JavaScript execution model — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model)
-- [Document Object Model (DOM) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model)
+- [Memory management — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Memory_management)
+- [Fix memory problems — Chrome DevTools](https://developer.chrome.com/docs/devtools/memory-problems)

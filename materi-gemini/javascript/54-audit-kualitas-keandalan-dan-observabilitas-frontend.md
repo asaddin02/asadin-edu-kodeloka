@@ -80,6 +80,6 @@ Saat mengintegrasikan fitur `Observabilitas Front-End` ke dalam aplikasi produks
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`Window`: `unhandledrejection` event — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/unhandledrejection_event)
+- [`Window`: `error` event — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/error_event)
+- [`Navigator.onLine` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/onLine)

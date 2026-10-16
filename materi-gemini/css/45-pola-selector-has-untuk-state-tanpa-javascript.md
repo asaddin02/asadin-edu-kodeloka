@@ -3,89 +3,165 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Membangun filter kategori kartu, pengunci guliran `body:has(dialog[open]) { overflow: hidden; }`, indikator formulir valid, dan perubahan tema dinamis murni menggunakan `:has()`.
 
-## Mengapa "Arsitektur State Antarmuka Tanpa JavaScript Menggunakan Selektor Relasional `:has()`" Penting dalam Pengembangan CSS Modern?
+## Mengapa `:has()` Mengubah Cara Kita Mengelola State?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`body:has(dialog:modal)`** dan **`.form:has(:user-invalid)`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Pelajaran 01 memperkenalkan `:has()` sebagai "selektor induk". Kekuatan sebenarnya adalah ia memungkinkan **state yang sudah ada di HTML** (kotak centang yang dicentang, dialog yang terbuka, input yang tidak valid) memengaruhi tampilan **leluhur atau saudara-saudaranya**. Dahulu pola semacam ini memerlukan JavaScript untuk menambah dan menghapus kelas pada pembungkus. `:has()` berstatus **Baseline Widely Available** (lintas peramban sejak Desember 2023).
 
-## 1. Konsep Kerja dan Dukungan Standar
+Aturan dasar: `A:has(B)` memilih elemen `A` **jika** `B` cocok untuk setidaknya satu elemen relatif terhadap `A`. `B` boleh berupa keturunan (`:has(img)`), anak langsung (`:has(> img)`), atau saudara berikutnya (`:has(+ input)`, `:has(~ p)`). Spesifisitas `:has()` sama dengan argumen yang paling spesifik di dalamnya.
 
-Fitur `body:has(dialog:modal)` dan `.form:has(:user-invalid)` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+## 1. Filter Kategori Tanpa JavaScript
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`body:has(dialog:modal)`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`.form:has(:user-invalid)`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
+Gunakan tombol radio sebagai "saklar" dan biarkan pembungkus bereaksi terhadap yang terpilih:
 
-## 2. Implementasi Kode CSS Siap Pakai
+```html
+<section class="katalog">
+  <fieldset class="filter">
+    <legend>Kategori</legend>
+    <label><input type="radio" name="kat" value="semua" checked> Semua</label>
+    <label><input type="radio" name="kat" value="frontend"> Frontend</label>
+    <label><input type="radio" name="kat" value="backend"> Backend</label>
+  </fieldset>
 
-Berikut adalah pola penerapan `body:has(dialog:modal)` dan `.form:has(:user-invalid)` sesuai praktik terbaik CSS modern:
+  <ul class="daftar">
+    <li class="kartu" data-kat="frontend">HTML dan CSS</li>
+    <li class="kartu" data-kat="frontend">JavaScript</li>
+    <li class="kartu" data-kat="backend">PHP</li>
+  </ul>
+</section>
+```
 
 ```css
-/* Contoh penerapan Arsitektur State Antarmuka Tanpa JavaScript Menggunakan Selektor Relasional `:has()` */
-body:has(dialog:modal) {
-  overflow: hidden;
+/* Jika "Frontend" dipilih, sembunyikan kartu yang bukan frontend */
+.katalog:has(input[value="frontend"]:checked) .kartu:not([data-kat="frontend"]),
+.katalog:has(input[value="backend"]:checked)  .kartu:not([data-kat="backend"]) {
+  display: none;
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan body:has(dialog:modal)</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+Catatan aksesibilitas: tetap gunakan elemen formulir asli (radio) agar dapat dioperasikan dengan papan ketik dan dibaca pembaca layar. Jangan menyembunyikan radio dengan `display: none`; bila ingin tampilan tombol kustom, sembunyikan secara visual saja. Karena `display: none` juga menyembunyikan kartu dari pembaca layar, ini sesuai untuk filter, tetapi pertimbangkan pesan status ("3 hasil") bagi pengguna pembaca layar.
+
+## 2. Mengunci Guliran Halaman Saat Dialog Terbuka
+
+Saat `<dialog>` modal terbuka, halaman di belakangnya masih bisa digulir. Kunci dengan satu aturan:
+
+```css
+body:has(dialog[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;   /* cegah halaman bergeser saat scrollbar hilang */
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `body:has(dialog:modal)` dan `.form:has(:user-invalid)`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+Aturan ini otomatis aktif ketika ada `<dialog open>` di mana pun di dalam `body`, dan dilepas begitu dialog ditutup, tanpa JavaScript tambahan untuk menambah atau menghapus kelas.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+## 3. Umpan Balik Formulir
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `body:has(dialog:modal)` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+Pseudo-class `:user-invalid` dan `:user-valid` hanya cocok **setelah pengguna berinteraksi** dengan kolom tersebut (berbeda dengan `:invalid`, yang cocok sejak halaman dimuat sehingga formulir kosong langsung tampak penuh kesalahan):
 
-## Latihan Praktik
+```css
+.bidang:has(input:user-invalid) {
+  --warna-bingkai: oklch(55% 0.22 25);
+}
+.bidang:has(input:user-invalid) .pesan-error {
+  display: block;
+}
+.bidang:has(input:user-valid) .ikon-centang {
+  display: inline;
+}
 
-Buatlah berkas `45-pola-selector-has-untuk-state-tanpa-javascript.html` dan stylesheet pendampingnya:
-1. Terapkan kode `body:has(dialog:modal)` dan `.form:has(:user-invalid)` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+/* Tanda bintang pada label kolom wajib, tanpa kelas tambahan */
+label:has(+ input:required)::after {
+  content: " *";
+  color: oklch(55% 0.22 25);
+}
+```
+
+Perhatikan bahwa pseudo-element (`::after`) ditulis **di luar** `:has()` karena pseudo-element tidak boleh berada di dalam argumen `:has()`. `:user-valid` dan `:user-invalid` berstatus **Baseline Widely Available**.
+
+> **⚠️ Aksesibilitas Formulir:** Warna saja tidak cukup untuk menandai kesalahan. Sertakan teks pesan, ikon, dan hubungkan lewat `aria-describedby`. Hindari menonaktifkan tombol kirim hanya karena formulir belum valid; biarkan pengguna mengirim dan tampilkan kesalahannya.
+
+## 4. Tema dan Preferensi dari Saklar HTML
+
+```html
+<input type="checkbox" id="tema-gelap"> <label for="tema-gelap">Mode gelap</label>
+```
+
+```css
+:root:has(#tema-gelap:checked) {
+  color-scheme: dark;
+}
+```
+
+Keterbatasan: CSS saja **tidak dapat menyimpan** pilihan itu antar-kunjungan. Bila perlu persisten, simpan di `localStorage` (JavaScript) dan atur ulang kotak centangnya saat memuat halaman.
+
+## 5. Pola Berguna Lain
+
+```css
+/* Kartu yang memiliki gambar mendapat tata letak dua kolom */
+.kartu:has(> img) { display: grid; grid-template-columns: 8rem 1fr; }
+
+/* Kueri jumlah: daftar dengan 5 butir atau lebih dibuat dua kolom */
+ul:has(> li:nth-child(5)) { columns: 2; }
+
+/* Beri jarak bawah judul hanya jika diikuti subjudul */
+h2:has(+ .subjudul) { margin-block-end: 0.25rem; }
+```
+
+## 6. Batasan dan Performa
+
+- `:has()` tidak boleh **bersarang** di dalam `:has()` lain, dan pseudo-element tidak boleh berada di argumennya.
+- `:has()` memaksa peramban memeriksa keturunan atau saudara, sehingga selektor yang sangat luas (mis. `:has(*)` atau `*:has(...)` pada seluruh dokumen) pada halaman besar dapat memperlambat penghitungan gaya. Persempit subjeknya dengan kelas atau elemen tertentu dan pakai kombinator anak (`>`) bila memungkinkan.
+- Pada peramban lama yang belum mendukung, seluruh aturan yang memuat `:has()` diabaikan; sediakan gaya dasar yang tetap berfungsi.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Memakai `:invalid` untuk umpan balik.** Formulir kosong langsung tampak salah; gunakan `:user-invalid`.
+2. **Menaruh `::after` di dalam `:has()`.** Tidak valid; tulis pseudo-element di luar.
+3. **Menyembunyikan radio dengan `display: none`.** Pengguna papan ketik tidak bisa memfokuskannya.
+4. **Menganggap `:has()` dapat menyimpan state.** State tetap berasal dari HTML dan hilang saat dimuat ulang.
+5. **Selektor `:has()` yang terlalu luas.** Persempit subjek untuk menjaga performa.
+
+## Latihan Praktik: Katalog yang Bisa Difilter, Dialog, dan Formulir
+
+Buatlah berkas `has-state.html` dan `has.css`:
+1. Buat katalog 6 kartu dengan filter radio (Semua, Frontend, Backend) memakai `:has()`, tanpa JavaScript.
+2. Tambahkan `<dialog>` yang dibuka dengan tombol (`showModal()`), dan kunci guliran halaman dengan `body:has(dialog[open])`.
+3. Buat formulir dengan pesan kesalahan yang hanya tampil setelah interaksi memakai `.bidang:has(input:user-invalid)`, plus tanda bintang pada label wajib.
+4. Buat saklar "Mode gelap" dengan `:root:has(#tema-gelap:checked)`; catat apa yang terjadi ketika halaman dimuat ulang.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `body:has(dialog:modal)` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `body:has(dialog:modal)` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Mengapa umpan balik formulir sebaiknya memakai `:user-invalid`, bukan `:invalid`?
+- A. Karena `:invalid` sudah dihapus dari standar.
+- B. Karena `:user-invalid` hanya cocok setelah pengguna berinteraksi dengan kolom, sehingga formulir yang masih kosong tidak langsung tampak penuh kesalahan.
+- C. Karena `:user-invalid` bekerja tanpa atribut `required`.
+- D. Karena `:invalid` hanya berlaku untuk `<textarea>`.
 
 **Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `body:has(dialog:modal)` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Penjelasan:** `:invalid` cocok sejak halaman dimuat jika kolom belum memenuhi batasan, misalnya kolom `required` yang masih kosong. `:user-invalid` baru cocok setelah pengguna berinteraksi, sehingga lebih ramah.
 
 ### Soal 2
-Dalam konteks **Arsitektur State Antarmuka Tanpa JavaScript Menggunakan Selektor Relasional `:has()`**, bagaimana `.form:has(:user-invalid)` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`.form:has(:user-invalid)`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Manakah yang valid dan memberi tanda bintang pada label yang diikuti input wajib?
+- A. `label:has(::after + input:required) { content: " *"; }`
+- B. `label:has(+ input:required)::after { content: " *"; }`
+- C. `label::after:has(+ input:required) { content: " *"; }`
+- D. `label:has(input:required::after) { content: " *"; }`
 
 **Jawaban Benar:** B
-**Penjelasan:** `.form:has(:user-invalid)` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Penjelasan:** Pseudo-element harus berada di luar `:has()` dan ditulis di akhir selektor. `label:has(+ input:required)` memilih label yang langsung diikuti input wajib, lalu `::after` menambahkan tanda bintang.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Apa fungsi `body:has(dialog[open]) { overflow: hidden; }`?
+- A. Menutup semua dialog yang terbuka.
+- B. Menyembunyikan dialog dari pembaca layar.
+- C. Mengunci guliran halaman selama ada dialog yang terbuka, dan melepasnya otomatis saat semua dialog tertutup.
+- D. Membuat dialog selalu berada di tengah layar.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** C
+**Penjelasan:** Aturan ini hanya cocok ketika `body` memiliki keturunan `dialog[open]`. Begitu dialog ditutup, atribut `open` hilang dan aturan berhenti berlaku, sehingga guliran kembali normal.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`:has()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:has)
+- [`:user-invalid` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:user-invalid)
+- [`:checked` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:checked)
+- [Selectors Level 4 — W3C](https://www.w3.org/TR/selectors-4/)

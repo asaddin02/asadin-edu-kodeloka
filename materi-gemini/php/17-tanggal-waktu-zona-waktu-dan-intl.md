@@ -95,6 +95,8 @@ echo $pemformatTanggal->format($waktu) . "\n";
 // Keluaran: "Jumat, 16 Oktober 2026 14.30"
 ```
 
+> **⚠️ Hasil bisa berbeda:** Bentuk keluaran `IntlDateFormatter` (misalnya ada tidaknya kata "pukul" antara tanggal dan jam, dan spasi pada `Rp1.450.000`) bergantung pada versi ICU/CLDR yang terpasang di server; jalankan kodenya di lingkungan Anda untuk melihat hasil persisnya.
+
 ## Latihan Praktik: Konverter Jadwal Webinar Lintas Zona Waktu Nusantara
 
 Buatlah berkas `jadwal-webinar.php`:
@@ -135,5 +137,7 @@ Pada metode `$selisih = $tanggalAwal->diff($tanggalAkhir)`, kode format manakah 
 
 ## Sumber
 - [`DateTimeImmutable` — PHP Manual](https://www.php.net/manual/en/class.datetimeimmutable.php)
-- [Human Language and Character Encoding Support (`intl`) — PHP Manual](https://www.php.net/manual/en/refs.international.php)
-- [PHP 8.4 Release Announcement (`DateTimeImmutable::createFromTimestamp`) — PHP.net](https://www.php.net/releases/8.4/en.php)
+- [Internationalization Functions (`intl`) — PHP Manual](https://www.php.net/manual/en/book.intl.php)
+- [`DateTimeImmutable::createFromTimestamp` — PHP Manual](https://www.php.net/manual/en/datetimeimmutable.createfromtimestamp.php)
+- [`DateTimeInterface::getMicrosecond` — PHP Manual](https://www.php.net/manual/en/datetimeinterface.getmicrosecond.php)
+- [PHP 8.4 Release Announcement — PHP.net](https://www.php.net/releases/8.4/en.php)

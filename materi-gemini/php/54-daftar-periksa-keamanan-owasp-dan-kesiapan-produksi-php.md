@@ -5,7 +5,7 @@
 
 ## Mengapa Topik Ini Penting di Produksi?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `ini_get('display_errors') === '0' && ini_get('session.use_strict_mode') === '1'` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `!filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOL) && ini_get('session.use_strict_mode') === '1'` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
 
 > **🚫 Kerentanan & Kesalahan Umum:** Meluncurkan aplikasi ke produksi dengan `display_errors = On` atau berkas `.env` / `.git` yang dapat diakses langsung melalui URL publik akan membocorkan kredensial database dan jejak panggilan internal (*stack trace*) kepada penyerang.
 
@@ -13,7 +13,7 @@ Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `ini
 
 | Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `ini_get('display_errors') === '0' && ini_get('session.use_strict_mode') === '1'` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
+| **API / Pola Utama** | `!filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOL) && ini_get('session.use_strict_mode') === '1'` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
 | **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
 | **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
 
@@ -43,7 +43,7 @@ function auditKonfigurasiRuntimeProduksi(): array
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `ini_get('display_errors') === '0' && ini_get('session.use_strict_mode') === '1'` seperti pada contoh di atas.
+1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `!filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOL) && ini_get('session.use_strict_mode') === '1'` seperti pada contoh di atas.
 2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
 3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
 
@@ -60,14 +60,14 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Meluncu
 **Penjelasan:** Meluncurkan aplikasi ke produksi dengan `display_errors = On` atau berkas `.env` / `.git` yang dapat diakses langsung melalui URL publik akan membocorkan kredensial database dan jejak panggilan internal (*stack trace*) kepada penyerang.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `ini_get('display_errors') === '0' && ini_get('session.use_strict_mode') === '1'` di PHP modern?
+Manakah pernyataan yang benar mengenai penggunaan `!filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOL) && ini_get('session.use_strict_mode') === '1'` di PHP modern?
 - A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
 - B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
 - C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
 - D. Menghapus kebutuhan akan `declare(strict_types=1)`
 
 **Jawaban Benar:** A
-**Penjelasan:** Pola `ini_get('display_errors') === '0' && ini_get('session.use_strict_mode') === '1'` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
+**Penjelasan:** Pola `!filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOL) && ini_get('session.use_strict_mode') === '1'` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
 Langkah manakah yang paling tepat saat mengintegrasikan materi `Audit Keamanan OWASP Top 10 & Daftar Periksa Kesiapan Produksi (*Production Readiness*) PHP` ke dalam arsitektur aplikasi?
@@ -81,7 +81,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Audit Keamanan O
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [OWASP Top 10](https://owasp.org/Top10/)
+- [OWASP Application Security Verification Standard (ASVS)](https://owasp.org/www-project-application-security-verification-standard/)
+- [Session Management Basics — PHP Manual](https://www.php.net/manual/en/features.session.security.management.php)
+- [`ini_get` — PHP Manual](https://www.php.net/manual/en/function.ini-get.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

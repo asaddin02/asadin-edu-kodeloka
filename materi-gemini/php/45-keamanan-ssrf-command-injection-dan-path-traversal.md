@@ -31,6 +31,10 @@ function apakahUrlEksternalAman(string $url): bool
     if (!in_array($skema, ['http', 'https'], strict: true) || $host === '') {
         return false;
     }
+    // Catatan keamanan: pemeriksaan ini hanya menjamin IP hasil resolusi SAAT INI aman. Jika permintaan
+    // sesungguhnya me-resolve ulang nama host, penyerang dapat memakai DNS rebinding. Untuk produksi,
+    // sambungkan cURL ke IP yang sudah divalidasi (CURLOPT_RESOLVE), matikan CURLOPT_FOLLOWLOCATION
+    // (atau validasi ulang setiap pengalihan), dan periksa juga alamat IPv6.
     $daftarIp = gethostbynamel($host);
     if ($daftarIp === false) return false;
 
@@ -86,7 +90,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Keamanan Backend
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Server-Side Request Forgery Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [OS Command Injection Defense Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/OS_Command_Injection_Defense_Cheat_Sheet.html)
+- [`escapeshellarg` — PHP Manual](https://www.php.net/manual/en/function.escapeshellarg.php)
+- [`realpath` — PHP Manual](https://www.php.net/manual/en/function.realpath.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

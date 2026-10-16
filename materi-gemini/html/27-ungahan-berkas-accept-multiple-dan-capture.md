@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Input Berkas (`type="file"`), Atribut `accept`, `multiple`, dan Kamera Seluler (`capture`)** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`accept`** dan **`capture`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`accept`** dan **`capture`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/input.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,17 +29,28 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `accept` dan `capture`
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Input Berkas (`type="file"`), Atribut `accept`, `multiple`, dan Kamera Seluler (`capture`) — Kodeloka</title>
+    <title>Unggah Berkas dan Foto — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Input Berkas (`type="file"`), Atribut `accept`, `multiple`, dan Kamera Seluler (`capture`)</h1>
+      <h1>Unggah Berkas dan Foto</h1>
+      <form action="/unggah" method="post" enctype="multipart/form-data">
         <p>
-          Penerapan <code>accept</code> dan <code>capture</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
+          <label for="dokumen">Dokumen pendukung (PDF, PNG, atau JPEG; boleh lebih dari satu)</label><br>
+          <input type="file" id="dokumen" name="dokumen" accept=".pdf,image/png,image/jpeg" multiple>
         </p>
-      </section>
+        <p>
+          <label for="foto-langsung">Foto langsung dari kamera belakang (ponsel)</label><br>
+          <input type="file" id="foto-langsung" name="foto" accept="image/*" capture="environment">
+        </p>
+        <button type="submit">Kirim</button>
+      </form>
+      <p>
+        <code>accept</code> dan <code>multiple</code> didukung semua peramban utama. <code>capture</code>
+        hanya berpengaruh di peramban seluler (di desktop diabaikan dan pemilih berkas biasa yang tampil)
+        dan belum berstatus Baseline. <code>accept</code> hanya petunjuk bagi pemilih berkas, jadi server
+        tetap wajib memeriksa tipe dan ukuran berkas.
+      </p>
     </main>
   </body>
 </html>
@@ -95,7 +106,7 @@ Bagaimana cara memverifikasi bahwa implementasi `accept` dan `capture` pada hala
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`<input type="file">` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file)
+- [`accept` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/accept)
+- [`capture` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/capture)
+- [Input element — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/input.html)

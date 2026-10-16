@@ -8,7 +8,7 @@
 Di masa lalu, banyak orang memilih tag HTML berdasarkan tampilannya di layar: memakai `<h3>` hanya karena ingin huruf yang tidak terlalu besar, atau memakai `<b>` dan `<i>` semata-mata agar teks terlihat tebal dan miring. Pendekatan ini keliru karena **tampilan adalah tugas CSS, sedangkan tugas HTML adalah menjelaskan arti (semantik) dari konten tersebut**.
 
 Ketika Anda memilih elemen semantik yang tepat:
-1. **Aksesibilitas (*Screen Reader*):** Pengguna tunanetra dapat melompat antar-bab menggunakan daftar *heading* (`h1` sampai `h6`), serta mendengar perubahan intonasi suara pada kata yang ditekankan (`<em>`) atau peringatan penting (`<strong>`).
+1. **Aksesibilitas (*Screen Reader*):** Pengguna tunanetra dapat melompat antar-bab menggunakan daftar *heading* (`h1` sampai `h6`), serta, pada pembaca layar yang dikonfigurasi untuk mengumumkannya, mengetahui kata yang ditekankan (`<em>`) atau peringatan penting (`<strong>`).
 2. **Mesin Pencari & Pembaca Artikel (*Reader Mode*):** Mesin pencari dan mode baca di peramban memahami mana judul utama, mana subjudul, mana kutipan, dan mana rincian istilah.
 3. **Kemudahan Pemeliharaan Kode:** Anda dapat mengubah ukuran huruf `<h2>` di seluruh situs cukup lewat satu baris CSS tanpa merusak struktur dokumen.
 
@@ -63,9 +63,9 @@ Banyak pengembang bingung membedakan `<strong>` vs `<b>`, serta `<em>` vs `<i>`.
 | `<strong>` | Kepentingan tinggi, keseriusan, atau urgensi | `<strong>Peringatan:</strong> Jangan bagikan kunci API rahasia Anda di repositori publik.` |
 | `<b>` | Menarik perhatian visual tanpa menambah bobot urgensi | Kata kunci pembuka dalam ringkasan produk atau nama benda dalam ulasan. |
 | `<em>` | Penekanan intonasi kalimat (*stress emphasis*) yang mengubah nuansa makna | `Anda <em>harus</em> memvalidasi data di sisi server, bukan hanya di peramban.` |
-| `<i>` | Suara/suasana alternatif, istilah asing, nama ilmiah/taksonomi, atau pikiran tokoh | `Istilah <i>idempotent</i> atau spesies <i> Panthera tigris sondaica</i>.` |
+| `<i>` | Suara/suasana alternatif, istilah asing, nama ilmiah/taksonomi, atau pikiran tokoh | `Istilah <i>idempotent</i> atau spesies <i>Panthera tigris sondaica</i>.` |
 | `<mark>` | Sorotan relevansi konteks (seperti stabilo pada hasil pencarian) | Menyoroti kata yang cocok dengan kueri pencarian pengguna. |
-| `<small>` | Keterangan tambahan (*fine print*), hak cipta, atau klausul hukum | `<small>Harga belum termasuk PPN 11% dan biaya layanan.</small>` |
+| `<small>` | Keterangan tambahan (*fine print*), hak cipta, atau klausul hukum | `<small>Harga belum termasuk PPN dan biaya layanan.</small>` |
 | `<sub>` & `<sup>` | Subskrip dan superskrip yang memiliki arti matematis/kimiawi | Rumus kimia `H<sub>2</sub>O` atau perpangkatan `2<sup>10</sup> = 1024`. |
 
 ## 4. Kutipan, Kode Program, dan Waktu Terstruktur
@@ -78,12 +78,12 @@ Banyak pengembang bingung membedakan `<strong>` vs `<b>`, serta `<em>` vs `<i>`.
 <figure>
   <blockquote cite="https://www.w3.org/DesignIssues/Principles.html">
     <p>
-      Bahasa yang kurang berdaya guna lebih mudah dianalisis dan digunakan kembali
-      dibandingkan bahasa pemrograman yang terlalu rumit.
+      Semakin kurang berdaya sebuah bahasa, semakin banyak hal yang dapat dilakukan
+      dengan data yang tersimpan dalam bahasa itu.
     </p>
   </blockquote>
   <figcaption>
-    — Tim Berners-Lee dalam esai <cite>Axioms of Web Architecture: The Rule of Least Power</cite>
+    — Tim Berners-Lee dalam <cite>Design Issues: Principles of Design</cite> (bagian <i lang="en">Principle of Least Power</i>)
   </figcaption>
 </figure>
 ```

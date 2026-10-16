@@ -98,7 +98,7 @@ spl_autoload_register(static function (string $namaLengkapClass): void {
 
 Buatlah berkas `uji-autoload.php`:
 1. Tulis fungsi `spl_autoload_register()` PSR-4 seperti di atas yang memetakan `Kodeloka\Latihan\` ke sub-folder `./latihan-src/`.
-2. Buat berkas `./latihan-src/ Matematika/Deret.php` yang berisi `namespace Kodeloka\Latihan\Matematika;` dan `final class Deret`.
+2. Buat berkas `./latihan-src/Matematika/Deret.php` yang berisi `namespace Kodeloka\Latihan\Matematika;` dan `final class Deret`.
 3. Di dalam `uji-autoload.php`, langsung panggil `new \Kodeloka\Latihan\Matematika\Deret()` tanpa menulis `require` manual untuk berkas `Deret.php`, dan buktikan bahwa PHP memuatnya secara otomatis!
 
 ## Kuis Pemahaman
@@ -134,6 +134,7 @@ Mengapa standar PSR-4 mengharuskan setiap satu class ditempatkan di dalam satu b
 **Penjelasan:** Petunjuk satu-satunya yang diterima oleh callback `spl_autoload_register(fn(string $class))` hanyalah string nama lengkap class yang diminta. Dengan aturan 1 class = 1 berkas bernama identik, autoloader dapat langsung memetakan string nama class tersebut ke jalur berkas di diska dengan instan.
 
 ## Sumber
-- [Namespaces — PHP Manual](https://www.php.net/manual/en/langref.php)
+- [Namespaces — PHP Manual](https://www.php.net/manual/en/language.namespaces.php)
+- [`spl_autoload_register` — PHP Manual](https://www.php.net/manual/en/function.spl-autoload-register.php)
 - [PSR-1: Basic Coding Standard — PHP-FIG](https://www.php-fig.org/psr/psr-1/)
-- [PHP Standards Recommendations (PSR-4 Autoloader) — PHP-FIG](https://www.php-fig.org/psr/)
+- [PSR-4: Autoloader — PHP-FIG](https://www.php-fig.org/psr/psr-4/)

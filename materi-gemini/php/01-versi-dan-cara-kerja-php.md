@@ -28,7 +28,7 @@ Berdasarkan kebijakan resmi [PHP Supported Versions](https://www.php.net/support
 
 Berbeda dengan server Node.js atau Go di mana satu proses aplikasi terus hidup di memori melayani ribuan pengguna sekaligus, cara kerja klasik dan paling populer di PHP (melalui **PHP-FPM / FastCGI Process Manager** di belakang **Nginx**) menganut arsitektur **Share-Nothing (Tidak Berbagi Memori Antar-Permintaan)**:
 
-```
+```text
 [Peramban Pengguna]
         │  1. Permintaan HTTP (GET /kelas/php)
         ▼
@@ -134,5 +134,5 @@ Di manakah deklarasi `declare(strict_types=1);` harus diletakkan, dan sejauh man
 ## Sumber
 - [Supported Versions — PHP.net](https://www.php.net/supported-versions.php)
 - [Basic syntax — PHP Manual](https://www.php.net/manual/en/language.basic-syntax.php)
-- [Type declarations (`strict_types`) — PHP Manual](https://www.php.net/manual/en/language.types.php)
+- [Type declarations (`strict_types`) — PHP Manual](https://www.php.net/manual/en/language.types.declarations.php)
 - [PSR-12: Extended Coding Style — PHP-FIG](https://www.php-fig.org/psr/psr-12/)

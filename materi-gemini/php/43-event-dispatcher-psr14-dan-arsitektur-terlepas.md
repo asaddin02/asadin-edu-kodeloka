@@ -54,7 +54,7 @@ final class PendengarEmailKuitansi
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menumpuk pemanggilan layanan email, layanan pengiriman WhatsApp, pembuatan PDF faktur, dan webhook akuntansi secara langsung di dalam satu metode `CheckoutService::bayar()` membuat metode tersebut rapuh: jika server email lambat, seluruh proses pembayaran ikut gagal!*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena kegagalan atau kelambatan satu efek samping (misalnya server email) ikut menggagalkan atau memperlambat seluruh proses pembayaran, dan metode menjadi sulit dirawat serta diuji karena menanggung terlalu banyak tanggung jawab
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -83,7 +83,7 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Arsitektur Berba
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [PSR-14: Event Dispatcher — PHP-FIG](https://www.php-fig.org/psr/psr-14/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

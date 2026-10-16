@@ -21,7 +21,7 @@ Ketika parser HTML sedang membaca dokumen dari atas ke bawah lalu menemukan tag 
 
 Di era modern, Anda memiliki opsi yang jauh lebih efisien:
 
-```
+```text
 1. <script src="app.js"> (Tanpa atribut — Buruk di dalam <head>)
 HTML Parsing: ████████░░░░░░░░░░░░░░░░░████████████
 Unduh JS:             ▓▓▓▓▓▓▓

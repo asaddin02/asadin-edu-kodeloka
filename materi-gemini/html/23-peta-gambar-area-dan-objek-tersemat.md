@@ -57,8 +57,9 @@ Jika Anda ingin menampilkan pratinjau dokumen PDF langsung di dalam halaman, ele
 <object
   data="/assets/cheatsheet-linux.pdf"
   type="application/pdf"
-  width="100%"
+  width="800"
   height="600"
+  style="width: 100%;"
   aria-label="Pratinjau Lembar Contekan Perintah Linux"
 >
   <p>

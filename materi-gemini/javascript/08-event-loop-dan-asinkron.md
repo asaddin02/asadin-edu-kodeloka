@@ -11,7 +11,7 @@ Lalu bagaimana peramban tetap bisa menggulir halaman dengan mulus dan merespons 
 
 Jawabannya adalah kolaborasi antara **Call Stack**, **Host/Web APIs** milik peramban (atau libuv di Node.js), **Microtask Queue**, **Task (Macrotask) Queue**, dan sang pengatur lalu lintas yang disebut **Event Loop**:
 
-```
+```text
 +------------------------+      +---------------------------------------+
 |      CALL STACK        |      |       WEB APIs / RUNTIME HOST         |
 | (Menjalankan fungsi JS | ---> | (Timer setTimeout, Jaringan fetch(),  |
@@ -85,7 +85,7 @@ function tunggu(milidetik) {
 ```
 
 > **💡 Fitur Modern (Sejak ES2024): `Promise.withResolvers()`**
-> Jika Anda perlu mengekstrak fungsi `resolve` dan `reject` agar bisa dipanggil dari luar lingkup callback `new Promise(...)` (misalnya pada komponen pembatalan atau antrean event), kini Anda dapat menggunakan **`const { promise, resolve, reject } = Promise.withResolvers();`** (status **Baseline Newly Available** sejak Maret 2024)!
+> Jika Anda perlu mengekstrak fungsi `resolve` dan `reject` agar bisa dipanggil dari luar lingkup callback `new Promise(...)` (misalnya pada komponen pembatalan atau antrean event), kini Anda dapat menggunakan **`const { promise, resolve, reject } = Promise.withResolvers();`** (status **Baseline Widely Available**; didukung semua peramban utama sejak Maret 2024)!
 
 ## 3. Menulis Kode Asinkron yang Bersih dengan `async` dan `await`
 

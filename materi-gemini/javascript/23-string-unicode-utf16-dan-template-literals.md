@@ -1,11 +1,11 @@
 # String Mendalam, Unicode UTF-16, Surrogate Pairs, dan Tagged Template Literals
 
 - **Tingkat:** Menengah
-- **Ringkasan:** Membedah bagaimana JavaScript menyimpan string sebagai urutan unit kode UTF-16 (`''.length` pada emoji bernilai 2), iterasi titik kode Unicode, normalisasi karakter (`normalize('NFC')`), metode manipulasi string modern, serta pembuatan *Tagged Template Literals* untuk sanitasi otomatis.
+- **Ringkasan:** Membedah bagaimana JavaScript menyimpan string sebagai urutan unit kode UTF-16 (`'🚀'.length` bernilai 2), iterasi titik kode Unicode, normalisasi karakter (`normalize('NFC')`), metode manipulasi string modern, serta pembuatan *Tagged Template Literals* untuk sanitasi otomatis.
 
 ## Mengapa Topik Ini Penting di Produksi?
 
-Dalam rekayasa perangkat lunak modern, penguasaan `function htmlAman(strings, ...values) { ... }` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
+Dalam rekayasa perangkat lunak modern, penguasaan `[...teks]` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
 
 > **⚠️ Jebakan Umum di Lapangan:** Memotong string yang mengandung emoji atau aksara non-Latin menggunakan `.slice(0, n)` atau `.substring()` biasa dapat membelah pasangan *surrogate pair* UTF-16 di tengah jalan dan menghasilkan karakter rusak (`\uFFFD` / tanda tanya berlian).
 
@@ -15,7 +15,7 @@ Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dio
 
 | Aspek Teknis | Pola Modern yang Direkomendasikan | Praktik Warisan yang Wajib Dihindari |
 | :--- | :--- | :--- |
-| **API / Sintaks Utama** | `function htmlAman(strings, ...values) { ... }` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
+| **API / Sintaks Utama** | `[...teks]` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
 | **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
 | **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
 
@@ -42,7 +42,7 @@ console.log(sqlLog`Mencari pengguna dengan email=${email}`);
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah berkas modul ES baru untuk menguji pola `function htmlAman(strings, ...values) { ... }` pada kasus nyata di proyek Anda.
+1. Buat sebuah berkas modul ES baru untuk menguji pola `[...teks]` pada kasus nyata di proyek Anda.
 2. Tambahkan skenario uji batas (*edge case*): masukan kosong, karakter Unicode/emoji, pembatalan mendadak, atau kegagalan jaringan.
 3. Jalankan dan verifikasi menggunakan *DevTools Console / Memory / Performance panel* atau `node --test`.
 
@@ -59,14 +59,14 @@ Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Memotong string y
 **Penjelasan:** Memotong string yang mengandung emoji atau aksara non-Latin menggunakan `.slice(0, n)` atau `.substring()` biasa dapat membelah pasangan *surrogate pair* UTF-16 di tengah jalan dan menghasilkan karakter rusak (`\uFFFD` / tanda tanya berlian).
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `function htmlAman(strings, ...values) { ... }` di JavaScript modern?
+Manakah pernyataan yang paling tepat mengenai penggunaan `[...teks]` di JavaScript modern?
 - A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
 - B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
 - C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
 - D. Telah dihapus dari standar web modern
 
 **Jawaban Benar:** A
-**Penjelasan:** `function htmlAman(strings, ...values) { ... }` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** `[...teks]` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
 Saat mengintegrasikan fitur `String Mendalam, Unicode UTF-16, Surrogate Pairs, dan Tagged Template Literals` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
@@ -80,6 +80,6 @@ Saat mengintegrasikan fitur `String Mendalam, Unicode UTF-16, Surrogate Pairs, d
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [`String` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- [Template literals — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals)
 - [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)

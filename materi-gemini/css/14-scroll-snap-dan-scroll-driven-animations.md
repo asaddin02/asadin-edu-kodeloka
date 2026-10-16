@@ -58,7 +58,7 @@ Solusinya: berikan **`scroll-margin-block-start: 5rem;`** pada semua elemen yang
 ### B. `overscroll-behavior: contain`
 Pernahkah Anda menggulir daftar panjang di dalam sebuah kotak `<dialog>` atau panel menu samping (*sidebar*), lalu ketika gulirannya sudah mencapai ujung paling bawah daftar, tiba-tiba **halaman utama di belakangnya ikut bergerak tergulir (*scroll chaining*)**?
 
-Satu baris properti **`overscroll-behavior: contain`** (status **Baseline Widely Available**) menghentikan rantai guliran tersebut agar tetap terkurung di dalam panel/dialog tanpa membocorkannya ke halaman belakang!
+Satu baris properti **`overscroll-behavior: contain`** (nilai `contain` didukung semua peramban utama: Chrome 63, Firefox 59, Safari 16; halaman MDN menandai properti ini *Limited availability* hanya karena nilai `chain` yang baru) menghentikan rantai guliran tersebut agar tetap terkurung di dalam panel/dialog tanpa membocorkannya ke halaman belakang!
 
 ```css
 .panel-notifikasi,
@@ -72,7 +72,7 @@ dialog {
 
 Di masa lalu, membuat **Bilah Kemajuan Baca (*Reading Progress Bar*)** di bagian paling atas artikel yang memanjang dari `0%` ke `100%` seiring pengguna menggulir halaman ke bawah mengharuskan kita menjalankan `window.addEventListener("scroll", ...)` di utas utama JavaScript pada setiap piksel guliran.
 
-CSS modern memperkenalkan **Scroll-Driven Animations** melalui properti **`animation-timeline`** (didukung penuh di Chrome/Edge dan Firefox terbaru, serta dapat digunakan secara progresif dengan `@supports`):
+CSS modern memperkenalkan **Scroll-Driven Animations** melalui properti **`animation-timeline`** (didukung di Chrome/Edge sejak versi 115 dan Safari 26; di Firefox baru tersedia mulai versi 159, yang saat ini masih beta, sehingga gunakan secara progresif dengan `@supports`):
 - **`scroll()`:** Mengikat kemajuan `@keyframes` (`0%` hingga `100%`) langsung ke posisi gulir sebuah *scroll container* (seperti halaman `root`), bukan ke waktu detik!
 - **`view()`:** Mengikat kemajuan `@keyframes` ke posisi sebuah elemen saat elemen tersebut mulai masuk hingga keluar dari jendela pandang (*viewport*, mirip `IntersectionObserver` tetapi untuk animasi CSS murni!).
 

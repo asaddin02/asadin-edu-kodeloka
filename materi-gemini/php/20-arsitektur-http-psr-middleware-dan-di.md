@@ -64,7 +64,7 @@ final readonly class PendaftaranService
 
 Bayangkan **Middleware** seperti lapisan-lapisan kulit bawang yang mengelilingi *Controller* inti Anda:
 
-```
+```text
 Permintaan HTTP Masuk
    │
    ▼
@@ -133,7 +133,13 @@ final class WaktuEksekusiMiddleware implements MiddlewareInterface
         $durasiMs = round((hrtime(true) - $mulai) / 1_000_000, 2);
         $headerBaru = [...$respons->header, 'X-Waktu-Proses-Ms' => (string) $durasiMs];
 
-        return clone($respons, ['header' => $headerBaru]);
+        // Properti readonly publik hanya boleh diubah dari dalam class Response sendiri
+        // (clone($respons, [...]) dari luar class akan memicu Error), sehingga kita membuat instans baru:
+        return new Response(
+            isi: $respons->isi,
+            status: $respons->status,
+            header: $headerBaru,
+        );
     }
 }
 ```
@@ -177,6 +183,8 @@ final class Container
 }
 ```
 
+> Catatan: `Container` di atas hanyalah ilustrasi. Standar PSR-11 mensyaratkan class yang mengimplementasikan `Psr\Container\ContainerInterface` dengan metode `get(string $id)` dan `has(string $id)`, serta melempar exception yang mengimplementasikan `NotFoundExceptionInterface` untuk id yang tidak ditemukan. Demikian pula, antarmuka middleware pada contoh sebelumnya adalah penyederhanaan konsep; PSR-15 memakai `Psr\Http\Server\MiddlewareInterface::process(ServerRequestInterface, RequestHandlerInterface)`.
+
 ## Latihan Praktik: Membangun Router & Pipa Middleware Mini
 
 Buatlah berkas `pipa-middleware.php` dan jalankan dengan `php pipa-middleware.php`:
@@ -216,5 +224,7 @@ Mengapa fungsi bawaan `hrtime(true)` (yang mengembalikan waktu monotonik dalam n
 **Penjelasan:** Sama seperti `performance.now()` di JavaScript, `hrtime(true)` di PHP dirancang khusus untuk pengukuran selisih waktu (*benchmarking/profiling*) karena berpresisi nanodetik dan kebal terhadap perubahan jam kalender sistem.
 
 ## Sumber
-- [PHP Standards Recommendations (PSR-7, PSR-11, PSR-15) — PHP-FIG](https://www.php-fig.org/psr/)
+- [PSR-7: HTTP Message Interface — PHP-FIG](https://www.php-fig.org/psr/psr-7/)
+- [PSR-11: Container Interface — PHP-FIG](https://www.php-fig.org/psr/psr-11/)
+- [PSR-15: HTTP Server Request Handlers — PHP-FIG](https://www.php-fig.org/psr/psr-15/)
 - [Classes and Objects — PHP Manual](https://www.php.net/manual/en/language.oop5.basic.php)

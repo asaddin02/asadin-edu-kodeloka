@@ -175,7 +175,7 @@ Di proyek akhir kelas CSS ini, Anda akan merancang dan membangun **Antarmuka Das
 
   /* Kartu Metrik menggunakan Subgrid agar baris judul, angka, dan footer sejajar */
   .kartu-metrik {
-     --warna-indikator: var(--status-sehat);
+    --warna-indikator: var(--status-sehat);
     display: grid;
     grid-row: span 3;
     grid-template-rows: subgrid;
@@ -211,7 +211,8 @@ Di proyek akhir kelas CSS ini, Anda akan merancang dan membangun **Antarmuka Das
     font-size: 0.8125rem;
     font-weight: 600;
     background-color: color-mix(in oklch, var(--warna-indikator) 15%, transparent);
-    color: var(--warna-indikator);
+    /* Teks dicampur dengan warna teks utama agar kontras terhadap latar lencana minimal 4,5:1 di mode terang maupun gelap */
+    color: color-mix(in oklch, var(--warna-indikator) 50%, var(--teks-utama));
   }
 
   /* Komponen Kartu Insiden yang Merespons Container Query */
@@ -251,6 +252,17 @@ Di proyek akhir kelas CSS ini, Anda akan merancang dan membangun **Antarmuka Das
 @layer utilitas {
   .angka-tabular { font-variant-numeric: tabular-nums; }
   .teks-redup    { color: var(--teks-sekunder); font-size: 0.875rem; }
+  .sembunyi-visual {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -299,7 +311,7 @@ Di proyek akhir kelas CSS ini, Anda akan merancang dan membangun **Antarmuka Das
         </header>
 
         <section aria-labelledby="judul-metrik" class="kisi-metrik">
-          <h2 id="judul-metrik" hidden>Metrik Utama</h2>
+          <h2 id="judul-metrik" class="sembunyi-visual">Metrik Utama</h2>
 
           <article class="kartu-metrik">
             <h3>Latensi API Gateway (P95)</h3>
@@ -344,7 +356,8 @@ Di proyek akhir kelas CSS ini, Anda akan merancang dan membangun **Antarmuka Das
       const tombolTema = document.getElementById("saklar-tema");
       tombolTema.addEventListener("click", () => {
         const akar = document.documentElement;
-        const saatIni = akar.getAttribute("data-tema");
+        const gelapSistem = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const saatIni = akar.getAttribute("data-tema") ?? (gelapSistem ? "gelap" : "terang");
         akar.setAttribute("data-tema", saatIni === "gelap" ? "terang" : "gelap");
       });
     </script>

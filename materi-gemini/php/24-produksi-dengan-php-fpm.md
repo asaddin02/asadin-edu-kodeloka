@@ -1,7 +1,7 @@
 # Menyajikan Aplikasi PHP di Produksi dengan Nginx, PHP-FPM, dan OPcache
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Merancang arsitektur server produksi menggunakan Nginx + PHP-FPM melalui soket FastCGI, menghitung kapasitas *worker pool* (`pm.max_children`), mengoptimalkan kinerja dengan OPcache dan JIT, serta mengamankan konfigurasi `php.ini` produksi.
+- **Ringkasan:** Merancang arsitektur server produksi menggunakan Nginx + PHP-FPM melalui soket FastCGI, menghitung kapasitas *worker pool* (`pm.max_children`), mengoptimalkan kinerja dengan OPcache, serta mengamankan konfigurasi `php.ini` produksi.
 
 ## 1. Arsitektur Produksi: Mengapa Nginx Dipasangkan dengan PHP-FPM?
 
@@ -9,7 +9,7 @@ Di komputer lokal, kita bisa menjalankan `php -S 127.0.0.1:8000 -t public`. Namu
 
 Di lingkungan produksi, standar emas industri adalah memasangkan **Nginx** di baris depan dengan **PHP-FPM (*FastCGI Process Manager*)** di belakangnya:
 
-```
+```text
                    Internet Publik (HTTPS :443)
                                 │
                                 ▼
@@ -90,7 +90,7 @@ Di dalam berkas konfigurasi pool PHP-FPM (biasanya `/etc/php/8.5/fpm/pool.d/www.
 Jangan pernah menebak angka `pm.max_children = 500` tanpa menghitung RAM!
 Gunakan rumus sederhana ini:
 
-```
+```text
                        RAM yang Tersedia untuk PHP-FPM
 pm.max_children = ─────────────────────────────────────────
                    Rata-rata Memori 1 Proses Worker PHP-FPM
@@ -100,7 +100,7 @@ Contoh perhitungan nyata:
 - Server VPS memiliki **4 GB RAM (`4096 MB`)**.
 - Sistem operasi Linux, Nginx, dan agen monitoring memakai sekitar `800 MB`, sehingga tersisa **`3200 MB`** untuk PHP-FPM.
 - Setiap 1 proses worker PHP aplikasi Anda rata-rata memakai **`40 MB`**.
-- Maka nilai aman `pm.max_children` adalah: `3200 MB / 40 MB = 80` (kita pasang **`pm.max_children = 70`** untuk memberi ruang aman 15%!).
+- Maka nilai aman `pm.max_children` adalah: `3200 MB / 40 MB = 80` (kita pasang **`pm.max_children = 70`** untuk memberi ruang aman sekitar 12%!).
 
 ```ini
 ; Contoh konfigurasi /etc/php/8.5/fpm/pool.d/www.conf untuk produksi
@@ -195,3 +195,5 @@ Apa konsekuensi dari mengaktifkan optimasi `opcache.validate_timestamps = 0` di 
 - [FastCGI Process Manager (FPM) Installation — PHP Manual](https://www.php.net/manual/en/install.fpm.php)
 - [FPM Configuration — PHP Manual](https://www.php.net/manual/en/install.fpm.configuration.php)
 - [OPcache — PHP Manual](https://www.php.net/manual/en/book.opcache.php)
+- [OPcache Runtime Configuration (`opcache.validate_timestamps`) — PHP Manual](https://www.php.net/manual/en/opcache.configuration.php)
+- [Module ngx_http_fastcgi_module — Nginx Documentation](https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html)

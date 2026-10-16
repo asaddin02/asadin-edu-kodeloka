@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Pengujian Aksesibilitas Praktis dan Daftar Periksa Kepatuhan WCAG 2.2 Level AA** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`WCAG 2.2`** dan **`Level AA`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`WCAG 2.2`** dan **`Level AA`** berdasarkan [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/) dari W3C serta panduan [Easy Checks dari W3C WAI](https://www.w3.org/WAI/test-evaluate/preliminary/).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,17 +29,37 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `WCAG 2.2` dan `Level 
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Pengujian Aksesibilitas Praktis dan Daftar Periksa Kepatuhan WCAG 2.2 Level AA — Kodeloka</title>
+    <title>Contoh Halaman Siap Uji WCAG 2.2 — Kodeloka</title>
+    <style>
+      /* 2.4.11 Focus Not Obscured (Minimum): header sticky tidak boleh menutupi elemen yang difokuskan */
+      html { scroll-padding-top: 5rem; }
+      header { position: sticky; top: 0; block-size: 4rem; background: #ffffff; }
+
+      /* 2.4.7 Focus Visible: indikator fokus yang jelas */
+      :focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+
+      /* 2.5.8 Target Size (Minimum): target interaktif minimal 24x24 piksel CSS */
+      button, input, select, .tombol { min-block-size: 24px; min-inline-size: 24px; }
+    </style>
   </head>
   <body>
-    <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Pengujian Aksesibilitas Praktis dan Daftar Periksa Kepatuhan WCAG 2.2 Level AA</h1>
+    <a href="#utama">Lompat ke konten utama</a>
+    <header><p>Kodeloka</p></header>
+
+    <main id="utama">
+      <h1>Masuk</h1>
+      <form action="/masuk" method="post">
         <p>
-          Penerapan <code>WCAG 2.2</code> dan <code>Level AA</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
+          <label for="surel">Surel</label><br>
+          <input type="email" id="surel" name="surel" autocomplete="username" required>
         </p>
-      </section>
+        <p>
+          <!-- 3.3.8 Accessible Authentication (Minimum): izinkan password manager dan tempel (paste) -->
+          <label for="sandi">Kata sandi</label><br>
+          <input type="password" id="sandi" name="sandi" autocomplete="current-password" required>
+        </p>
+        <button type="submit">Masuk</button>
+      </form>
     </main>
   </body>
 </html>
@@ -95,7 +115,7 @@ Bagaimana cara memverifikasi bahwa implementasi `WCAG 2.2` dan `Level AA` pada h
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [Web Content Accessibility Guidelines (WCAG) 2.2 — W3C](https://www.w3.org/TR/WCAG22/)
+- [What's New in WCAG 2.2 — W3C WAI](https://www.w3.org/WAI/standards-guidelines/wcag/new-in-22/)
+- [Easy Checks: A First Review of Web Accessibility — W3C WAI](https://www.w3.org/WAI/test-evaluate/preliminary/)
+- [Learn Accessibility — web.dev](https://web.dev/learn/accessibility)

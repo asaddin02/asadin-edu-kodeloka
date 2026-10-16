@@ -150,6 +150,6 @@ Kapan kode di dalam blok `finally` pada struktur `try...catch...finally` akan di
 **Penjelasan:** Blok `finally` dijamin selalu dieksekusi sebelum alur kontrol meninggalkan struktur `try...catch`, sehingga menjadikannya tempat paling tepat untuk tugas pembersihan seperti menyembunyikan *loading spinner* atau melepas kunci sumber daya.
 
 ## Sumber
-- [Control flow and error handling — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [Standard built-in objects (`Error`) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [Control flow and error handling — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling)
+- [`Error` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
 - [ECMAScript Language Specification — TC39](https://tc39.es/ecma262/)

@@ -167,4 +167,6 @@ Di dalam metode siklus hidup manakah Anda harus membersihkan pengatur waktu (`cl
 
 ## Sumber
 - [Web Components — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_components)
+- [Using custom elements — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)
+- [Using shadow DOM — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM)
 - [Using templates and slots — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_templates_and_slots)

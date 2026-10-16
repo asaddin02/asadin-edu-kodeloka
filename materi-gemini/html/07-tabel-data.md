@@ -6,7 +6,7 @@
 ## Aturan Emas Tabel HTML: Hanya untuk Data Tabular!
 
 Pada akhir 1990-an sebelum CSS mendukung Flexbox dan Grid, pengembang web menyalahgunakan elemen `<table>` untuk membagi kolom halaman web (header di baris atas, sidebar di kolom kiri, konten di kolom kanan). Praktik tersebut kini **dilarang keras** karena:
-1. Merusak urutan baca dan membingungkan pembaca layar yang akan mengumumkan *"Table with 4 rows and 3 columns"* padahal isinya adalah tata letak halaman.
+1. Merusak urutan baca dan membingungkan pembaca layar yang akan mengumumkan *"Tabel dengan 4 baris dan 3 kolom"* padahal isinya adalah tata letak halaman.
 2. Sangat kaku dan sulit dibuat responsif di layar ponsel.
 3. Memperberat perhitungan *layout/reflow* di peramban.
 

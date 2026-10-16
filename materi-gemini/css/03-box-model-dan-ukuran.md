@@ -9,7 +9,7 @@ Bahkan ketika Anda membuat lingkaran dengan `border-radius: 50%`, mesin tata let
 
 Setiap kotak tersusun atas empat lapisan konsentris dari dalam ke luar:
 
-```
+```text
 +-------------------------------------------------------------------+
 |                             MARGIN                                |
 |   (Ruang transparan di luar batas kotak untuk menjauhkan tetangga)|
@@ -124,7 +124,7 @@ Namun, CSS modern memperkenalkan **Logical Properties** (status **Baseline Widel
 Ketika sebuah kotak diberi ukuran tetap (yang sebaiknya dihindari kecuali diperlukan) atau memiliki kode panjang yang tak terputus, konten dapat meluber keluar batas kotak. Anda dapat mengendalikannya dengan `overflow` (`overflow-x` / `overflow-y` atau logis `overflow-inline` / `overflow-block`):
 
 - **`visible` (bawaan):** Konten dibiarkan tampil melewati batas kotak.
-- **`hidden`:** Konten yang lewat dipotong dan tidak bisa digulir sama sekali.
+- **`hidden`:** Konten yang lewat dipotong dan tidak bisa digulir oleh pengguna (tetapi masih bisa digulir secara terprogram, misalnya lewat `scrollTo()` atau fokus elemen), karena kotaknya tetap menjadi *scroll container*.
 - **`clip`:** Memotong konten seperti `hidden`, tetapi sama sekali melarang pengguliran terprogram pun dan tidak membuat *scroll container* baru (sangat berguna bila Anda punya elemen `position: sticky` di dalamnya).
 - **`auto`:** Menampilkan bilah gulir (*scrollbar*) **hanya jika** konten benar-benar melebihi ukuran kotak (jauh lebih rapi daripada `scroll` yang selalu memunculkan rel *scrollbar* kosong).
 

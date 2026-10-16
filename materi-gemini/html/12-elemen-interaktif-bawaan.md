@@ -24,7 +24,7 @@ Elemen `<details>` dan `<summary>` (status **Baseline Widely Available**) mencip
 ```
 
 ### Akordeon Eksklusif dengan Atribut `name`
-Sejak akhir 2023 (status **Baseline Newly Available**), Anda dapat memberikan nilai atribut `name` yang sama pada beberapa elemen `<details>`. Ketika pengguna membuka salah satu `<details>`, elemen `<details>` lain yang memiliki `name` yang sama akan **otomatis tertutup**—menciptakan perilaku akordeon eksklusif murni dengan HTML:
+Sejak September 2024 (status **Baseline Newly Available**; Chrome sudah mendukungnya sejak Desember 2023), Anda dapat memberikan nilai atribut `name` yang sama pada beberapa elemen `<details>`. Ketika pengguna membuka salah satu `<details>`, elemen `<details>` lain yang memiliki `name` yang sama akan **otomatis tertutup**—menciptakan perilaku akordeon eksklusif murni dengan HTML:
 
 ```html
 <section aria-labelledby="judul-faq">
@@ -49,7 +49,7 @@ Sejak akhir 2023 (status **Baseline Newly Available**), Anda dapat memberikan ni
 
 ## 2. Jendela Modal yang Aksesibel dengan `<dialog>`
 
-Elemen `<dialog>` (status **Baseline Widely Available** sejak Maret 2022) adalah cara standar untuk membuat jendela dialog, baik **modal** (memblokir interaksi dengan halaman di belakangnya) maupun **non-modal**.
+Elemen `<dialog>` (tersedia lintas peramban sejak Maret 2022 dan berstatus **Baseline Widely Available** sejak September 2024) adalah cara standar untuk membuat jendela dialog, baik **modal** (memblokir interaksi dengan halaman di belakangnya) maupun **non-modal**.
 
 Ketika Anda membuka `<dialog>` menggunakan metode **`dialog.showModal()`**, peramban secara otomatis melakukan lima hal penting untuk Anda:
 1. Merender dialog di dalam **Top Layer** (lapisan khusus paling atas di atas seluruh dokumen, sehingga tidak akan pernah tertutup oleh elemen lain meskipun ada `z-index: 999999` atau `overflow: hidden` pada elemen induk!).
@@ -108,7 +108,7 @@ dialog::backdrop {
 
 Bagaimana jika Anda ingin membuat panel notifikasi, menu profil, atau petunjuk singkat yang **tidak** memblokir halaman (*non-modal*), tampil di *Top Layer*, dan otomatis tertutup saat pengguna mengeklik di luar panel (*light dismiss*) tanpa menulis JavaScript?
 
-Gunakan **Popover API** (status **Baseline Newly Available** sejak April 2024 across Chrome, Edge, Firefox, dan Safari):
+Gunakan **Popover API** (status **Baseline Newly Available** sejak Januari 2025 di Chrome, Edge, Firefox, dan Safari):
 1. Tambahkan atribut global **`popover`** (bawaannya bernilai `popover="auto"`) beserta `id` pada elemen panel yang ingin ditampilkan.
 2. Tambahkan atribut **`popovertarget="id-panel"`** pada elemen `<button>` pemicunya!
 

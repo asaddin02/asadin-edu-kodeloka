@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Popover API Mendalam: `popover="auto"` vs `popover="manual"`, Event `toggle`, dan Pemicu Deklaratif** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`auto`** dan **`manual`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`auto`** dan **`manual`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/popover.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,36 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `auto` dan `manual` se
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Popover API Mendalam: `popover="auto"` vs `popover="manual"`, Event `toggle`, dan Pemicu Deklaratif — Kodeloka</title>
+    <title>Popover Auto dan Manual — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Popover API Mendalam: `popover="auto"` vs `popover="manual"`, Event `toggle`, dan Pemicu Deklaratif</h1>
-        <p>
-          Penerapan <code>auto</code> dan <code>manual</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Popover Auto dan Manual</h1>
+
+      <!-- popover="auto": tertutup saat Esc atau klik di luar panel -->
+      <button type="button" popovertarget="menu-profil">Menu Profil</button>
+      <div id="menu-profil" popover="auto">
+        <p>Panel ini tertutup otomatis saat Anda menekan Esc atau mengeklik di luar panel.</p>
+      </div>
+
+      <!-- popover="manual": hanya tertutup lewat tombol atau kode Anda -->
+      <button type="button" popovertarget="info-simpan" popovertargetaction="show">Simpan</button>
+      <div id="info-simpan" popover="manual" role="status">
+        Perubahan tersimpan.
+        <button type="button" popovertarget="info-simpan" popovertargetaction="hide">Tutup</button>
+      </div>
     </main>
+
+    <script>
+      document.getElementById("menu-profil").addEventListener("toggle", (e) => {
+        console.log("Status baru:", e.newState); // "open" atau "closed"
+      });
+    </script>
   </body>
 </html>
 ```
+
+> **Status dukungan (Oktober 2026):** Popover API berstatus *Baseline Newly Available* sejak Januari 2025, yaitu tersedia di Chrome, Edge, Firefox, dan Safari (desktop maupun iOS).
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `auto` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +110,6 @@ Bagaimana cara memverifikasi bahwa implementasi `auto` dan `manual` pada halaman
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [Popover API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API)
+- [`popover` HTML global attribute — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/popover)
+- [Popover API — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/popover.html)

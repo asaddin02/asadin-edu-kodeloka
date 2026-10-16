@@ -10,7 +10,7 @@ Banyak pemula bertanya: *"Apakah CSS Grid menggantikan Flexbox?"* Jawabannya: **
 - **Flexbox bersifat *Content-First* (Satu Dimensi):** Anda membiarkan ukuran item menentukan bagaimana ruang dibagi dalam satu baris atau satu kolom.
 - **CSS Grid bersifat *Layout-First* (Dua Dimensi):** Anda mendefinisikan cetak biru kolom dan baris secara bersamaan terlebih dahulu, lalu menempatkan elemen-elemen anak secara presisi ke dalam sel atau area kisi tersebut.
 
-```
+```text
 Flexbox (Satu Dimensi - Tiap baris independen):
 +---------------+ +---------------+ +---------------+
 | Kartu 1       | | Kartu 2       | | Kartu 3       |
@@ -65,7 +65,7 @@ Dengan menggabungkan `repeat()`, `auto-fit` (atau `auto-fill`), dan `minmax()`, 
 
 ### Apa Bedanya `auto-fit` dan `auto-fill`?
 Perbedaannya terlihat ketika jumlah kartu sedikit (misalnya hanya ada 2 kartu di layar monitor lebar yang sebenarnya muat 4 kolom):
-- **`auto-fill`:** Tetap mempertahankan 4 slot kolom (2 kolom terisi kartu, dan 2 kolom di sebelah kanannya dibiarkan kosong berukuran `1fr`).Sangat cocok untuk katalog kartu agar lebar satu kartu tidak melar terlalu lebar saat hasil pencarian hanya 1 atau 2 item!
+- **`auto-fill`:** Tetap mempertahankan 4 slot kolom (2 kolom terisi kartu, dan 2 kolom di sebelah kanannya dibiarkan kosong berukuran `1fr`). Sangat cocok untuk katalog kartu agar lebar satu kartu tidak melar terlalu lebar saat hasil pencarian hanya 1 atau 2 item!
 - **`auto-fit`:** Melipat (*collapse*) kolom kosong yang tidak terisi menjadi `0px`, sehingga 2 kartu yang ada akan melar membagi seluruh lebar kontainer menjadi masing-masing 50%.
 
 ## 3. Menempatkan Elemen dengan Nomor Garis dan `grid-template-areas`
@@ -73,7 +73,7 @@ Perbedaannya terlihat ketika jumlah kartu sedikit (misalnya hanya ada 2 kartu di
 ### A. Penempatan Berdasarkan Garis Grid (*Grid Lines*)
 Sebuah grid dengan **3 kolom** memiliki **4 garis vertikal** (bernomor `1`, `2`, `3`, `4` dari kiri ke kanan, atau `-1` untuk garis paling ujung kanan):
 
-```
+```text
 Garis 1         Garis 2         Garis 3         Garis 4 (atau -1)
   |   Kolom 1     |   Kolom 2     |   Kolom 3     |
   +---------------+---------------+---------------+

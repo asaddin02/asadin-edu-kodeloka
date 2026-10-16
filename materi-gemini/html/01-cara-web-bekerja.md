@@ -9,7 +9,7 @@ Menulis tag HTML tanpa memahami bagaimana dokumen tersebut dikirim dan diproses 
 
 Setiap kali Anda mengetikkan alamat seperti `https://kodeloka.asadinedu.com` di bilah alamat peramban lalu menekan tombol Enter, serangkaian proses terjadi dalam hitungan milidetik:
 
-```
+```text
 [Peramban Anda]
       │
       ├─ 1. Resolusi DNS: "Apa alamat IP untuk kodeloka.asadinedu.com?"
@@ -34,7 +34,7 @@ Manusia mengingat nama domain seperti `kodeloka.asadinedu.com`, sedangkan jaring
 
 Sebuah **URL (*Uniform Resource Locator*)** memiliki struktur yang presisi:
 
-```
+```text
 https://kodeloka.asadinedu.com:443/html/materi/?modul=1#pengantar
 └──┬─┘  └──────────┬─────────┘ └┬┘ └─────┬─────┘ └───┬──┘ └───┬───┘
 Skema           Host          Port     Path       Query    Fragmen

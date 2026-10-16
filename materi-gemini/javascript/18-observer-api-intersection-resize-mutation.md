@@ -147,3 +147,5 @@ Kapan Anda perlu menggunakan `ResizeObserver` di JavaScript padahal CSS sudah me
 - [Intersection Observer API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)
 - [`IntersectionObserver` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver)
 - [Timing element visibility with the Intersection Observer API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API/Timing_element_visibility)
+- [`ResizeObserver` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver)
+- [`MutationObserver` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver)

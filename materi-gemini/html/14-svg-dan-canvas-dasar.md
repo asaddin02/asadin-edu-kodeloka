@@ -45,17 +45,17 @@ Perhatikan anatomi ikon `<svg>` inline yang bersih dan responsif berikut:
 Mari kita bedah tiga atribut terpenting di atas:
 1. **`viewBox="0 0 24 24"` (`min-x min-y width height`):** Mendefinisikan sistem koordinat internal kanvas gambar (`24×24` unit). Berkat `viewBox`, meskipun Anda mengubah atribut ukuran luarnya menjadi `width="16" height="16"` atau `width="64" height="64"`, seluruh garis di dalamnya otomatis diskalakan dengan tajam tanpa terpotong!
 2. **`stroke="currentColor"` (atau `fill="currentColor"`):** Kata kunci ajaib `currentColor` memerintahkan SVG untuk **mewarisi warna properti CSS `color` dari elemen induknya**! Jika `.tombol-unduh` memiliki `color: #ffffff` dan saat `:hover` berubah menjadi `color: #38bdf8`, ikon SVG ikut berubah warna secara otomatis tanpa aturan CSS tambahan.
-3. **`width` dan `height` eksplisit pada `<svg>`:** Selalu cantumkan atribut `width="20" height="20"` langsung pada tag `<svg>`! Mengapa? Jika suatu saat berkas CSS gagal dimuat, `<svg>` yang tidak memiliki `width` dan `height` di HTML akan membengkak memenuhi seluruh lebar layar (`100vw`)!
+3. **`width` dan `height` eksplisit pada `<svg>`:** Selalu cantumkan atribut `width="20" height="20"` langsung pada tag `<svg>`! Mengapa? Jika suatu saat berkas CSS gagal dimuat, `<svg>` yang tidak memiliki `width` dan `height` di HTML akan membengkak memenuhi seluruh lebar kontainernya!
 
 ## 2. Menggunakan Ulang Ikon dengan `<symbol>` dan `<use>` (SVG Sprite)
 
 Jika satu ikon yang sama (misalnya ikon centang `✓` atau tanda bintang) muncul 30 kali di satu halaman tabel, menyalin-tempel `<path>` panjang sebanyak 30 kali akan memperbesar ukuran dokumen HTML.
 
-Solusinya adalah mendefinisikan ikon tersebut cukup **satu kali** di dalam `<svg hidden><symbol id="...">`, lalu memanggilnya berkali-kali dengan `<use href="#...">`:
+Solusinya adalah mendefinisikan ikon tersebut cukup **satu kali** di dalam `<svg width="0" height="0" style="position:absolute"><symbol id="...">` (atribut `hidden` tidak berfungsi pada `<svg>` karena `<svg>` bukan elemen HTML, sehingga kotak bawaannya `300×150` piksel tetap memakan ruang), lalu memanggilnya berkali-kali dengan `<use href="#...">`:
 
 ```html
 <!-- 1. Definisikan kumpulan ikon satu kali saja di awal/akhir body -->
-<svg hidden aria-hidden="true">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="ikon-centang" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
     <polyline points="20 6 9 17 4 12" />
   </symbol>
@@ -123,7 +123,7 @@ Selain `<svg>`, HTML menyediakan elemen **`<canvas>`** sebagai bidang gambar ber
 ## Latihan Praktik: Membuat Sistem Ikon SVG Sprite dan Grafik Bar Sederhana
 
 Buatlah berkas `svg-dan-canvas.html`:
-1. Buat definisi `<svg hidden>` berisi dua `<symbol>` (`#ikon-server` dan `#ikon-database`) dengan `viewBox="0 0 24 24"` dan `stroke="currentColor"`.
+1. Buat definisi `<svg width="0" height="0" style="position:absolute">` berisi dua `<symbol>` (`#ikon-server` dan `#ikon-database`) dengan `viewBox="0 0 24 24"` dan `stroke="currentColor"`.
 2. Tampilkan kedua ikon tersebut di dalam tombol menggunakan `<use href="#...">`.
 3. Buat satu diagram batang sederhana menggunakan `<svg role="img" aria-labelledby="...">` yang menampilkan `<rect>` dan `<text>` untuk perbandingan waktu muat 3 server.
 

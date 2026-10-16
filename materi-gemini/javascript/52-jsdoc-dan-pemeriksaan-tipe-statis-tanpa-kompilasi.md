@@ -5,8 +5,7 @@
 
 ## Mengapa Topik Ini Penting di Produksi?
 
-Dalam rekayasa perangkat lunak modern, penguasaan `// @ts-check
-/** @typedef {{ id: string, judul: string, selesai: boolean }} ModulBelajar */` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
+Dalam rekayasa perangkat lunak modern, penguasaan `// @ts-check` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
 
 > **⚠️ Jebakan Umum di Lapangan:** Menulis fungsi utilitas kompleks di JavaScript tanpa mendokumentasikan bentuk objek masukannya membuat pengembang lain harus menebak-nebak properti apa saja yang tersedia dan rawan mengirim tipe data yang salah.
 
@@ -16,8 +15,7 @@ Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dio
 
 | Aspek Teknis | Pola Modern yang Direkomendasikan | Praktik Warisan yang Wajib Dihindari |
 | :--- | :--- | :--- |
-| **API / Sintaks Utama** | `// @ts-check
-/** @typedef {{ id: string, judul: string, selesai: boolean }} ModulBelajar */` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
+| **API / Sintaks Utama** | `// @ts-check` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
 | **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
 | **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
 
@@ -47,8 +45,7 @@ export function hitungTotalKeranjang(daftarItem) {
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah berkas modul ES baru untuk menguji pola `// @ts-check
-/** @typedef {{ id: string, judul: string, selesai: boolean }} ModulBelajar */` pada kasus nyata di proyek Anda.
+1. Buat sebuah berkas modul ES baru untuk menguji pola `// @ts-check` pada kasus nyata di proyek Anda.
 2. Tambahkan skenario uji batas (*edge case*): masukan kosong, karakter Unicode/emoji, pembatalan mendadak, atau kegagalan jaringan.
 3. Jalankan dan verifikasi menggunakan *DevTools Console / Memory / Performance panel* atau `node --test`.
 
@@ -65,19 +62,17 @@ Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Menulis fungsi ut
 **Penjelasan:** Menulis fungsi utilitas kompleks di JavaScript tanpa mendokumentasikan bentuk objek masukannya membuat pengembang lain harus menebak-nebak properti apa saja yang tersedia dan rawan mengirim tipe data yang salah.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `// @ts-check
-/** @typedef {{ id: string, judul: string, selesai: boolean }} ModulBelajar */` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
+Apa fungsi direktif komentar `// @ts-check` di baris pertama sebuah berkas `.js`?
+- A. Meminta editor atau TypeScript memeriksa tipe berkas JavaScript tersebut berdasarkan anotasi JSDoc dan inferensi tipe, tanpa langkah kompilasi dan tanpa mengubah perilaku kode saat dijalankan.
+- B. Mengubah berkas `.js` menjadi `.ts` secara otomatis ketika dijalankan di peramban.
+- C. Membuat peramban menolak menjalankan skrip yang mengandung galat tipe.
+- D. Mengaktifkan fitur bahasa ECMAScript yang masih eksperimental.
 
 **Jawaban Benar:** A
-**Penjelasan:** `// @ts-check
-/** @typedef {{ id: string, judul: string, selesai: boolean }} ModulBelajar */` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** `// @ts-check` adalah fitur TypeScript (bukan bagian dari ECMAScript). Bagi mesin JavaScript ia hanya komentar biasa, sehingga pemeriksaan tipenya terjadi di editor, lewat `tsc --noEmit`, atau di CI, bukan saat kode dijalankan.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Keamanan Tipe Tanpa Langkah Build Menggunakan Komentar JSDoc (`// @ts-check`)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Keamanan Tipe Tanpa Langkah Build Menggunakan Komentar JSDoc (`// @ts-check`)" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -88,6 +83,5 @@ Saat mengintegrasikan fitur `Keamanan Tipe Tanpa Langkah Build Menggunakan Komen
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [JSDoc Reference — TypeScript](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html)
+- [Type Checking JavaScript Files — TypeScript](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)

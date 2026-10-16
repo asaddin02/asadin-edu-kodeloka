@@ -72,7 +72,7 @@ Manakah pernyataan yang benar mengenai penggunaan `$ref = new ReflectionClass(La
 **Penjelasan:** Pola `$ref = new ReflectionClass(LayananBerat::class); $objekMalas = $ref->newLazyGhost(function ($obj) { ... });` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Manajemen Memori Internal PHP (`zval`, Reference Counting, GC), `WeakReference`, `WeakMap`, dan Objek Lazy PHP 8.4` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Manajemen Memori Internal PHP (zval, Reference Counting, GC), WeakReference, WeakMap, dan Objek Lazy PHP 8.4" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -83,7 +83,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Manajemen Memori
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Lazy Objects — PHP Manual](https://www.php.net/manual/en/language.oop5.lazy-objects.php)
+- [`ReflectionClass::newLazyGhost` — PHP Manual](https://www.php.net/manual/en/reflectionclass.newlazyghost.php)
+- [The WeakMap class — PHP Manual](https://www.php.net/manual/en/class.weakmap.php)
+- [Reference counting basics — PHP Manual](https://www.php.net/manual/en/features.gc.refcounting-basics.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

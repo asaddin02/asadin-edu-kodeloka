@@ -184,3 +184,5 @@ Apa peran atribut `'samesite' => 'Lax'` pada cookie sesi?
 - [`session_regenerate_id` — PHP Manual](https://www.php.net/manual/en/function.session-regenerate-id.php)
 - [Session Management Basics — PHP Manual](https://www.php.net/manual/en/features.session.security.management.php)
 - [`setcookie` — PHP Manual](https://www.php.net/manual/en/function.setcookie.php)
+- [`session_destroy` — PHP Manual](https://www.php.net/manual/en/function.session-destroy.php)
+- [Session Runtime Configuration (`session.use_strict_mode`) — PHP Manual](https://www.php.net/manual/en/session.configuration.php)

@@ -197,4 +197,7 @@ Kode status HTTP standar berapakah yang harus dikirimkan oleh server ketika seor
 
 ## Sumber
 - [PHP 8.5 Release Announcement (Persistent cURL Share Handles) — PHP.net](https://www.php.net/releases/8.5/en.php)
-- [Function Reference (cURL) — PHP Manual](https://www.php.net/manual/en/index.php)
+- [`curl_share_init_persistent` — PHP Manual](https://www.php.net/manual/en/function.curl-share-init-persistent.php)
+- [RFC: cURL share handle persistence improvement — PHP Wiki](https://wiki.php.net/rfc/curl_share_persistence_improvement)
+- [cURL — PHP Manual](https://www.php.net/manual/en/book.curl.php)
+- [RFC 6585: Additional HTTP Status Codes (429) — IETF](https://www.rfc-editor.org/rfc/rfc6585)

@@ -146,4 +146,4 @@ Diberikan dua himpunan: `const a = new Set([1, 2, 3]);` dan `const b = new Set([
 ## Sumber
 - [Keyed collections (`Map`, `Set`, `WeakMap`, `WeakSet`) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Keyed_collections)
 - [`Map` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
-- [Standard built-in objects (`Set`) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [`Set` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)

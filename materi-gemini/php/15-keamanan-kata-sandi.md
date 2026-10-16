@@ -1,7 +1,7 @@
 # Keamanan Kata Sandi: `password_hash()` (Argon2id/Bcrypt), `password_verify()`, dan Reset Sandi Aman
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Mengamankan kredensial pengguna menggunakan fungsi *Key Derivation* bawaan PHP (`password_hash`, `password_verify`, `password_needs_rehash`), memahami parameter memori dan waktu pada Argon2id, menerapkan *peppering* dengan `hash_hmac`, serta merancang alur *Lupa Kata Sandi* yang aman.
+- **Ringkasan:** Mengamankan kredensial pengguna menggunakan fungsi *Key Derivation* bawaan PHP (`password_hash`, `password_verify`, `password_needs_rehash`), memahami parameter memori dan waktu pada Argon2id, serta merancang alur *Lupa Kata Sandi* yang aman.
 
 ## 1. Mengapa Penyimpanan Kata Sandi Membutuhkan Algoritma Khusus (Argon2id & Bcrypt)?
 
@@ -66,7 +66,7 @@ final class PengelolaKataSandi
 
 ### Anatomi String Hasil `password_hash()`
 Ketika `password_hash('Rahasia!2026', PASSWORD_ARGON2ID)` dijalankan, string keluarannya terlihat seperti ini:
-```
+```text
 $argon2id$v=19$m=65536,t=4,p=1$c2FsdHUnbmlrMTIzNDU2$9f8e7d6c5b4a...
 └───┬───┘ └─┬┘ └──────┬──────┘ └─────────┬────────┘ └──────┬──────┘
 Algoritma Versi  Parameter Cost     Salt Acak (Base64)  Hash Akhir
@@ -87,7 +87,10 @@ Penyerang dapat mengukur selisih `250 ms` vs `2 ms` tersebut untuk mendata alama
 
 declare(strict_types=1);
 
-// Hash Bcrypt/Argon2id tiruan untuk menyamakan waktu eksekusi ketika surel tidak ditemukan:
+// Hash tiruan untuk menyamakan waktu eksekusi ketika surel tidak ditemukan.
+// Catatan: pada produksi, buat hash tiruan ini dengan algoritma dan parameter yang SAMA
+// dengan hash asli (misalnya hasil password_hash() Argon2id yang disimpan sebagai konstanta);
+// contoh Bcrypt di bawah hanya ilustrasi format dan waktunya berbeda dari Argon2id.
 const HASH_TIRUAN = '$2y$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW';
 
 function autentikasiPengguna(PDO $pdo, string $surel, string $sandi): ?array

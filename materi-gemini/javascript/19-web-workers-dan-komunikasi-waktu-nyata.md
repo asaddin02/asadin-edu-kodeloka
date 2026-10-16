@@ -59,7 +59,7 @@ Ada dua standar web utama yang wajib Anda pahami perbedaannya:
 
 | Kriteria | **Server-Sent Events (`EventSource` / SSE)** | **WebSocket (`new WebSocket()`)** |
 |---|---|---|
-| **Arah Komunikasi** | **Satu arah (*Unidirectional*):** Server $\rightarrow$ Klien (Klien mengirim aksi lewat `fetch()` biasa). | **Dua arah penuh (*Full-Duplex Bidirectional*):** Klien $\leftrightarrow$ Server secara simultan. |
+| **Arah Komunikasi** | **Satu arah (*Unidirectional*):** Server → Klien (Klien mengirim aksi lewat `fetch()` biasa). | **Dua arah penuh (*Full-Duplex Bidirectional*):** Klien ↔ Server secara simultan. |
 | **Protokol Jaringan** | Berjalan di atas **HTTP/HTTPS standar** (`Content-Type: text/event-stream`). Ramah *firewall* dan HTTP/2! | Meng-upgrade koneksi ke protokol **`wss://`** (WebSocket Secure). |
 | **Sambung Ulang Otomatis** | **Sudah bawaan otomatis!** Jika jaringan terputus sebentar, `EventSource` otomatis menyambung ulang sendiri. | **Harus ditulis manual** dengan logika *exponential backoff* di JavaScript. |
 | **Kasus Penggunaan Terbaik** | Umpan notifikasi langsung, streaming log CI/CD, pembaruan harga/metrik dasbor, streaming respons AI. | Gim multipemain waktu nyata, kolaborasi kursor kanvas bersama, aplikasi obrolan frekuensi sangat tinggi. |
@@ -149,4 +149,5 @@ Metode apakah yang harus dipanggil pada instans `pekerja` (`const pekerja = new 
 ## Sumber
 - [WebSocket API (WebSockets) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
 - [Interaction to Next Paint (INP) — web.dev](https://web.dev/articles/inp)
-- [JavaScript execution model — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model)
+- [Using Web Workers — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
+- [Using server-sent events — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)

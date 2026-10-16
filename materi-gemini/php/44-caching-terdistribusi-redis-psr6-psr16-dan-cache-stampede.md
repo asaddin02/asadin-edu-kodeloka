@@ -40,8 +40,12 @@ function ambilDenganKunciMuteks(Redis $redis, string $kunci, int $ttlDetik, call
             $redis->del($kunciLock);
         }
     }
-    usleep(100_000); // Tunggu 100ms lalu coba baca kembali
-    return $pembangkitData();
+    usleep(100_000); // Tunggu 100ms lalu coba baca kembali dari cache
+    $tercache = $redis->get($kunci);
+    if ($tercache !== false) {
+        return json_decode((string) $tercache, associative: true, flags: JSON_THROW_ON_ERROR);
+    }
+    return $pembangkitData(); // Cadangan terakhir jika proses pemegang kunci belum sempat mengisi cache
 }
 ```
 
@@ -58,7 +62,7 @@ function ambilDenganKunciMuteks(Redis $redis, string $kunci, int $ttlDetik, call
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Ketika sebuah kunci cache di beranda yang diakses 5.000 pengguna per detik kedaluwarsa tepat pada detik yang sama, seluruh 5.000 worker PHP akan menghantam database secara serentak (*Cache Stampede*) untuk menghitung ulang kueri yang sama dan menumbangkan server database.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena ribuan worker secara serentak menjalankan kueri mahal yang sama ke database sehingga database kewalahan akibat lonjakan beban dan situs menjadi lambat atau tumbang
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -87,7 +91,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Strategi Caching
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [PSR-16: Common Interface for Caching Libraries — PHP-FIG](https://www.php-fig.org/psr/psr-16/)
+- [PSR-6: Caching Interface — PHP-FIG](https://www.php-fig.org/psr/psr-6/)
+- [`SET` (opsi NX dan EX) — Redis Documentation](https://redis.io/docs/latest/commands/set/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

@@ -27,7 +27,7 @@ function cariBerkasMarkdown(string $direktoriDasar): iterable
 {
     $dirIterator = new RecursiveDirectoryIterator(
         $direktoriDasar,
-        FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS
+        FilesystemIterator::SKIP_DOTS
     );
     $iterator = new RecursiveIteratorIterator($dirIterator);
 
@@ -82,7 +82,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Standard PHP Lib
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [SPL Data structures — PHP Manual](https://www.php.net/manual/en/spl.datastructures.php)
+- [SPL Iterators — PHP Manual](https://www.php.net/manual/en/spl.iterators.php)
+- [The RecursiveDirectoryIterator class — PHP Manual](https://www.php.net/manual/en/class.recursivedirectoryiterator.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

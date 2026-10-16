@@ -10,7 +10,7 @@
 Mengapa peramban mau mengirimkan cookie sesi milik situs Anda ketika pemicunya berasal dari situs luar `jahat.example`?
 Karena secara bawaan, mekanisme HTTP Cookie menempel pada **domain tujuan permintaan**, bukan domain tempat formulir HTML itu berada:
 
-```
+```text
 1. Korban sudah login di https://kodeloka.example (Memiliki Cookie Sesi aktif)
 2. Korban membuka tab baru ke https://kuis-berhadiah.example (Situs milik penyerang)
 3. Halaman penyerang diam-diam memuat formulir tersembunyi:
@@ -24,7 +24,7 @@ Karena secara bawaan, mekanisme HTTP Cookie menempel pada **domain tujuan permin
 
 ### Aturan Pertama Pencegahan CSRF: Jangan Pernah Mengubah Data pada Permintaan `GET`!
 Permintaan HTTP `GET` (dan `HEAD` / `OPTIONS`) **wajib bersifat *Safe* (Hanya Baca / tidak mengubah state di server)**!
-Jika Anda membuat tautan `<a href="/ catatan/hapus?id=5">Hapus</a>` yang langsung menghapus data lewat metode `GET`, maka atribut cookie `SameSite=Lax` sekalipun tidak akan bisa melindungi Anda (karena navigasi tautan tingkat atas `GET` tetap menyertakan cookie `SameSite=Lax`, atau penyerang cukup memasang `<img src="https://situs-anda.id/catatan/hapus?id=5">`)!
+Jika Anda membuat tautan `<a href="/catatan/hapus?id=5">Hapus</a>` yang langsung menghapus data lewat metode `GET`, maka atribut cookie `SameSite=Lax` sekalipun tidak akan bisa melindungi Anda (karena navigasi tautan tingkat atas `GET` tetap menyertakan cookie `SameSite=Lax`; dan pada cookie yang tidak dibatasi `SameSite`, penyerang cukup memasang `<img src="https://situs-anda.id/catatan/hapus?id=5">`)!
 Semua aksi yang menambah, mengubah, atau menghapus data **wajib menggunakan metode `POST`, `PUT`, `PATCH`, atau `DELETE`**.
 
 ## 2. Pertahanan Utama: *Synchronizer Token Pattern* (`random_bytes` + `hash_equals`)
@@ -152,7 +152,7 @@ Buatlah berkas `MiddlewareCsrf.php`:
 ### Soal 1
 Mengapa aksi penghapusan data (seperti menghapus akun atau menghapus artikel) **tidak boleh** diimplementasikan menggunakan permintaan HTTP `GET` (misalnya `<a href="/artikel/hapus?id=10">Hapus</a>`), meskipun halaman tersebut sudah memeriksa apakah pengguna sedang login?
 - A. Karena metode `GET` tidak dapat mengirimkan angka `id`.
-- B. Karena permintaan `GET` dianggap sebagai navigasi baca yang aman oleh peramban: cookie dengan `SameSite=Lax` tetap ikut dikirimkan saat pengguna mengeklik tautan dari situs luar, ekstensi *prefetching* peramban dapat memicu tautan tersebut secara otomatis di latar belakang, dan tag `<img src="...">` di halaman lain dapat memicunya tanpa interaksi pengguna.
+- B. Karena permintaan `GET` dianggap sebagai navigasi baca yang aman oleh peramban: cookie dengan `SameSite=Lax` tetap ikut dikirimkan saat pengguna mengeklik tautan dari situs luar, ekstensi *prefetching* peramban dapat memicu tautan tersebut secara otomatis di latar belakang, dan (pada cookie yang tidak dibatasi `SameSite`) tag `<img src="...">` di halaman lain dapat memicunya tanpa interaksi pengguna.
 - C. Karena metode `GET` lebih lambat daripada `POST`.
 - D. Karena PDO menolak menjalankan kueri `DELETE` pada permintaan `GET`.
 
@@ -182,3 +182,4 @@ Apa keistimewaan dari header permintaan HTTP `Sec-Fetch-Site` (seperti `Sec-Fetc
 ## Sumber
 - [Cross-Site Request Forgery Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [Session Management Basics — PHP Manual](https://www.php.net/manual/en/features.session.security.management.php)
+- [Fetch Metadata Request Headers (`Sec-Fetch-Site`) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site)

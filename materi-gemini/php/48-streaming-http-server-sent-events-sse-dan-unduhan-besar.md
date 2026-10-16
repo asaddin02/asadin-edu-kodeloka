@@ -27,7 +27,8 @@ declare(strict_types=1);
 function kirimBerkasViaNginxInternal(string $namaBerkasTersanitasi, string $namaUnduhanAsli): never
 {
     header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename="' . rawurlencode($namaUnduhanAsli) . '"');
+    // filename*=UTF-8'' (RFC 6266/5987) memakai persen-pengodean; tanpa tanda * nama berkas tampil dengan %20 dst.
+    header("Content-Disposition: attachment; filename*=UTF-8''" . rawurlencode($namaUnduhanAsli));
     header('X-Accel-Redirect: /_penyimpanan_internal/' . $namaBerkasTersanitasi);
     exit;
 }
@@ -75,7 +76,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Streaming HTTP d
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Using server-sent events — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
+- [Server-sent events — HTML Standard (WHATWG)](https://html.spec.whatwg.org/multipage/server-sent-events.html)
+- [Nginx: directive `internal` (X-Accel-Redirect) — Nginx Documentation](https://nginx.org/en/docs/http/ngx_http_core_module.html#internal)
+- [RFC 6266: Content-Disposition in HTTP — IETF](https://www.rfc-editor.org/rfc/rfc6266)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Elemen dan Atribut HTML Usang (*Deprecated/Obsolete*) beserta Pengganti Modernnya** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`obsolete`** dan **`html5`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`obsolete`** dan **`html5`** berdasarkan bagian [Obsolete features](https://html.spec.whatwg.org/multipage/obsolete.html) pada WHATWG HTML Living Standard serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,47 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `obsolete` dan `html5`
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Elemen dan Atribut HTML Usang (*Deprecated/Obsolete*) beserta Pengganti Modernnya — Kodeloka</title>
+    <title>Mengganti Elemen Usang — Kodeloka</title>
+    <style>
+      .tengah { text-align: center; }
+      .peringatan { color: #b91c1c; font-size: 1.25rem; }
+      .kotak { background-color: #f1f5f9; border: 1px solid #94a3b8; border-collapse: collapse; }
+      .kotak th, .kotak td { border: 1px solid #94a3b8; padding: 0.5rem; }
+    </style>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Elemen dan Atribut HTML Usang (*Deprecated/Obsolete*) beserta Pengganti Modernnya</h1>
-        <p>
-          Penerapan <code>obsolete</code> dan <code>html5</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <!-- Pengganti <center> dan <font color size>: kelas CSS -->
+      <p class="tengah"><span class="peringatan">Peringatan</span></p>
+
+      <!-- Pengganti <strike>: <s> untuk info tak berlaku, <del> untuk revisi -->
+      <p><s>Rp 450.000</s> <strong>Rp 299.000</strong></p>
+
+      <!-- Pengganti <tt>: <code> (atau <kbd>/<samp> sesuai makna) -->
+      <p>Jalankan <code>npm run dev</code> di terminal.</p>
+
+      <!-- Pengganti atribut border dan bgcolor pada tabel: CSS -->
+      <table class="kotak">
+        <caption>Contoh tabel</caption>
+        <tr><th scope="col">Nama</th><th scope="col">Nilai</th></tr>
+        <tr><td>A</td><td>10</td></tr>
+      </table>
     </main>
   </body>
 </html>
 ```
+
+Bandingkan dengan markup usang yang **tidak boleh** Anda tulis (contoh ini hanya untuk dikenali):
+
+```html
+<center><font color="red" size="4">Peringatan</font></center>
+<strike>Rp 450.000</strike>
+<tt>npm run dev</tt>
+<table border="1" bgcolor="#f1f5f9">...</table>
+<marquee>Teks berjalan</marquee>
+```
+
+Elemen `<marquee>` tidak memiliki pengganti HTML langsung; bila animasi memang diperlukan, gunakan CSS (`@keyframes`) dan hormati `prefers-reduced-motion`.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `obsolete` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +121,6 @@ Bagaimana cara memverifikasi bahwa implementasi `obsolete` dan `html5` pada hala
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
+- [Obsolete features — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/obsolete.html)
 - [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [`<table>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/table)

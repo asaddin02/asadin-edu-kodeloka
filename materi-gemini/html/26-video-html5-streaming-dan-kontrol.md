@@ -17,7 +17,7 @@ Video yang memenuhi standar aksesibilitas **WCAG 1.2** wajib menyertakan takarir
   crossorigin="anonymous"
 >
   <source src="/media/demo-kodeloka.av1.mp4" type="video/mp4; codecs=av01.0.05M.08">
-  <source src="/media/demo-kodeloka.webm" type="video/webm; codecs=vp9,opus">
+  <source src="/media/demo-kodeloka.webm" type='video/webm; codecs="vp9,opus"'>
   <source src="/media/demo-kodeloka.h264.mp4" type="video/mp4">
   <track kind="captions" src="/media/demo.id.vtt" srclang="id" label="Bahasa Indonesia (CC)" default>
   <track kind="subtitles" src="/media/demo.en.vtt" srclang="en" label="English">

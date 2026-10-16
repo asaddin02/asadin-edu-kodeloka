@@ -33,7 +33,7 @@ function perbaruiTampilanKatalog(kategoriBaru) {
 ```
 
 ### B. Transisi Lintas Halaman Murni CSS (`@view-transition`)
-Bahkan untuk situs multi-halaman klasik (*Multi-Page Application / MPA* seperti halaman artikel statis di Kodeloka!), Anda kini dapat mengaktifkan transisi mulus saat pengguna berpindah halaman dalam satu *origin* yang sama cukup dengan menambahkan aturan **`@view-transition`** di berkas CSS kedua halaman:
+Bahkan untuk situs multi-halaman klasik (*Multi-Page Application / MPA* seperti halaman artikel statis di Kodeloka!), Anda kini dapat mengaktifkan transisi mulus saat pengguna berpindah halaman dalam satu *origin* yang sama cukup dengan menambahkan aturan **`@view-transition`** di berkas CSS kedua halaman (didukung Chrome/Edge 126 dan Safari 18.2; Firefox belum mendukungnya, sehingga di sana halaman tetap berpindah seperti biasa tanpa animasi):
 
 ```css
 @view-transition {
@@ -91,7 +91,7 @@ Spesifikasi baru **CSS Anchor Positioning** mengizinkan Anda menambatkan posisi 
 
 Perhatikan betapa hebatnya **`position-try-fallbacks: flip-block;`**: jika tombol berada di bagian paling bawah layar sehingga menu tidak muat ditampilkan ke bawah, peramban **secara otomatis membalikkan posisi menu ke atas tombol** tanpa satu baris JavaScript pun!
 
-*(Catatan Dukungan Peramban: CSS Anchor Positioning didukung penuh di Chrome 125+ dan Edge 125+, serta sedang dalam tahap implementasi lintas peramban; gunakan bersama `@supports (anchor-name: --a)` sebagai peningkatan progresif di atas posisi popover bawaan).*
+*(Catatan Dukungan Peramban: CSS Anchor Positioning berstatus Baseline Newly Available sejak Januari 2026, didukung di Chrome/Edge 125+, Firefox 147+, dan Safari 26+; peramban yang lebih lama belum mendukungnya, jadi gunakan bersama `@supports (anchor-name: --a)` sebagai peningkatan progresif di atas posisi popover bawaan).*
 
 ## Latihan Praktik: Penyaringan Katalog dengan View Transition dan Menu Terjangkar
 

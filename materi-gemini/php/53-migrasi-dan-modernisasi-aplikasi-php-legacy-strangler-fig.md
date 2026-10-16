@@ -49,7 +49,7 @@ require __DIR__ . '/../legacy_app/router_lama.php';
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menghentikan pengembangan fitur selama 6 bulan untuk menulis ulang (*big-bang rewrite*) seluruh aplikasi PHP warisan dari nol hampir selalu berakhir gagal atau meleset jauh dari jadwal; gunakan pola *Strangler Fig* untuk mengganti modul demi modul secara bertahap.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena penulisan ulang total (*big-bang*) jarang selesai tepat waktu dan menghentikan pengiriman fitur serta nilai bisnis, sedangkan pola Strangler Fig mengganti modul demi modul sambil sistem lama tetap berjalan
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -78,7 +78,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Strategi Moderni
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Migrating from PHP 8.3.x to PHP 8.4.x — PHP Manual](https://www.php.net/manual/en/migration84.php)
+- [Migrating from PHP 8.4.x to PHP 8.5.x — PHP Manual](https://www.php.net/manual/en/migration85.php)
+- [Rector Documentation](https://getrector.com/documentation)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

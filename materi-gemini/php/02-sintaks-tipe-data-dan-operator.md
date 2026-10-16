@@ -26,7 +26,7 @@ $totalPajak = $hargaDasar * PAJAK_PPN;
 | **Tipe Skalar** | `int`, `float`, `string`, `bool` | Bilangan bulat 64-bit, desimal titik-ambang, teks, dan boolean (`true`/`false`). |
 | **Tipe Majemuk** | `array`, `object`, `callable`, `iterable` | Daftar/peta array, instans objek, fungsi yang dapat dipanggil, dan koleksi yang bisa di-`foreach`. |
 | **Tipe Khusus** | `void`, `null`, `false`, `true`, `never`, `mixed` | `void` (tidak mengembalikan nilai), `never` (selalu melempar exception atau keluar — sejak PHP 8.1), `mixed` (tipe apa saja — sejak PHP 8.0). |
-| **Nullable Type (`?T`)** | `?string`, `?int`, `? Pengaturan` | Mengizinkan nilai bertipe `T` **atau** `null` (sama dengan `string\|null`). |
+| **Nullable Type (`?T`)** | `?string`, `?int`, `?Pengaturan` | Mengizinkan nilai bertipe `T` **atau** `null` (sama dengan `string\|null`). |
 | **Union Types (`A\|B`)** | `int\|float`, `string\|Stringable` | Mengizinkan nilai dari salah satu tipe yang digabungkan dengan tanda `\|` (sejak PHP 8.0). |
 | **Intersection Types (`A&B`)** | `Iterator&Countable` | Nilai wajib memenuhi **semua** interface/tipe yang digabungkan dengan `&` (sejak PHP 8.1). |
 
@@ -106,7 +106,7 @@ $judulMentah = '   Belajar PHP 8.5 di Kodeloka!   ';
 
 // Cara Lama (PHP <= 8.4): Harus dibaca dari paling dalam (trim -> str_replace -> strtolower)
 $slugLama = strtolower(
-    str_replace(' ', '-', trim($judulMentah, " !"))
+    str_replace([' ', '.'], ['-', ''], trim($judulMentah, " !"))
 );
 
 // Cara Baru (Sejak PHP 8.5): Mengalir rapi dari atas ke bawah dengan operator |>

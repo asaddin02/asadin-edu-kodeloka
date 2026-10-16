@@ -121,21 +121,23 @@ Jangan pernah memperbaiki masalah CSS dengan cara menebak-nebak dan menambahkan 
 3. Buka tab **Computed** di sebelah tab *Styles*. Tab ini menampilkan **nilai akhir sesungguhnya dalam piksel** setelah seluruh perhitungan `rem`, `calc()`, dan kaskade selesai. Klik panah kecil di samping properti (misalnya `color` atau `width`) untuk langsung melompat ke baris CSS pemenang yang menetapkan nilai tersebut!
 
 ### Langkah 2: Aktifkan Lencana Visual `grid` dan `flex` di Pohon DOM
-Di dalam panel **Elements / Inspector**, perhatikan adanya lencana kecil bertuliskan **`grid`**, **`subgrid`**, **`flex`**, atau **` container`** di samping tag HTML.
+Di dalam panel **Elements / Inspector**, perhatikan adanya lencana kecil bertuliskan **`grid`**, **`subgrid`**, **`flex`**, atau **`container`** di samping tag HTML.
 - Klik lencana **`grid`** atau **`flex`** tersebut! Peramban akan langsung menggambar garis bantu nomor kolom, area `gap` yang diarsir, dan batas jalur tepat di atas halaman web Anda.
 
 ### Langkah 3: Memaksa Status Interaksi (`:hover`, `:focus-visible`, `:active`)
 Ingin memeriksa tampilan menu yang hanya muncul saat `:hover` atau `:focus-visible` tanpa harus menahan tetikus?
-- Di panel **Styles**, klik tombol **`:hov`** (*Toggle Element State*), lalu centang kotak `:hover`, `:focus`, `:focus-visible`, atau `:active`. आप juga dapat mengemulasikan tema gelap (`prefers-color-scheme: dark`) dan `prefers-reduced-motion` langsung lewat tombol ikon kuas/perenderan (**Rendering** tab) di DevTools!
+- Di panel **Styles**, klik tombol **`:hov`** (*Toggle Element State*), lalu centang kotak `:hover`, `:focus`, `:focus-visible`, atau `:active`. Anda juga dapat mengemulasikan tema gelap (`prefers-color-scheme: dark`) dan `prefers-reduced-motion` langsung lewat tab **Rendering** di DevTools Chrome/Edge, atau lewat tombol simulasi skema warna di panel **Rules** pada Firefox!
 
 ### Langkah 4: Mencari Penyebab Munculnya Scrollbar Horizontal Misterius
-Jika halaman ponsel Anda tiba-tiba bisa digeser ke kanan (ada elemen yang meluber keluar layar), jalankan satu baris perintah ini di **Console DevTools** untuk mencetak elemen mana pun yang lebarnya melebihi lebar layar:
+Jika halaman ponsel Anda tiba-tiba bisa digeser ke kanan (ada elemen yang meluber keluar layar), jalankan skrip singkat ini di **Console DevTools** untuk mencetak elemen mana pun yang tepi kanannya melewati lebar layar:
 
 ```js
 // Jalankan di Console DevTools untuk menemukan elemen yang bocor melewati lebar viewport
+const lebarLayar = document.documentElement.clientWidth;
 document.querySelectorAll("*").forEach((el) => {
-  if (el.offsetWidth > document.documentElement.clientWidth) {
-    console.warn("Elemen meluber:", el, el.offsetWidth);
+  const kanan = el.getBoundingClientRect().right;
+  if (kanan > lebarLayar) {
+    console.warn("Elemen meluber:", el, Math.round(kanan));
   }
 });
 ```

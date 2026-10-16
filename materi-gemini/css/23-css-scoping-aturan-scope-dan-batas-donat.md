@@ -3,89 +3,141 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Membatasi jangkauan selektor CSS hanya pada sub-pohon komponen tertentu menggunakan at-rule `@scope`, kedekatan pohon DOM (*scoping proximity*), serta membatasi batas bawah dengan klausa `to (...)`.
 
-## Mengapa "Isolasi Gaya Komponen dengan `@scope` dan *Donut Scoping* (`@scope (.kartu) to (.slot-isi)`)" Penting dalam Pengembangan CSS Modern?
+## Mengapa Perlu `@scope`?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`@scope`** dan **`to (...)`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+CSS secara bawaan bersifat global: selektor `.judul` memengaruhi **semua** elemen berkelas `judul` di seluruh halaman. Untuk mencegah benturan, tim biasanya memakai konvensi penamaan seperti BEM (`.kartu__judul`), yang menuntut disiplin dan membuat nama kelas panjang. At-rule **`@scope`** menawarkan cara lain: membatasi **jangkauan** aturan CSS pada sub-pohon DOM tertentu, sehingga Anda bisa menulis selektor pendek dan tetap aman dari kebocoran gaya.
 
-## 1. Konsep Kerja dan Dukungan Standar
+`@scope` berstatus **Baseline Newly Available** sejak Maret 2026 (Chrome 118, Firefox 146, Safari 26.4). Untuk peramban yang lebih lama, aturan di dalam `@scope` akan diabaikan; pertimbangkan hal ini bila Anda harus mendukung versi lama.
 
-Fitur `@scope` dan `to (...)` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`@scope`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`to (...)`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `@scope` dan `to (...)` sesuai praktik terbaik CSS modern:
+## 1. Sintaks Dasar: Akar Lingkup (*Scope Root*)
 
 ```css
-/* Contoh penerapan Isolasi Gaya Komponen dengan `@scope` dan *Donut Scoping* (`@scope (.kartu) to (.slot-isi)`) */
-@scope (.kartu-panel) to (.konten-bebas) {
-  p { color: oklch(30% 0.02 250); }
+@scope (.kartu) {
+  /* Hanya mencocokkan <h2> dan <a> yang berada di dalam .kartu */
+  h2 { font-size: 1.25rem; }
+  a  { color: oklch(50% 0.2 255); }
+
+  /* :scope menunjuk akar lingkup itu sendiri, yaitu elemen .kartu */
+  :scope {
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+  }
+}
+```
+
+Penjelasan:
+- Bagian `(.kartu)` adalah **akar lingkup**. Aturan di dalam blok hanya berlaku untuk elemen di dalam sub-pohon `.kartu` (dan `.kartu` itu sendiri bila menggunakan `:scope`).
+- Selektor tanpa awalan, seperti `h2`, diperlakukan seolah-olah ditulis `:where(:scope) h2`. Akar lingkup tidak ikut menambah spesifisitas. Jadi `h2` di atas bernilai `(0, 0, 1)`, bukan `(0, 1, 1)`.
+- `:scope` yang ditulis eksplisit bernilai satu pseudo-class `(0, 1, 0)`. Simbol `&` di dalam `@scope` berperilaku seperti `:where(:scope)`, jadi tidak menambah bobot.
+- Di dalam elemen `<style>`, awalan boleh dihilangkan: `@scope { ... }` otomatis berlaku untuk elemen induk `<style>` tersebut.
+
+## 2. Batas Bawah dan *Donut Scoping*
+
+Tambahkan klausa `to (...)` untuk menetapkan **batas bawah** (*scope limit*). Elemen batas dan seluruh keturunannya **dikecualikan** dari lingkup. Karena lingkupnya berbentuk seperti donat (ada lubang di tengah), teknik ini dijuluki *donut scoping*:
+
+```css
+/* Gaya kartu berlaku untuk isi kartu, TETAPI tidak menembus slot yang diisi pengguna */
+@scope (.kartu) to (.slot-isi) {
+  img {
+    border-radius: 0.5rem;
+  }
+  p {
+    color: oklch(35% 0.02 250);
+  }
 }
 ```
 
 ```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan @scope</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
+<article class="kartu">
+  <img src="sampul.jpg" alt="Sampul kelas">          <!-- terkena aturan img -->
+  <p>Ringkasan kelas.</p>                              <!-- terkena aturan p -->
+  <div class="slot-isi">
+    <img src="avatar.jpg" alt="Foto pengguna">         <!-- TIDAK terkena: berada di dalam .slot-isi -->
+    <p>Komentar pengguna.</p>                          <!-- TIDAK terkena -->
+  </div>
+</article>
+```
+
+Batas atas bersifat **inklusif** (akar lingkup ikut terpilih lewat `:scope`) dan batas bawah bersifat **eksklusif** (elemen batas tidak terpilih). Anda dapat membalik sifat ini dengan `> *`, misalnya `@scope (.kartu > *)` membuat batas atas eksklusif.
+
+> **💡 Kegunaan Nyata:** Pustaka komponen sering memiliki "slot" tempat konten pengguna ditaruh (komentar, artikel, hasil unggahan). Dengan donut scope, gaya komponen tidak "bocor" ke konten pengguna yang tertanam di dalamnya.
+
+## 3. Kedekatan Lingkup (*Scoping Proximity*)
+
+`@scope` menambahkan satu langkah baru pada algoritma Cascade: jika dua aturan bersaing dan semuanya setara hingga tahap spesifisitas, aturan yang **akar lingkupnya lebih dekat** (lebih sedikit tingkat DOM di atas elemen target) yang menang, **sebelum** urutan kemunculan diperiksa. Urutannya menjadi: pentingnya deklarasi (`!important`), lapisan (`@layer`), spesifisitas, kedekatan lingkup, lalu urutan kemunculan.
+
+```css
+@scope (.tema-terang) {
+  a { color: oklch(45% 0.2 255); }
+}
+@scope (.tema-gelap) {
+  a { color: oklch(85% 0.1 255); }
+}
+```
+
+```html
+<div class="tema-gelap">
+  <div class="tema-terang">
+    <a href="#">Tautan A</a>   <!-- dekat ke .tema-terang -> warna biru tua -->
+  </div>
+  <a href="#">Tautan B</a>     <!-- dekat ke .tema-gelap -> warna biru muda -->
 </div>
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `@scope` dan `to (...)`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+Pada `Tautan A`, ada dua aturan yang cocok (`.tema-terang a` dan `.tema-gelap a`) dengan spesifisitas yang sama. Karena `.tema-terang` lebih dekat ke tautan, aturannya menang walau ditulis lebih dulu. Dengan selektor biasa, tema bersarang seperti ini biasanya dipecahkan lewat urutan kemunculan, sehingga hasilnya salah.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+## 4. Hal yang Tidak Dilakukan oleh `@scope`
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `@scope` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+- **Tidak mengisolasi pewarisan.** Properti yang diwariskan seperti `color` dan `font-family` tetap mengalir ke dalam slot di luar lingkup lewat pewarisan biasa. `@scope` hanya membatasi elemen mana yang dicocokkan selektor.
+- **Tidak menggantikan Shadow DOM.** Gaya dari luar masih bisa memengaruhi elemen di dalam lingkup jika selektor luar cocok dengannya.
+- **Tidak menaikkan spesifisitas.** Itu sebabnya selektor di dalam `@scope` mudah ditimpa; atur prioritas antarkomponen dengan `@layer`, bukan dengan memperberat selektor.
 
-## Latihan Praktik
+## Kesalahan Umum dan Cara Menghindarinya
 
-Buatlah berkas `23-css-scoping-aturan-scope-dan-batas-donat.html` dan stylesheet pendampingnya:
-1. Terapkan kode `@scope` dan `to (...)` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+1. **Menyangka akar lingkup menambah bobot spesifisitas.** `@scope (#hero) { img { } }` setara dengan `:where(#hero) img`, yaitu `(0, 0, 1)`. Aturan ini bisa dikalahkan selektor kelas biasa di luar `@scope`.
+2. **Menulis `:scope` untuk anak biasa.** `:scope` hanya menunjuk akar lingkup. Untuk anak langsung, tulis `:scope > img` atau cukup `> img`.
+3. **Lupa bahwa batas bawah bersifat eksklusif.** Elemen `.slot-isi` itu sendiri juga tidak terkena gaya, bukan hanya keturunannya.
+4. **Mengandalkan `@scope` di peramban lama tanpa cadangan.** Peramban yang belum mendukung akan mengabaikan seluruh blok; sediakan gaya dasar di luar `@scope` bila perlu.
+
+## Latihan Praktik: Komponen Kartu dengan Slot Aman
+
+Buatlah berkas `scope.html` dan `scope.css`:
+1. Buat komponen `.kartu` berisi `<h2>`, `<img>`, `<p>`, dan satu `<div class="slot-isi">` yang berisi gambar dan paragraf dari "pengguna".
+2. Beri gaya komponen dengan `@scope (.kartu) to (.slot-isi)` dan pastikan isi slot tidak terkena gaya tersebut (periksa lewat panel Styles DevTools).
+3. Buat dua tema bersarang (`.tema-terang` dalam `.tema-gelap` dan sebaliknya) dengan `@scope`, lalu buktikan bahwa kedekatan akar lingkup menentukan warna tautan, bukan urutan penulisan.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `@scope` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `@scope` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Diberikan `@scope (.kartu) to (.slot-isi) { img { border: 2px solid red; } }`. Gambar manakah yang mendapat bingkai merah?
+- A. Semua `<img>` di halaman.
+- B. Hanya `<img>` di dalam `.slot-isi`.
+- C. `<img>` di dalam `.kartu` yang tidak berada di dalam `.slot-isi`.
+- D. Tidak ada, karena `to (...)` membatalkan seluruh aturan.
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `@scope` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** C
+**Penjelasan:** Akar lingkup `.kartu` menentukan batas atas, dan `to (.slot-isi)` mengecualikan `.slot-isi` beserta isinya. Hasilnya, hanya gambar di dalam `.kartu` dan di luar `.slot-isi` yang cocok (*donut scoping*).
 
 ### Soal 2
-Dalam konteks **Isolasi Gaya Komponen dengan `@scope` dan *Donut Scoping* (`@scope (.kartu) to (.slot-isi)`)**, bagaimana `to (...)` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`to (...)`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Berapa spesifisitas selektor `img` yang ditulis di dalam `@scope (#hero) { ... }`?
+- A. `(1, 0, 1)`, karena ID `#hero` ikut dihitung.
+- B. `(0, 0, 1)`, karena akar lingkup diperlakukan seperti `:where(:scope)` dan tidak menambah bobot.
+- C. `(0, 1, 1)`, karena `:scope` selalu dihitung sebagai pseudo-class.
+- D. `(0, 0, 0)`, karena semua selektor di dalam `@scope` bernilai nol.
 
 **Jawaban Benar:** B
-**Penjelasan:** `to (...)` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Penjelasan:** Selektor tanpa awalan di dalam `@scope` diperlakukan seolah-olah ditulis `:where(:scope) img`; `:where()` memberi bobot nol, sehingga hanya `img` yang dihitung, yaitu `(0, 0, 1)`. Hanya `:scope` yang ditulis eksplisit yang menambah `(0, 1, 0)`.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+`@scope (.tema-terang) { a { color: blue; } }` ditulis **sebelum** `@scope (.tema-gelap) { a { color: white; } }`. Sebuah `<a>` berada di dalam `.tema-terang`, yang berada di dalam `.tema-gelap`. Warna tautan itu?
+- A. Putih, karena aturan yang ditulis belakangan selalu menang.
+- B. Putih, karena `.tema-gelap` adalah leluhur terluar dan memengaruhi semua keturunannya.
+- C. Hitam bawaan peramban, karena kedua aturan saling membatalkan.
+- D. Biru, karena spesifisitas kedua aturan sama dan akar lingkup `.tema-terang` lebih dekat ke tautan, sehingga kedekatan lingkup menang atas urutan kemunculan.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** D
+**Penjelasan:** Kedua aturan memiliki spesifisitas `(0, 0, 1)`. Pada tahap kedekatan lingkup, akar `.tema-terang` lebih dekat ke `<a>` daripada `.tema-gelap`, sehingga aturannya menang walaupun ditulis lebih dulu. Urutan kemunculan baru dinilai jika kedekatannya sama.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`@scope` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@scope)
+- [CSS Cascading and Inheritance Level 6 (`@scope`) — W3C](https://drafts.csswg.org/css-cascade-6/#scoped-styles)

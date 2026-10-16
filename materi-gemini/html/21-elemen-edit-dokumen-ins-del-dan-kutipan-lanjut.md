@@ -25,7 +25,7 @@ Di HTML, ada dua elemen yang secara visual sama-sama menampilkan garis coret di 
 <article>
   <h2>Catatan Perubahan Kebijakan API v2</h2>
   <p>
-    Batas permintaan (*rate limit*) untuk akun gratis adalah
+    Batas permintaan (<em>rate limit</em>) untuk akun gratis adalah
     <del datetime="2026-09-01">60 permintaan per menit</del>
     <ins datetime="2026-10-01" cite="/pengumuman/kenaikan-kuota">120 permintaan per menit</ins>.
   </p>
@@ -92,7 +92,7 @@ Kapan penggunaan elemen `<address>` tepat menurut spesifikasi HTML?
 - D. Untuk menggantikan fungsi tag `<a href="mailto:...">`
 
 **Jawaban Benar:** B
-**Penjelasan:** Elemen `<address>` secara khusus memiliki semantik *contact information for the nearest article or body ancestor*, bukan penanda alamat pos sembarangan.
+**Penjelasan:** Elemen `<address>` secara khusus memiliki semantik informasi kontak untuk leluhur `<article>` atau `<body>` terdekat, bukan penanda alamat pos sembarangan.
 
 ### Soal 3
 Atribut apa sajakah yang didukung secara khusus oleh elemen `<ins>` dan `<del>` untuk mendokumentasikan riwayat revisi?

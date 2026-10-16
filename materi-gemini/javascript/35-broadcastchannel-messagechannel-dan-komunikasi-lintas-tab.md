@@ -78,6 +78,6 @@ Saat mengintegrasikan fitur `Komunikasi Lintas Tab dan Iframe` ke dalam aplikasi
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Broadcast Channel API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API)
+- [`MessageChannel` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel)
+- [`Window.postMessage()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage)

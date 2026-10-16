@@ -19,7 +19,7 @@ Tanpa menulis satu baris JavaScript pun, HTML5 menyediakan atribut pembatas (*co
 | Atribut | Berlaku Pada | Fungsi Validasi |
 |---|---|---|
 | `required` | Hampir semua input, `select`, `textarea` | Kolom wajib diisi (atau wajib dicentang untuk kotak centang *Syarat & Ketentuan*). |
-| `minlength` & `maxlength` | `text`, `password`, `search`, `tel`, `url`, `textarea` | Membatasi jumlah minimal dan maksimal karakter teks. |
+| `minlength` & `maxlength` | `text`, `email`, `password`, `search`, `tel`, `url`, `textarea` | Membatasi jumlah minimal dan maksimal karakter teks. |
 | `min` & `max` | `number`, `range`, `date`, `time`, `datetime-local` | Membatasi nilai angka atau tanggal paling kecil dan paling besar. |
 | `step` | `number`, `range`, `date`, `time` | Menentukan kelipatan nilai yang sah (mis. `step="1000"` untuk kelipatan Rp1.000, atau `step="0.01"` untuk desimal dua angka). |
 | `pattern` | `text`, `search`, `tel`, `url`, `email`, `password` | Mencocokkan nilai dengan ekspresi reguler (*Regular Expression*) penuh. |
@@ -57,7 +57,7 @@ Di CSS, terdapat pseudo-class `:valid` dan `:invalid` untuk memberi warna bingka
 
 Saat halaman baru saja dibuka dan pengguna **belum sempat mengetik apa pun**, setiap kolom yang memiliki atribut `required` sudah berstatus `:invalid`! Akibatnya, seluruh formulir langsung menyala merah seolah-olah pengguna baru saja melakukan kesalahan.
 
-Solusi modern di CSS (status **Baseline Widely Available** sejak akhir 2023) adalah menggunakan **`:user-invalid`** dan **`:user-valid`**:
+Solusi modern di CSS (tersedia di semua peramban utama sejak November 2023 dan berstatus **Baseline Widely Available** sejak Mei 2026) adalah menggunakan **`:user-invalid`** dan **`:user-valid`**:
 - `:user-invalid` hanya aktif **setelah pengguna benar-benar berinteraksi** dengan kolom tersebut (misalnya mengetik lalu menghapusnya, atau mencoba menekan tombol Submit) dan nilainya masih salah!
 
 ```css

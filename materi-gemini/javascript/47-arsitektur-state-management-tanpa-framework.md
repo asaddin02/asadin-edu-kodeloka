@@ -61,14 +61,14 @@ Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Menyimpan kebenar
 **Penjelasan:** Menyimpan kebenaran data (*state*) secara tersebar di dalam atribut DOM atau variabel global yang dimodifikasi dari puluhan *event listener* berbeda membuat alur aplikasi mustahil dilacak saat terjadi bug.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `store.subscribe((stateBaru) => render(stateBaru));` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
+Pada arsitektur aliran data satu arah (*Unidirectional Data Flow*) dengan pola *Store* seperti `buatStore(reducer, stateAwal)`, bagaimana urutan alur pembaruan yang benar?
+- A. Peristiwa dari pengguna memicu `kirimAksi(aksi)`; *reducer* menghitung state baru dari state lama dan aksi tersebut; seluruh pelanggan dipanggil dengan state baru lalu merender ulang tampilan.
+- B. Peristiwa dari pengguna langsung mengubah elemen DOM, lalu DOM dibaca ulang sebagai sumber kebenaran state.
+- C. *Reducer* mengubah objek state lama secara langsung, lalu memanggil `location.reload()` agar tampilan menyegarkan diri.
+- D. Tampilan dan state saling memperbarui satu sama lain secara dua arah tanpa perantara aksi.
 
 **Jawaban Benar:** A
-**Penjelasan:** `store.subscribe((stateBaru) => render(stateBaru));` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** Aliran data satu arah berarti state hanya berubah lewat aksi yang diproses *reducer*, kemudian tampilan dirender ulang dari state baru. Inilah yang dilakukan `kirimAksi()` pada contoh: `state = reducer(state, aksi)` lalu setiap fungsi di `pendengar` dipanggil.
 
 ### Soal 3
 Saat mengintegrasikan fitur `Arsitektur State Management & Komponen Reaktif Tanpa Framework (Vanilla JS)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
@@ -82,6 +82,5 @@ Saat mengintegrasikan fitur `Arsitektur State Management & Komponen Reaktif Tanp
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`EventTarget` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget)
+- [`Set` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)

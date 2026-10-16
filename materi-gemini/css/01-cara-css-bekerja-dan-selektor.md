@@ -9,7 +9,7 @@ Setelah peramban mengurai dokumen HTML menjadi pohon **DOM (*Document Object Mod
 
 Setiap aturan CSS (*style rule*) terdiri dari dua bagian utama: **Selektor (*Selector*)** dan **Blok Deklarasi (*Declaration Block*)**:
 
-```
+```text
 .kartu-kelas > h2 {
   color: #0f172a;
   font-size: 1.25rem;
@@ -75,10 +75,10 @@ Kombinator menghubungkan dua selektor berdasarkan posisi mereka di pohon DOM:
 Selain pseudo-class interaksi dasar seperti `:hover`, `:focus-visible`, `:active`, dan struktural seperti `:first-child`, `:nth-child(even)`, CSS modern menghadirkan empat pseudo-class fungsional yang mengubah cara kita menulis stylesheet (semuanya berstatus **Baseline Widely Available**):
 
 ### A. `:is()` dan `:where()`: Mengelompokkan Selektor Tanpa Pengulangan
-Sebelum ada `:is()`, memilih `h1`, `h2`, dan `h3` di dalam `article` atau `section` mengharuskan Anda menulis 6 baris selektor yang berulang. Kini cukup satu baris:
+Sebelum ada `:is()`, memilih `h1`, `h2`, dan `h3` di dalam `article`, `section`, atau `aside` mengharuskan Anda menulis 9 baris selektor yang berulang. Kini cukup satu baris:
 
 ```css
-/* Jauh lebih ringkas daripada menulis 6 kombinasi satu per satu */
+/* Jauh lebih ringkas daripada menulis 9 kombinasi satu per satu */
 :is(article, section, aside) :is(h1, h2, h3) {
   line-height: 1.25;
   color: #0f172a;

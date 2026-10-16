@@ -67,7 +67,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `const stream = await n
 **Penjelasan:** `const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Akses Kamera/Mikrofon (`getUserMedia`), Rekam Layar (`getDisplayMedia`), dan Pengantar WebRTC` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Akses Kamera/Mikrofon (`getUserMedia`), Rekam Layar (`getDisplayMedia`), dan Pengantar WebRTC" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -78,6 +78,6 @@ Saat mengintegrasikan fitur `Akses Kamera/Mikrofon (`getUserMedia`), Rekam Layar
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Media Capture and Streams API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Media_Capture_and_Streams_API)
+- [`MediaDevices.getUserMedia()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+- [WebRTC API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)

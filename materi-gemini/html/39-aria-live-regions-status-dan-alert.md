@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Pengumuman Dinamis bagi Pembaca Layar: `aria-live`, `<output>`, `role="status"`, dan `role="alert"`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`polite`** dan **`assertive`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`polite`** dan **`assertive`** berdasarkan spesifikasi [WAI-ARIA 1.2](https://www.w3.org/TR/wai-aria-1.2/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Guides/Live_regions).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,18 +29,37 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `polite` dan `assertiv
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Pengumuman Dinamis bagi Pembaca Layar: `aria-live`, `<output>`, `role="status"`, dan `role="alert"` — Kodeloka</title>
+    <title>Live Region: Status dan Alert — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Pengumuman Dinamis bagi Pembaca Layar: `aria-live`, `<output>`, `role="status"`, dan `role="alert"`</h1>
-        <p>
-          Penerapan <code>polite</code> dan <code>assertive</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Pencarian Materi</h1>
+
+      <label for="kata-kunci">Kata kunci</label>
+      <input type="search" id="kata-kunci" autocomplete="off">
+
+      <!-- Wadah live region harus sudah ada di DOM sebelum isinya berubah -->
+      <p id="status-hasil" role="status"></p>
+      <p id="galat-pencarian" role="alert"></p>
     </main>
+
+    <script>
+      const input = document.getElementById("kata-kunci");
+      const status = document.getElementById("status-hasil");
+      const galat = document.getElementById("galat-pencarian");
+
+      input.addEventListener("input", () => {
+        galat.textContent = "";
+        if (input.value.length === 1) {
+          // role="alert" bersifat assertive: gunakan hanya untuk galat penting
+          galat.textContent = "Masukkan minimal 2 karakter.";
+          status.textContent = "";
+        } else {
+          // role="status" bersifat polite: diumumkan setelah pembacaan saat ini selesai
+          status.textContent = input.value ? "3 hasil ditemukan." : "";
+        }
+      });
+    </script>
   </body>
 </html>
 ```
@@ -95,7 +114,7 @@ Bagaimana cara memverifikasi bahwa implementasi `polite` dan `assertive` pada ha
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [ARIA live regions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Guides/Live_regions)
+- [ARIA: status role — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/status_role)
+- [ARIA: alert role — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role)
+- [Accessible Rich Internet Applications (WAI-ARIA) 1.2 — W3C](https://www.w3.org/TR/wai-aria-1.2/)

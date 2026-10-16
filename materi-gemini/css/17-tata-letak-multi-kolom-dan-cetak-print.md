@@ -42,8 +42,8 @@ Dengan menambahkan blok **`@media print`** yang hanya terdiri dari 30 baris di a
 
 ### Lima Aturan Emas Merancang `@media print`:
 1. **Sembunyikan elemen antarmuka yang tidak berguna di atas kertas (`display: none !important`):** Bilah navigasi `<header>`/`<nav>`, kotak `<search>`, `<aside>` iklan, tombol aksi interaktif, dan pemutar `<video>`.
-2. **Paksa warna latar menjadi putih dan teks menjadi hitam pekat (`#000000`):** Menghemat tinta printer dan memastikan keterbacaan maksimal, nawet jika pengguna sedang membuka situs dalam *Dark Mode*!
-3. **Rentangkan lebar konten utama menjadi `100%` dan matikan `overflow: auto/hidden`:** Jika sebuah pembungkus memiliki `overflow: auto` atau `position: sticky`, saat dicetak ke kertas isinya akan terpotong hanya sebatas layar pertama!
+2. **Paksa warna latar menjadi putih dan teks menjadi hitam pekat (`#000000`):** Menghemat tinta printer dan memastikan keterbacaan maksimal, bahkan jika pengguna sedang membuka situs dalam *Dark Mode*!
+3. **Rentangkan lebar konten utama menjadi `100%` dan matikan `overflow: auto/hidden`:** Jika sebuah pembungkus memiliki `overflow: auto`/`hidden` atau tinggi tetap, saat dicetak ke kertas isinya dapat terpotong hanya sebatas layar pertama (dan elemen `position: sticky`/`fixed` juga kerap berperilaku tidak terduga di kertas)!
 4. **Cegah pemotongan elemen di pergantian halaman kertas (`break-inside: avoid` dan `break-after: avoid`):**
    - Jangan biarkan judul `<h2>` tertinggal sendirian di baris paling bawah halaman 1 sementara paragraf penjelasannya berada di halaman 2 (**`h2, h3 { break-after: avoid; }`**)!
    - Jangan biarkan blok kode `<pre>`, `<blockquote>`, `<figure>`, atau `<tr>` tabel terbelah dua di tengah pergantian lembar kertas (**`pre, blockquote, figure, tr { break-inside: avoid; }`**)!
@@ -155,5 +155,6 @@ Bagaimana cara menampilkan isi atribut `href` dari sebuah tautan `<a href="https
 **Penjelasan:** Fungsi CSS `attr(nama-atribut)` di dalam properti `content` pada pseudo-element `::before` atau `::after` dapat mengambil nilai string dari atribut HTML mana pun pada elemen tersebut dan menggabungkannya dengan string teks lainnya.
 
 ## Sumber
-- [Using media queries (Printing) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Using)
-- [CSS layout (Multiple-column layout) — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout)
+- [Printing — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing)
+- [Multiple-column layout — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Multicol_layout)
+- [`@page` CSS at-rule — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@page)

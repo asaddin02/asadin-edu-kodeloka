@@ -96,7 +96,7 @@ $ipKlien = filter_var($_SERVER['REMOTE_ADDR'] ?? '', FILTER_VALIDATE_IP);
    }
    ```
 2. **Untuk Permintaan `PUT` / `PATCH` Multipart (`request_parse_body()` — Sejak PHP 8.4):**
-   Secara historis, PHP hanya mengurai `multipart/form-data` secara otomatis untuk metode `POST`. Sejak **PHP 8.4**, tersedia fungsi bawaan **`[$post, $files] = request_parse_body();`** untuk mengurai body multipart pada metode HTTP `PUT` atau `PATCH`!
+   Secara historis, PHP hanya mengurai `multipart/form-data` secara otomatis untuk metode `POST`. Sejak **PHP 8.4**, tersedia fungsi bawaan **`[$post, $files] = request_parse_body();`** untuk mengurai body `multipart/form-data` (dan `application/x-www-form-urlencoded`) pada metode HTTP selain `POST`, misalnya `PUT` atau `PATCH`. Body hanya dapat dibaca sekali: jika `php://input` sudah dibaca lebih dulu, `request_parse_body()` mengembalikan data kosong.
 
 ## 4. Mengurai dan Memodifikasi URL dengan Ekstensi `Uri` Baru (Sejak PHP 8.5)
 
@@ -162,6 +162,8 @@ Apa keunggulan ekstensi bawaan `Uri` (`Uri\Rfc3986\Uri` dan `Uri\WhatWg\Url`) ya
 
 ## Sumber
 - [`filter_input` — PHP Manual](https://www.php.net/manual/en/function.filter-input.php)
-- [Superglobals — PHP Manual](https://www.php.net/manual/en/langref.php)
+- [Superglobals — PHP Manual](https://www.php.net/manual/en/language.variables.superglobals.php)
+- [`request_parse_body` — PHP Manual](https://www.php.net/manual/en/function.request-parse-body.php)
+- [URI extension — PHP Manual](https://www.php.net/manual/en/book.uri.php)
 - [PHP 8.5 Release Announcement (URI Extension) — PHP.net](https://www.php.net/releases/8.5/en.php)
 - [PHP 8.4 Release Announcement (`request_parse_body`) — PHP.net](https://www.php.net/releases/8.4/en.php)

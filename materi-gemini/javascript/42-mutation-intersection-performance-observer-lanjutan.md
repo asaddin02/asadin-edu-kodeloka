@@ -64,7 +64,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `new PerformanceObserve
 **Penjelasan:** `new PerformanceObserver((list) => { ... }).observe({ type: 'largest-contentful-paint', buffered: true });` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Pemantauan Kinerja Nyata (RUM) dengan `PerformanceObserver` (LCP, CLS, dan INP)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Pemantauan Kinerja Nyata (RUM) dengan `PerformanceObserver` (LCP, CLS, dan INP)" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -75,6 +75,7 @@ Saat mengintegrasikan fitur `Pemantauan Kinerja Nyata (RUM) dengan `PerformanceO
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`PerformanceObserver` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver)
+- [Largest Contentful Paint (LCP) — web.dev](https://web.dev/articles/lcp)
+- [Cumulative Layout Shift (CLS) — web.dev](https://web.dev/articles/cls)
+- [Interaction to Next Paint (INP) — web.dev](https://web.dev/articles/inp)

@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Data Terstruktur Schema.org dengan JSON-LD (`Course`, `TechArticle`, `FAQPage`, `BreadcrumbList`)** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`application/ld+json`** dan **`Schema.org`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`application/ld+json`** dan **`Schema.org`** berdasarkan kosakata [Schema.org](https://schema.org/) dan spesifikasi [JSON-LD 1.1](https://www.w3.org/TR/json-ld11/) dari W3C, serta dokumentasi [Google Search Central](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data) untuk fitur hasil pencarian.
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,21 +29,41 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `application/ld+json` 
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Data Terstruktur Schema.org dengan JSON-LD (`Course`, `TechArticle`, `FAQPage`, `BreadcrumbList`) — Kodeloka</title>
+    <title>Struktur Dokumen HTML Modern — Kodeloka</title>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "TechArticle",
+          "headline": "Struktur Dokumen HTML Modern",
+          "inLanguage": "id",
+          "datePublished": "2026-10-16",
+          "author": { "@type": "Organization", "name": "Kodeloka" },
+          "mainEntityOfPage": "https://kodeloka.asadinedu.com/html/materi/02-struktur-dokumen-html/"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Beranda", "item": "https://kodeloka.asadinedu.com/" },
+            { "@type": "ListItem", "position": 2, "name": "HTML", "item": "https://kodeloka.asadinedu.com/html/" },
+            { "@type": "ListItem", "position": 3, "name": "Struktur Dokumen HTML Modern" }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Data Terstruktur Schema.org dengan JSON-LD (`Course`, `TechArticle`, `FAQPage`, `BreadcrumbList`)</h1>
-        <p>
-          Penerapan <code>application/ld+json</code> dan <code>Schema.org</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>Struktur Dokumen HTML Modern</h1>
+      <p>Data terstruktur harus mencerminkan konten yang benar-benar tampil di halaman ini.</p>
     </main>
   </body>
 </html>
 ```
+
+> **Perhatian untuk `FAQPage`:** Sejak 2023 Google hanya menampilkan hasil kaya FAQ untuk situs pemerintah dan kesehatan yang terkenal, dan Google mengumumkan bahwa fitur hasil kaya FAQ tidak lagi tampil di Google Search mulai 7 Mei 2026. Markup `FAQPage` tetap valid sebagai kosakata Schema.org, tetapi jangan mengharapkannya menghasilkan tampilan khusus di Google. Sebaliknya, `BreadcrumbList` dan tipe lain yang masih didukung perlu dicek di dokumentasi Google Search Central sebelum diterapkan.
 
 > **💡 Tips Praktis Produksi:**
 > Selalu periksa hasil perenderan elemen dan atribut `application/ld+json` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
@@ -95,7 +115,8 @@ Bagaimana cara memverifikasi bahwa implementasi `application/ld+json` dan `Schem
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [JSON-LD 1.1 — W3C](https://www.w3.org/TR/json-ld11/)
+- [TechArticle — Schema.org](https://schema.org/TechArticle)
+- [BreadcrumbList — Schema.org](https://schema.org/BreadcrumbList)
+- [Introduction to structured data — Google Search Central](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data)
+- [Search Central updates (penghapusan hasil kaya FAQ) — Google](https://developers.google.com/search/updates)

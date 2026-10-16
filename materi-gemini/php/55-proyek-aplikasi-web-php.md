@@ -1,7 +1,7 @@
 # Proyek Akhir Kelas PHP: Aplikasi Manajemen Modul & Catatan Belajar Aman
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Membangun aplikasi web PHP 8.4/8.5 berarsitektur bersih dari nol yang memadukan PSR-4 Autoloading, Backed Enum, Readonly & Asymmetric Visibility, PDO Prepared Statements & Transaksi, autentikasi `password_hash()`, proteksi CSRF `hash_equals()`, serta keluaran HTML bebas XSS.
+- **Ringkasan:** Membangun aplikasi web PHP 8.4/8.5 berarsitektur bersih dari nol yang memadukan PSR-4 Autoloading, Backed Enum, Readonly Class, PDO Prepared Statements, proteksi sesi, proteksi CSRF `hash_equals()`, serta keluaran HTML bebas XSS.
 
 ## Gambaran Proyek
 
@@ -9,7 +9,7 @@ Selamat! Anda telah menuntaskan seluruh perjalanan di Kelas PHP Kodeloka—mulai
 
 Dalam proyek akhir ini, kita akan merakit **Aplikasi Pengelola Catatan Belajar Kodeloka** yang menerapkan seluruh standar keamanan dan arsitektur bersih tersebut:
 
-```
+```text
 proyek-catatan-kodeloka/
 ├── composer.json
 ├── public/
@@ -21,7 +21,7 @@ proyek-catatan-kodeloka/
 │   ├── Keamanan/
 │   │   └── PenjagaKeamanan.php    <-- Helper XSS e(), CSRF hash_equals(), & Sesi Aman
 │   └── Repository/
-│       └── CatatanRepository.php  <-- PDO Prepared Statements & Transaksi
+│       └── CatatanRepository.php  <-- PDO Prepared Statements
 └── tests/
     └── CatatanRepositoryTest.php  <-- Pengujian Otomatis PHPUnit 12
 ```
@@ -401,7 +401,10 @@ Bagaimana metode `ambilSemua()` di dalam `CatatanRepository` mengubah array bari
 **Penjelasan:** `Catatan::dariBarisDb(...)` adalah sintaks *First-Class Callable* (PHP 8.1+) yang membuat referensi `Closure` langsung ke metode pabrik statis `Catatan::dariBarisDb`, sehingga dapat diteruskan dengan sangat bersih ke `array_map()`.
 
 ## Sumber
-- [PHP Manual — Language Reference](https://www.php.net/manual/en/langref.php)
+- [Enumerations — PHP Manual](https://www.php.net/manual/en/language.types.enumerations.php)
+- [First-class callable syntax — PHP Manual](https://www.php.net/manual/en/functions.first_class_callable_syntax.php)
+- [`nl2br` — PHP Manual](https://www.php.net/manual/en/function.nl2br.php)
+- [RFC 9110: HTTP Semantics (303 See Other) — IETF](https://www.rfc-editor.org/rfc/rfc9110.html#name-303-see-other)
 - [PDO — PHP Manual](https://www.php.net/manual/en/book.pdo.php)
 - [Cross-Site Request Forgery Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [Cross Site Scripting Prevention Cheat Sheet — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)

@@ -71,7 +71,7 @@ console.log(akun.kuota); // 500 (Memanggil getter 'get kuota()')
 Kata kunci **`static`** mendefinisikan properti atau metode yang menempel langsung pada **Class itu sendiri**, bukan pada masing-masing objek instans yang dibuat dengan `new`.
 
 Metode `static` sangat cocok digunakan untuk:
-- **Factory Methods:** Membuat instans objek dari berbagai format masukan (misalnya ` Pengguna.dariJson(str)`).
+- **Factory Methods:** Membuat instans objek dari berbagai format masukan (misalnya `Pengguna.dariJson(str)`).
 - **Fungsi Utilitas atau Konstanta Kelas:** Misalnya `Number.isNaN()`, `Array.isArray()`, atau `Object.groupBy()`.
 
 ```js
@@ -177,6 +177,6 @@ Bagaimana cara memanggil metode `static dariJson(str)` yang didefinisikan di dal
 **Penjelasan:** Metode yang diberi kata kunci `static` ditempelkan pada konstruktor class itu sendiri (`Artikel.dariJson()`), bukan pada `Artikel.prototype` milik instans objek.
 
 ## Sumber
-- [Using classes — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [Standard built-in objects — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [Using classes — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_classes)
+- [Private elements — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_elements)
 - [ECMAScript Language Specification — TC39](https://tc39.es/ecma262/)

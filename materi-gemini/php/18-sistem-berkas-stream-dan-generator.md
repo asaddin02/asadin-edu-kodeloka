@@ -1,7 +1,7 @@
 # Sistem Berkas, PHP Streams, dan Pemrosesan Data Besar Hemat Memori dengan Generator (`yield`)
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Membaca dan menulis berkas secara aman dengan penguncian `flock()`, memanfaatkan aliran *PHP Streams* (`php://temp`, `SplFileObject`), serta memproses jutaan baris data CSV atau kueri database hanya dengan beberapa megabyte RAM menggunakan **Generator (`yield`)**.
+- **Ringkasan:** Membaca dan menulis berkas secara aman dengan penguncian `LOCK_EX` (berbasis `flock()`), memanfaatkan aliran *PHP Streams* (`php://temp`, `php://output`), serta memproses jutaan baris data CSV atau kueri database hanya dengan beberapa megabyte RAM menggunakan **Generator (`yield`)**.
 
 ## 1. Operasi Sistem Berkas yang Aman (`file_get_contents`, `file_put_contents`, dan `flock`)
 
@@ -163,5 +163,7 @@ Bagaimana cara mencegah serangan *Path Traversal* (seperti pengguna mengirim `$n
 **Penjelasan:** `basename("../../config/app.php")` memangkas seluruh navigasi direktori `../` dan hanya menyisakan `"app.php"`. Memadukannya dengan pemeriksaan awalan `realpath()` terhadap direktori dasar penyimpanan menjamin skrip tidak pernah bisa membaca berkas di luar folder yang diizinkan.
 
 ## Sumber
-- [Generators overview — PHP Manual](https://www.php.net/manual/en/langref.php)
+- [Generators overview — PHP Manual](https://www.php.net/manual/en/language.generators.overview.php)
+- [`fgetcsv` — PHP Manual](https://www.php.net/manual/en/function.fgetcsv.php)
+- [`flock` — PHP Manual](https://www.php.net/manual/en/function.flock.php)
 - [Filesystem Security — PHP Manual](https://www.php.net/manual/en/security.filesystem.php)

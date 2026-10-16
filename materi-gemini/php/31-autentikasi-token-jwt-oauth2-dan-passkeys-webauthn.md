@@ -7,7 +7,7 @@
 
 Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `hash_equals($signatureDiharapkan, $signatureDiterima)` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
 
-> **🚫 Kerentanan & Kesalahan Umum:** Mempercayai header `alg` di dalam payload JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.
+> **🚫 Kerentanan & Kesalahan Umum:** Mempercayai header `alg` di dalam token JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.
 
 ## Konsep Inti dan Perbandingan Praktik Terbaik
 
@@ -45,14 +45,14 @@ function buatPasanganPkce(): array
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mempercayai header `alg` di dalam payload JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.*?
+Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mempercayai header `alg` di dalam token JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
 - B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
 **Jawaban Benar:** B
-**Penjelasan:** Mempercayai header `alg` di dalam payload JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.
+**Penjelasan:** Mempercayai header `alg` di dalam token JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.
 
 ### Soal 2
 Manakah pernyataan yang benar mengenai penggunaan `hash_equals($signatureDiharapkan, $signatureDiterima)` di PHP modern?
@@ -76,7 +76,10 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Autentikasi Mode
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [`hash_equals` — PHP Manual](https://www.php.net/manual/en/function.hash-equals.php)
+- [RFC 7636: Proof Key for Code Exchange (PKCE) — IETF](https://www.rfc-editor.org/rfc/rfc7636)
+- [RFC 8725: JSON Web Token Best Current Practices — IETF](https://www.rfc-editor.org/rfc/rfc8725)
+- [Web Authentication (WebAuthn) Level 3 — W3C](https://www.w3.org/TR/webauthn-3/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

@@ -181,6 +181,6 @@ Mengapa cara yang benar untuk memeriksa apakah sebuah nilai adalah `NaN` (*Not-a
 **Penjelasan:** Dalam standar bilangan titik-ambang IEEE 754 yang diadopsi ECMAScript, perbandingan `NaN === NaN` selalu bernilai `false`. Fungsi `Number.isNaN(nilai)` memeriksa secara presisi apakah nilai tersebut bertipe `number` dan bernilai `NaN`.
 
 ## Sumber
-- [JavaScript Guide: Grammar and types — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [Standard built-in objects — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [Grammar and types — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types)
+- [JavaScript data types and data structures — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Data_structures)
 - [ECMAScript Language Specification — TC39](https://tc39.es/ecma262/)

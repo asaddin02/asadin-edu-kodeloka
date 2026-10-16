@@ -21,7 +21,7 @@ Memilih jenis jalur (*path*) yang tepat pada atribut `href` menentukan apakah ta
 | **Root-Relative** (Relatif terhadap akar domain) | `/css/index.html` atau `/assets/style.css` | Dimulai dengan garis miring `/`. Selalu mengacu dari akar domain aktif, tidak peduli sedalam apa folder halaman saat ini berada. Sangat direkomendasikan untuk navigasi internal situs. |
 | **Document-Relative** (Relatif terhadap berkas saat ini) | `02-struktur.html` atau `../assets/logo.svg` | Mengacu dari lokasi berkas HTML yang sedang dibuka. `../` berarti naik satu tingkat folder ke atas. Cocok untuk modul yang berada dalam satu folder yang sama. |
 
-```
+```text
 Struktur Folder:
 / (akar situs)
 ├── index.html

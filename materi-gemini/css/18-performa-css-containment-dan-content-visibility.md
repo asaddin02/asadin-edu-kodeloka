@@ -14,7 +14,7 @@ Secara bawaan, saat sebuah halaman panjang dibuka, peramban tetap wajib menghitu
 Properti **`content-visibility: auto`** (status **Baseline Newly Available** sejak 2024 di semua peramban utama) bekerja layaknya *"lazy rendering untuk seluruh bagian DOM dan CSS"*:
 - Ketika sebuah `<section>` atau `<article>` dengan `content-visibility: auto` masih berada jauh di luar area pandang layar (*off-screen*), peramban **melewati seluruh proses Layout dan Paint untuk isi di dalam elemen tersebut**!
 - Begitu pengguna mulai menggulir mendekati elemen tersebut, peramban merendernya tepat waktu secara otomatis.
-- Pada halaman dokumentasi panjang (seperti halaman yang memuat puluhan bab sekaligus), `content-visibility: auto` dapat mempercepat waktu perenderan awal hingga **3–7 kali lebih cepat**!
+- Pada halaman dokumentasi panjang (seperti halaman yang memuat puluhan bab sekaligus), `content-visibility: auto` dapat mempercepat waktu perenderan awal secara signifikan (contoh kasus di web.dev melaporkan peningkatan **hingga 7 kali** pada pemuatan awal)!
 
 ### Pasangan Wajib: `contain-intrinsic-size`
 Jika peramban melewati perhitungan tata letak untuk `<section>` yang ada di bawah layar, lalu dari mana peramban tahu berapa perkiraan tinggi `<section>` tersebut agar batang *scrollbar* di tepi kanan layar tidak melompat-lompat?
@@ -106,5 +106,5 @@ Apa yang dimaksud dengan *Layout Thrashing* (*Forced Synchronous Layout*)?
 
 ## Sumber
 - [`content-visibility` CSS property — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/content-visibility)
-- [Interaction to Next Paint (INP) — web.dev](https://web.dev/articles/inp)
+- [content-visibility: the new CSS property that boosts your rendering performance — web.dev](https://web.dev/articles/content-visibility)
 - [Critical rendering path — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Critical_rendering_path)

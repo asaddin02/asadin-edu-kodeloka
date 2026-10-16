@@ -3,91 +3,146 @@
 - **Tingkat:** Dasar
 - **Ringkasan:** Merancang bayangan kartu yang lembut dan natural dengan menumpuk 2–3 lapisan `box-shadow` beropasitas rendah, memanfaatkan `inset` shadow, serta membedakan perilaku `border` dan `outline`.
 
-## Mengapa "Desain Bingkai, Bayangan Berlapis Realistis (`box-shadow`), dan Cincin Fokus `outline-offset`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Bingkai dan Bayangan Perlu Dikuasai?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`box-shadow`** dan **`outline-offset`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Bingkai (`border`), cincin (`outline`), dan bayangan (`box-shadow`) memberi kedalaman dan menandai status: kartu yang "terangkat", input yang sedang fokus, atau tombol yang ditekan. Ketiganya terlihat mirip tetapi **berbeda perilaku**, terutama dalam hal tata letak dan aksesibilitas. Pelajaran ini membahas cara memakainya dengan benar.
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. `border`: Bagian dari Kotak
 
-Fitur `box-shadow` dan `outline-offset` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`box-shadow`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`outline-offset`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `box-shadow` dan `outline-offset` sesuai praktik terbaik CSS modern:
+`border` adalah bagian dari kotak elemen; ketebalannya **menambah ukuran** (kecuali memakai `box-sizing: border-box`, di mana ukurannya sudah termasuk di dalam `width`).
 
 ```css
-/* Contoh penerapan Desain Bingkai, Bayangan Berlapis Realistis (`box-shadow`), dan Cincin Fokus `outline-offset` */
-.kartu-halus {
-  box-shadow:
-    0 1px 2px rgb(15 23 42 / 0.06),
-    0 8px 24px -4px rgb(15 23 42 / 0.08);
+.kartu {
+  border: 1px solid oklch(90% 0.01 250);       /* ketebalan gaya warna */
+  border-radius: 0.75rem;
+  border-inline-start: 4px solid oklch(55% 0.2 255);   /* aksen di sisi awal */
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan box-shadow</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+Nilai gaya yang umum: `solid`, `dashed`, `dotted`, `double`, `none`. Sudut membulat dengan `border-radius` memengaruhi bentuk border, latar, dan bayangan.
+
+## 2. `outline`: Cincin di Luar Kotak
+
+`outline` digambar **di luar** border dan **tidak mengubah tata letak**: ia tidak menambah ukuran elemen dan tidak menggeser tetangga. Karena itu ia pilihan utama untuk indikator fokus. Properti `outline-offset` mengatur jarak cincin dari tepi elemen (nilai negatif menggesernya ke dalam):
+
+```css
+:focus-visible {
+  outline: 3px solid oklch(55% 0.2 255);
+  outline-offset: 3px;           /* ada jarak antara elemen dan cincin */
+}
+
+.tombol-ikon:focus-visible {
+  outline-offset: -3px;          /* cincin di dalam tepi, bila ruang luar sempit */
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `box-shadow` dan `outline-offset`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+Pada peramban modern, `outline` mengikuti lengkung `border-radius`.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+| Aspek | `border` | `outline` |
+|---|---|---|
+| Memengaruhi ukuran/tata letak | Ya | Tidak |
+| Bisa diatur per sisi | Ya (`border-top`, dst.) | Tidak (satu cincin untuk semua sisi) |
+| Jarak dari tepi | Tidak | Ya, dengan `outline-offset` |
+| Cocok untuk | Bingkai permanen | Fokus, penyorotan sementara |
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `box-shadow` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## 3. `box-shadow`: Satu Lapis Itu Kurang Natural
 
-## Latihan Praktik
+Sintaks: `box-shadow: geser-x geser-y blur spread warna;`, dengan kata kunci opsional `inset`. Bayangan **tidak** memengaruhi tata letak dan mengikuti `border-radius`.
 
-Buatlah berkas `38-border-outline-dan-box-shadow-berlapis.html` dan stylesheet pendampingnya:
-1. Terapkan kode `box-shadow` dan `outline-offset` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+Bayangan nyata terdiri dari beberapa komponen cahaya. Tumpuk **dua sampai tiga lapis** dengan opasitas rendah: yang kecil dan tajam di dekat elemen, yang besar dan lembut di kejauhan:
+
+```css
+.kartu-angkat {
+  box-shadow:
+    0 1px 2px  rgb(15 23 42 / 0.06),    /* kontak: tipis dan tajam */
+    0 4px 8px  rgb(15 23 42 / 0.08),    /* tengah */
+    0 16px 32px rgb(15 23 42 / 0.10);   /* jauh: lebar dan lembut */
+}
+```
+
+Tips agar bayangan tampak natural:
+- Pakai warna **bernuansa latar** (mis. biru gelap `15 23 42`), bukan hitam murni.
+- Opasitas rendah tiap lapis; jumlahnya yang membangun kedalaman.
+- Lapisan pertama berada paling atas.
+- Spread negatif (mis. `0 12px 16px -8px`) membuat bayangan lebih sempit dari elemen sehingga tidak "melebar" ke samping.
+
+### `inset`: Bayangan di Dalam
+
+```css
+.input-tekan {
+  box-shadow: inset 0 2px 4px rgb(15 23 42 / 0.12);   /* kesan cekung */
+}
+```
+
+### "Cincin" dengan Spread
+
+`box-shadow: 0 0 0 3px warna` menggambar cincin tebal tanpa geser dan blur. Teknik ini populer untuk status fokus, tetapi **bukan pengganti `outline`**; lihat catatan di bawah.
+
+## 4. Aksesibilitas dan Performa
+
+> **⚠️ Mode Warna Paksa:** Pada *forced colors mode* (misalnya Windows High Contrast), peramban mengubah `box-shadow` dan `text-shadow` menjadi `none`. Cincin fokus yang dibuat hanya dari `box-shadow` akan **hilang** bagi pengguna tersebut. Selalu gunakan `outline` (atau sertakan `outline: 2px solid transparent` sebagai cadangan yang tetap terlihat di mode paksa) untuk indikator fokus.
+
+```css
+.input:focus-visible {
+  outline: 2px solid transparent;                  /* diganti warna sistem pada forced colors */
+  box-shadow: 0 0 0 3px oklch(55% 0.2 255 / 0.35); /* tampilan normal */
+}
+```
+
+- **Performa:** Menganimasikan `box-shadow` memicu *paint* pada setiap bingkai. Untuk efek *hover* yang halus, taruh bayangan besar pada pseudo-element `::after`, lalu animasikan **`opacity`**-nya.
+- **Kontras:** Indikator fokus harus mudah terlihat; WCAG 2.2 meminta kontras yang cukup untuk komponen antarmuka (SC 1.4.11).
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menghapus cincin fokus (`outline: none`) tanpa pengganti.** Gunakan `outline` yang jelas pada `:focus-visible`.
+2. **Memakai `border` untuk status fokus.** Ketebalannya menggeser tata letak; gunakan `outline`.
+3. **Satu lapis bayangan hitam pekat.** Terlihat berat dan tak natural; tumpuk lapisan lembut berwarna.
+4. **Mengandalkan `box-shadow` saja sebagai indikator.** Hilang di mode warna paksa.
+5. **Menganimasikan bayangan besar secara langsung.** Gunakan trik `opacity` pada pseudo-element.
+
+## Latihan Praktik: Kartu dengan Kedalaman dan Fokus yang Jelas
+
+Buatlah berkas `bingkai-bayangan.html` dan `bingkai.css`:
+1. Buat kartu dengan bayangan tiga lapis seperti contoh, lalu bandingkan dengan `box-shadow: 0 10px 30px black`.
+2. Buat input dengan bayangan `inset` yang menimbulkan kesan cekung.
+3. Beri semua kontrol interaktif `:focus-visible` dengan `outline: 3px solid` dan `outline-offset: 3px`. Uji dengan `Tab`, lalu aktifkan emulasi `forced-colors: active` di tab Rendering DevTools untuk memastikan cincin tetap terlihat.
+4. Buat efek *hover* kartu dengan bayangan di `::after` dan animasikan `opacity`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `box-shadow` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `box-shadow` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Pada `box-shadow: A, B, C;` (tiga bayangan), bayangan mana yang tergambar paling atas?
+- A. `C`
+- B. `B`
+- C. `A`
+- D. Semuanya setara.
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `box-shadow` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** C
+**Penjelasan:** Pada daftar bayangan, bayangan pertama berada paling depan dan yang berikutnya di belakangnya.
 
 ### Soal 2
-Dalam konteks **Desain Bingkai, Bayangan Berlapis Realistis (`box-shadow`), dan Cincin Fokus `outline-offset`**, bagaimana `outline-offset` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`outline-offset`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Mengapa `outline` lebih cocok daripada `border` untuk menandai fokus papan ketik?
+- A. Karena `outline` dapat dianimasikan, sedangkan `border` tidak.
+- B. Karena `border` tidak mendukung warna.
+- C. Karena `outline` hanya dapat dilihat oleh pembaca layar.
+- D. Karena `outline` tidak mengubah ukuran elemen sehingga tata letak tidak bergeser saat fokus muncul, dan tetap tampil pada mode warna paksa.
 
-**Jawaban Benar:** B
-**Penjelasan:** `outline-offset` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** D
+**Penjelasan:** `outline` digambar di luar kotak tanpa memengaruhi tata letak. Pada mode warna paksa peramban tetap menampilkannya, sedangkan `box-shadow` dihilangkan.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Apa yang membuat bayangan tampak lebih natural daripada `box-shadow: 0 10px 30px black`?
+- A. Menumpuk beberapa lapis bayangan beropasitas rendah dengan blur yang berbeda-beda, memakai warna bernuansa latar alih-alih hitam murni.
+- B. Menambah nilai blur sampai `200px`.
+- C. Memakai `inset` pada semua bayangan.
+- D. Menghapus `border-radius`.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** A
+**Penjelasan:** Bayangan nyata terdiri atas beberapa komponen cahaya; menumpuk lapisan lembut dengan jarak dan blur berbeda menghasilkan kedalaman yang lebih meyakinkan daripada satu bayangan hitam pekat.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [`box-shadow` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/box-shadow)
+- [`outline` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/outline)
+- [`outline-offset` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/outline-offset)
+- [`border` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/border)
+- [CSS Color Adjustment Module Level 1 (Forced Colors Mode) — W3C](https://www.w3.org/TR/css-color-adjust-1/)

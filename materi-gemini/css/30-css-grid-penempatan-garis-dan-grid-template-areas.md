@@ -3,90 +3,171 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menempatkan elemen secara presisi di atas kanvas dua dimensi menggunakan nomor garis positif/negatif (`1 / -1`), garis bernama, serta peta visual `grid-template-areas` yang beradaptasi di berbagai layar.
 
-## Mengapa "Penempatan Eksplisit CSS Grid: Garis Bernama (`[utama-awal]`), `span`, dan `grid-template-areas`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Penempatan Eksplisit?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`grid-template-areas`** dan **`grid-column: 1 / -1`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Pada Pelajaran 07 kita membiarkan item mengisi sel secara berurutan. Banyak tata letak, seperti halaman dasbor, artikel dengan margin lebar, atau spanduk yang melintasi seluruh lebar, memerlukan **kontrol penuh**: item tertentu harus berada di kolom tertentu, merentang beberapa baris, atau berpindah tempat pada layar lebar. CSS Grid menyediakan tiga cara menempatkan item secara eksplisit: **nomor garis**, **garis bernama**, dan **area bernama**.
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. Nomor Garis (*Grid Lines*)
 
-Fitur `grid-template-areas` dan `grid-column: 1 / -1` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
-
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`grid-template-areas`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`grid-column: 1 / -1`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `grid-template-areas` dan `grid-column: 1 / -1` sesuai praktik terbaik CSS modern:
+Grid dengan *n* kolom memiliki *n + 1* garis vertikal, bernomor `1` dari tepi awal. Garis dapat dihitung dari belakang dengan angka negatif: `-1` adalah garis terakhir dari *explicit grid*.
 
 ```css
-/* Contoh penerapan Penempatan Eksplisit CSS Grid: Garis Bernama (`[utama-awal]`), `span`, dan `grid-template-areas` */
-.kanvas {
+.halaman {
   display: grid;
-  grid-template-columns: [penuh-awal] 1rem [isi-awal] 1fr [isi-akhir] 1rem [penuh-akhir];
+  grid-template-columns: 1fr 2fr 1fr;     /* 3 kolom, 4 garis (1, 2, 3, 4 atau -4, -3, -2, -1) */
+  gap: 1rem;
+}
+
+.spanduk   { grid-column: 1 / -1; }       /* dari garis pertama sampai garis terakhir */
+.utama     { grid-column: 2 / 3; }        /* hanya kolom ke-2 */
+.sisi      { grid-column: 3; grid-row: 1 / 3; }   /* kolom ke-3, merentang baris 1 dan 2 */
+```
+
+Cara menulis kata kunci `span` (merentang sebanyak sekian jalur):
+
+```css
+.kartu-besar   { grid-column: span 2; }      /* lebar 2 kolom dari posisi yang didapat */
+.mulai-di-dua  { grid-column: 2 / span 2; }  /* mulai garis 2, merentang 2 kolom */
+.tinggi        { grid-row: span 3; }
+```
+
+> **💡 Catatan:** `-1` selalu merujuk ke garis terakhir dari *explicit grid* (yang dibuat oleh `grid-template-*`), bukan garis terakhir dari jalur implisit yang dibuat otomatis. `grid-column: 1 / -1` tidak akan melintasi kolom tambahan yang dihasilkan `grid-auto-columns`.
+
+## 2. Garis Bernama (*Named Lines*)
+
+Alih-alih mengingat nomor, beri nama pada garis di dalam tanda kurung siku:
+
+```css
+.artikel {
+  display: grid;
+  grid-template-columns:
+    [penuh-awal] minmax(1rem, 1fr)
+    [utama-awal] minmax(0, 65ch)
+    [utama-akhir] minmax(1rem, 1fr)
+    [penuh-akhir];
+}
+
+.artikel > *           { grid-column: utama-awal / utama-akhir; }  /* teks di kolom utama */
+.artikel > .lebar      { grid-column: penuh-awal / penuh-akhir; }  /* gambar melebar sampai tepi */
+```
+
+Satu garis boleh punya lebih dari satu nama (`[utama-akhir sisi-awal]`). Pola ini populer untuk tata letak artikel dengan elemen "pecah keluar" (*full-bleed*) tanpa perhitungan margin negatif.
+
+## 3. `grid-template-areas`: Menggambar Peta Tata Letak
+
+`grid-template-areas` memakai string, satu string per baris, dan nama area per sel:
+
+```css
+.dasbor {
+  display: grid;
+  min-block-size: 100dvh;
+  grid-template-columns: 14rem minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "menu  kepala"
+    "menu  utama"
+    "menu  kaki";
+}
+
+.dasbor > nav    { grid-area: menu; }
+.dasbor > header { grid-area: kepala; }
+.dasbor > main   { grid-area: utama; }
+.dasbor > footer { grid-area: kaki; }
+```
+
+Aturan penting:
+- Setiap baris harus memiliki **jumlah sel yang sama**.
+- Area yang bernama sama harus membentuk **persegi panjang** (tidak boleh bentuk L atau terpisah).
+- Tanda titik `.` menandai sel kosong.
+- Setiap area otomatis membuat garis bernama `nama-start` dan `nama-end` (mis. `utama-start`, `utama-end`), yang juga bisa dipakai pada `grid-column`/`grid-row`.
+
+### Beradaptasi di Layar yang Berbeda
+
+Cukup tulis ulang peta pada titik perubahan. Elemen tidak perlu dipindah di HTML:
+
+```css
+.dasbor {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "kepala"
+    "menu"
+    "utama"
+    "kaki";
+}
+
+@media (width >= 48rem) {
+  .dasbor {
+    grid-template-columns: 14rem minmax(0, 1fr);
+    grid-template-areas:
+      "menu kepala"
+      "menu utama"
+      "menu kaki";
+  }
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan grid-template-areas</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
-```
+## 4. Singkatan `grid-area` dan Hati-hati dengan Urutannya
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `grid-template-areas` dan `grid-column: 1 / -1`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+`grid-area` punya dua fungsi. Dengan satu nama, ia menempatkan item di area bernama (`grid-area: utama`). Dengan empat nilai, urutannya adalah:
 
-## 3. Kesalahan Umum yang Harus Dihindari
+`grid-area: baris-awal / kolom-awal / baris-akhir / kolom-akhir`
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `grid-template-areas` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+Urutan ini **berbeda** dari `margin` (atas, kanan, bawah, kiri) dan mudah tertukar. Contoh: `grid-area: 1 / 2 / 3 / 4` berarti mulai dari baris 1 dan kolom 2, berakhir di garis baris 3 dan garis kolom 4, yaitu menempati baris 1 sampai 2 dan kolom 2 sampai 3.
 
-## Latihan Praktik
+## 5. Tumpang Tindih dan Aksesibilitas
 
-Buatlah berkas `30-css-grid-penempatan-garis-dan-grid-template-areas.html` dan stylesheet pendampingnya:
-1. Terapkan kode `grid-template-areas` dan `grid-column: 1 / -1` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+Beberapa item boleh ditempatkan di sel yang sama; urutan tumpukan mengikuti DOM atau diatur dengan `z-index`. Seperti pada Flexbox, penempatan hanya mengubah **tampilan**. Urutan fokus papan ketik dan pembacaan pembaca layar tetap mengikuti urutan DOM, jadi susun HTML dalam urutan baca yang logis dan gunakan Grid untuk penataannya.
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menulis `grid-template-areas` dengan jumlah sel berbeda per baris.** Seluruh deklarasi menjadi tidak valid.
+2. **Membuat area berbentuk L.** Area harus persegi panjang.
+3. **Mengira `-1` mencakup kolom implisit.** `-1` hanya merujuk ke garis terakhir dari explicit grid.
+4. **Menukar urutan nilai pada `grid-area`.** Urutannya baris-awal, kolom-awal, baris-akhir, kolom-akhir.
+5. **Menggunakan penempatan untuk mengubah urutan baca konten.** Perubahan visual tidak mengubah urutan fokus.
+
+## Latihan Praktik: Tata Letak Artikel dan Dasbor
+
+Buatlah berkas `grid-penempatan.html` dan `grid-penempatan.css`:
+1. Buat tata letak artikel dengan garis bernama `utama-awal` dan `utama-akhir`; teks berada di kolom utama dan satu gambar melebar penuh dengan `penuh-awal / penuh-akhir`.
+2. Buat dasbor dengan `grid-template-areas` untuk `menu`, `kepala`, `utama`, dan `kaki`.
+3. Ubah peta area untuk layar sempit (satu kolom) dan layar lebar (menu di kiri) dengan `@media (width >= 48rem)`.
+4. Tempatkan sebuah lencana di pojok kanan atas kartu dengan menumpuknya pada sel yang sama.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `grid-template-areas` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `grid-template-areas` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Sebuah item diberi `grid-area: 1 / 2 / 3 / 4`. Wilayah mana yang ditempati?
+- A. Baris 1 dan kolom 2 saja.
+- B. Baris 1 sampai 2 dan kolom 2 sampai 3.
+- C. Baris 1 sampai 3 dan kolom 2 sampai 4.
+- D. Kolom 1 sampai 2 dan baris 2 sampai 3.
 
 **Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `grid-template-areas` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Penjelasan:** Urutan `grid-area` adalah baris-awal / kolom-awal / baris-akhir / kolom-akhir. Berakhir di garis baris 3 berarti item menempati baris 1 dan 2, dan berakhir di garis kolom 4 berarti item menempati kolom 2 dan 3.
 
 ### Soal 2
-Dalam konteks **Penempatan Eksplisit CSS Grid: Garis Bernama (`[utama-awal]`), `span`, dan `grid-template-areas`**, bagaimana `grid-column: 1 / -1` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`grid-column: 1 / -1`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Manakah deklarasi `grid-template-areas` yang **tidak valid**?
+- A. `"kepala kepala" "menu utama"`
+- B. `"kepala kepala" "menu menu"`
+- C. `"a a" "a b"`
+- D. `"kepala ." "menu utama"`
 
-**Jawaban Benar:** B
-**Penjelasan:** `grid-column: 1 / -1` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** Pada opsi C, area `a` menempati sel (1,1), (1,2), dan (2,1) sehingga berbentuk L, bukan persegi panjang, dan deklarasi dianggap tidak valid. Opsi A, B, dan D memuat area berbentuk persegi panjang; titik pada opsi D hanya menandai sel kosong.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Jika `grid-template-areas` memuat area bernama `utama`, garis bernama apa yang otomatis tersedia untuk `grid-column` dan `grid-row`?
+- A. `utama-awal` dan `utama-akhir`
+- B. `utama-start` dan `utama-end`
+- C. `utama-1` dan `utama-2`
+- D. Tidak ada; garis harus ditulis manual.
 
 **Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Penjelasan:** Setiap area bernama secara implisit membuat garis dengan akhiran `-start` dan `-end` (misalnya `utama-start` dan `utama-end`), tanpa perlu dituliskan di `grid-template-columns` atau `grid-template-rows`.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [Line-based placement with CSS grid — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout/Line-based_placement)
+- [Grid template areas — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout/Grid_template_areas)
+- [Named grid lines — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout/Named_grid_lines)
+- [`grid-area` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/grid-area)

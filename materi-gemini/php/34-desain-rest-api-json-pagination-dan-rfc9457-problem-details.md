@@ -13,7 +13,7 @@ Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `jso
 
 | Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `json_encode($payload, JSON_THROW_ON_ERROR / JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES);` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
+| **API / Pola Utama** | `json_encode($payload, JSON_THROW_ON_ERROR \| JSON_UNESCAPED_UNICODE \| JSON_UNESCAPED_SLASHES);` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
 | **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
 | **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
 
@@ -41,7 +41,7 @@ function kirimProblemJson(int $status, string $judul, string $detail, string $ti
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `json_encode($payload, JSON_THROW_ON_ERROR / JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES);` seperti pada contoh di atas.
+1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);` seperti pada contoh di atas.
 2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
 3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
 
@@ -50,7 +50,7 @@ function kirimProblemJson(int $status, string $judul, string $detail, string $ti
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menggunakan `LIMIT 20 OFFSET 500000` untuk paginasi halaman ke-25.000 memaksa database membaca dan membuang 500.000 baris terlebih dahulu pada setiap permintaan; gunakan *Keyset/Cursor Pagination* (`WHERE id < :idTerakhir ORDER BY id DESC LIMIT 20`).*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena database harus membaca lalu membuang 500.000 baris terlebih dahulu pada setiap permintaan, sehingga kueri makin lambat dan beban database makin berat seiring halaman yang makin dalam, sedangkan keyset pagination langsung melompat ke posisi terakhir melalui indeks
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -58,14 +58,14 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menggun
 **Penjelasan:** Menggunakan `LIMIT 20 OFFSET 500000` untuk paginasi halaman ke-25.000 memaksa database membaca dan membuang 500.000 baris terlebih dahulu pada setiap permintaan; gunakan *Keyset/Cursor Pagination* (`WHERE id < :idTerakhir ORDER BY id DESC LIMIT 20`).
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `json_encode($payload, JSON_THROW_ON_ERROR / JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES);` di PHP modern?
+Manakah pernyataan yang benar mengenai penggunaan `json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);` di PHP modern?
 - A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
 - B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
 - C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
 - D. Menghapus kebutuhan akan `declare(strict_types=1)`
 
 **Jawaban Benar:** A
-**Penjelasan:** Pola `json_encode($payload, JSON_THROW_ON_ERROR / JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES);` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
+**Penjelasan:** Pola `json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
 Langkah manakah yang paling tepat saat mengintegrasikan materi `Rekayasa REST API di PHP` ke dalam arsitektur aplikasi?
@@ -79,7 +79,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Rekayasa REST AP
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [`json_encode` — PHP Manual](https://www.php.net/manual/en/function.json-encode.php)
+- [JSON constants — PHP Manual](https://www.php.net/manual/en/json.constants.php)
+- [RFC 9457: Problem Details for HTTP APIs — IETF](https://www.rfc-editor.org/rfc/rfc9457)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

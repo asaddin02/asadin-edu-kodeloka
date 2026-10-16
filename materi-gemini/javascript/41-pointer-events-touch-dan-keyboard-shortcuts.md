@@ -77,6 +77,5 @@ Saat mengintegrasikan fitur `Penanganan Input Terpadu` ke dalam aplikasi produks
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Pointer events — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events)
+- [`KeyboardEvent.key` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key)

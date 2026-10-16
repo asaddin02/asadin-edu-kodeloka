@@ -88,7 +88,7 @@ Ketika pengguna mengeklik sebuah `<button>` yang berada di dalam `<li>` → `<ul
 2. **Fase Target:** Event tiba di `<button>` yang diklik.
 3. **Fase Bubbling (Menggelembung Naik — Bawaan):** Event merambat naik kembali ke atas melalui `<li>` → `<ul>` → `<main>` → `<body>` → `document`!
 
-```
+```text
           [ document ]
             │      ▲
   1. Capture│      │3. Bubble (Secara bawaan addEventListener mendengarkan di fase ini!)

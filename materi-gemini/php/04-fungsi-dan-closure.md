@@ -23,7 +23,7 @@ function buatUrlhalaman(
 ```
 
 > **💡 Aturan Koma Terakhir (*Trailing Comma*):**
-> Sejak PHP 8.0, Anda diizinkan menuliskan koma di akhir daftar parameter fungsi maupun daftar argumen pemanggilan multi-baris. Kebiasaan ini membuat riwayat perubahan Git (*git diff*) jauh lebih bersih saat Anda menambahkan parameter baru di kemudian hari!
+> Anda diizinkan menuliskan koma di akhir daftar argumen pemanggilan multi-baris (sejak PHP 7.3) maupun di akhir daftar parameter fungsi (sejak PHP 8.0). Kebiasaan ini membuat riwayat perubahan Git (*git diff*) jauh lebih bersih saat Anda menambahkan parameter baru di kemudian hari!
 
 ### Argumen Bernama (*Named Arguments* — Sejak PHP 8.0)
 Pernahkah Anda memanggil fungsi yang memiliki banyak parameter opsional seperti `setcookie()` atau `htmlspecialchars()`, lalu terpaksa menuliskan sederet nilai bawaan di tengahnya hanya demi mengubah parameter terakhir?
@@ -192,4 +192,6 @@ Apa fungsi dari atribut `#[\NoDiscard]` yang ditambahkan pada sebuah deklarasi f
 
 ## Sumber
 - [Functions (User-defined functions, Anonymous functions, Arrow Functions, First-class callable syntax) — PHP Manual](https://www.php.net/manual/en/language.functions.php)
+- [First-class callable syntax — PHP Manual](https://www.php.net/manual/en/functions.first_class_callable_syntax.php)
+- [The NoDiscard attribute — PHP Manual](https://www.php.net/manual/en/class.nodiscard.php)
 - [PHP 8.5 Release Announcement (`#[\NoDiscard]`) — PHP.net](https://www.php.net/releases/8.5/en.php)

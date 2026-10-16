@@ -53,14 +53,14 @@ Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Memodifikasi para
 **Penjelasan:** Memodifikasi parameter objek/array yang diterima di dalam argumen fungsi secara langsung (*in-place mutation*) merusak kemurnian fungsi (*pure function*) dan memicu bug tersembunyi di bagian aplikasi lain yang masih memegang referensi ke objek yang sama.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `const pipe = (...fns) => (nilaiAwal) => fns.reduce((v, f) => f(v), nilaiAwal);` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
+Manakah di antara fungsi berikut yang merupakan **fungsi murni** (*pure function*)?
+- A. `const tambah = (a, b) => a + b;`
+- B. `const acak = (batas) => Math.random() * batas;`
+- C. `const catat = (nilai) => { console.log(nilai); return nilai; };`
+- D. `const tambahItem = (daftar, item) => { daftar.push(item); return daftar; };`
 
 **Jawaban Benar:** A
-**Penjelasan:** `const pipe = (...fns) => (nilaiAwal) => fns.reduce((v, f) => f(v), nilaiAwal);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** Fungsi murni selalu mengembalikan hasil yang sama untuk argumen yang sama dan tidak menimbulkan efek samping. `tambah` memenuhi keduanya. `acak` menghasilkan nilai yang berubah-ubah, `catat` menulis ke konsol (efek samping), dan `tambahItem` memutasi array masukan.
 
 ### Soal 3
 Saat mengintegrasikan fitur `Pemrograman Fungsional di JavaScript` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
@@ -74,6 +74,5 @@ Saat mengintegrasikan fitur `Pemrograman Fungsional di JavaScript` ke dalam apli
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`Array.prototype.reduce()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce)
+- [Functions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions)

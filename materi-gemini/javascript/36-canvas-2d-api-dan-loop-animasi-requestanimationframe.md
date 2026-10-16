@@ -7,7 +7,7 @@
 
 Dalam rekayasa perangkat lunak modern, penguasaan `ctx.scale(dpr, dpr); requestAnimationFrame(loopAnimasi);` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
 
-> **⚠️ Jebakan Umum di Lapangan:** Menjalankan loop animasi visual menggunakan `setInterval(fn, 16)` alih-alih `requestAnimationFrame(fn)` menyebabkan sobekan gambar (*frame tearing*), boros baterai saat tab tidak aktif, dan kecepatan gerakan yang berubah-ubah antara monitor 60Hz dan 120Hz.
+> **⚠️ Jebakan Umum di Lapangan:** Menjalankan loop animasi visual menggunakan `setInterval(fn, 16)` alih-alih `requestAnimationFrame(fn)` menyebabkan gerakan tersendat karena frame terlewat (*jank*), boros baterai saat tab tidak aktif, dan kecepatan gerakan yang berubah-ubah antara monitor 60Hz dan 120Hz.
 
 ## Konsep Inti dan Mekanisme di Balik Layar
 
@@ -45,14 +45,14 @@ function siapkanCanvasTajam(canvas, lebarCss, tinggiCss) {
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Menjalankan loop animasi visual menggunakan `setInterval(fn, 16)` alih-alih `requestAnimationFrame(fn)` menyebabkan sobekan gambar (*frame tearing*), boros baterai saat tab tidak aktif, dan kecepatan gerakan yang berubah-ubah antara monitor 60Hz dan 120Hz.*?
+Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Menjalankan loop animasi visual menggunakan `setInterval(fn, 16)` alih-alih `requestAnimationFrame(fn)` menyebabkan gerakan tersendat karena frame terlewat (*jank*), boros baterai saat tab tidak aktif, dan kecepatan gerakan yang berubah-ubah antara monitor 60Hz dan 120Hz.*?
 - A. Karena hanya berdampak pada ukuran berkas CSS eksternal
 - B. Karena dapat memicu bug akurasi data, kebocoran memori, celah keamanan, atau penurunan kinerja antarmuka pada kondisi nyata Pengguna
 - C. Karena fitur tersebut hanya berjalan pada peramban tahun 1999
 - D. Karena JavaScript tidak mendukung fungsi asinkron
 
 **Jawaban Benar:** B
-**Penjelasan:** Menjalankan loop animasi visual menggunakan `setInterval(fn, 16)` alih-alih `requestAnimationFrame(fn)` menyebabkan sobekan gambar (*frame tearing*), boros baterai saat tab tidak aktif, dan kecepatan gerakan yang berubah-ubah antara monitor 60Hz dan 120Hz.
+**Penjelasan:** Menjalankan loop animasi visual menggunakan `setInterval(fn, 16)` alih-alih `requestAnimationFrame(fn)` menyebabkan gerakan tersendat karena frame terlewat (*jank*), boros baterai saat tab tidak aktif, dan kecepatan gerakan yang berubah-ubah antara monitor 60Hz dan 120Hz.
 
 ### Soal 2
 Manakah pernyataan yang paling tepat mengenai penggunaan `ctx.scale(dpr, dpr); requestAnimationFrame(loopAnimasi);` di JavaScript modern?
@@ -65,7 +65,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `ctx.scale(dpr, dpr); r
 **Penjelasan:** `ctx.scale(dpr, dpr); requestAnimationFrame(loopAnimasi);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Grafik 2D `<canvas>` Mendalam, Siklus `requestAnimationFrame`, dan Koreksi `devicePixelRatio`` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur "Grafik 2D `<canvas>` Mendalam, Siklus `requestAnimationFrame`, dan Koreksi `devicePixelRatio`" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -76,6 +76,6 @@ Saat mengintegrasikan fitur `Grafik 2D `<canvas>` Mendalam, Siklus `requestAnima
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Canvas API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
+- [`Window.requestAnimationFrame()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)
+- [`Window.devicePixelRatio` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio)

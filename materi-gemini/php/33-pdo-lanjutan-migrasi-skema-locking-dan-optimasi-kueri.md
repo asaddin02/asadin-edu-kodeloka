@@ -88,7 +88,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `PDO Lanjutan` ke
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Transactions and auto-commit — PHP Manual](https://www.php.net/manual/en/pdo.transactions.php)
+- [PDO (PHP Data Objects) — PHP Manual](https://www.php.net/manual/en/book.pdo.php)
+- [Explicit Locking — PostgreSQL Documentation](https://www.postgresql.org/docs/current/explicit-locking.html)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

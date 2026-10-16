@@ -80,6 +80,6 @@ Saat mengintegrasikan fitur `Penjadwalan Tugas Antarmuka` ke dalam aplikasi prod
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`Scheduler.yield()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield)
+- [`Window.requestIdleCallback()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback)
+- [`queueMicrotask()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Window/queueMicrotask)

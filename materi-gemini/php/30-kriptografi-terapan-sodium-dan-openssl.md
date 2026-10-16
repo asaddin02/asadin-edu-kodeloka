@@ -1,13 +1,13 @@
 # Kriptografi Terapan di PHP: Ekstensi `Sodium` (`libsodium`), Enkripsi Autentik, dan Tanda Tangan Digital
 
 - **Tingkat:** Lanjut
-- **Ringkasan:** Menggunakan pustaka kriptografi modern **`ext-sodium`** (bawaan inti PHP) untuk mengenkripsi data rahasia dengan **Authenticated Encryption (`sodium_crypto_secretbox` / AES-256-GCM)**, menandatangani dokumen dengan Ed25519 (`sodium_crypto_sign`), serta menghapus kunci sensitif dari RAM dengan `sodium_memzero()`.
+- **Ringkasan:** Menggunakan pustaka kriptografi modern **`ext-sodium`** (bawaan inti PHP) untuk mengenkripsi data rahasia dengan **Authenticated Encryption (`sodium_crypto_secretbox`, berbasis XSalsa20-Poly1305)**, menandatangani dokumen dengan Ed25519 (`sodium_crypto_sign`), serta menghapus kunci sensitif dari RAM dengan `sodium_memzero()`.
 
 ## Mengapa Topik Ini Penting di Produksi?
 
 Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `sodium_crypto_secretbox($pesan, $nonce, $kunciRahasia);` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
 
-> **🚫 Kerentanan & Kesalahan Umum:** Menggunakan mode enkripsi blok lawas seperti AES-ECB atau AES-CBC tanpa kode autentikasi pesan (MAC / HMAC) membuat ciphertext rentan terhadap serangan *Padding Oracle* dan manipulasi bit; gunakan enkripsi terautentikasi (AEAD) seperti `sodium_crypto_secretbox`.
+> **🚫 Kerentanan & Kesalahan Umum:** Menggunakan mode enkripsi blok lawas seperti AES-ECB atau AES-CBC tanpa kode autentikasi pesan (MAC / HMAC) membuat ciphertext rentan terhadap serangan *Padding Oracle* dan manipulasi bit; gunakan enkripsi terautentikasi (*authenticated encryption*) seperti `sodium_crypto_secretbox`.
 
 ## Konsep Inti dan Perbandingan Praktik Terbaik
 
@@ -57,14 +57,14 @@ function dekripsiRahasia(string $paketBase64, #[\SensitiveParameter] string $kun
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menggunakan mode enkripsi blok lawas seperti AES-ECB atau AES-CBC tanpa kode autentikasi pesan (MAC / HMAC) membuat ciphertext rentan terhadap serangan *Padding Oracle* dan manipulasi bit; gunakan enkripsi terautentikasi (AEAD) seperti `sodium_crypto_secretbox`.*?
+Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menggunakan mode enkripsi blok lawas seperti AES-ECB atau AES-CBC tanpa kode autentikasi pesan (MAC / HMAC) membuat ciphertext rentan terhadap serangan *Padding Oracle* dan manipulasi bit; gunakan enkripsi terautentikasi (*authenticated encryption*) seperti `sodium_crypto_secretbox`.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
 - B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
 **Jawaban Benar:** B
-**Penjelasan:** Menggunakan mode enkripsi blok lawas seperti AES-ECB atau AES-CBC tanpa kode autentikasi pesan (MAC / HMAC) membuat ciphertext rentan terhadap serangan *Padding Oracle* dan manipulasi bit; gunakan enkripsi terautentikasi (AEAD) seperti `sodium_crypto_secretbox`.
+**Penjelasan:** Menggunakan mode enkripsi blok lawas seperti AES-ECB atau AES-CBC tanpa kode autentikasi pesan (MAC / HMAC) membuat ciphertext rentan terhadap serangan *Padding Oracle* dan manipulasi bit; gunakan enkripsi terautentikasi (*authenticated encryption*) seperti `sodium_crypto_secretbox`.
 
 ### Soal 2
 Manakah pernyataan yang benar mengenai penggunaan `sodium_crypto_secretbox($pesan, $nonce, $kunciRahasia);` di PHP modern?
@@ -88,7 +88,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Kriptografi Tera
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Sodium — PHP Manual](https://www.php.net/manual/en/book.sodium.php)
+- [`sodium_crypto_secretbox` — PHP Manual](https://www.php.net/manual/en/function.sodium-crypto-secretbox.php)
+- [OpenSSL — PHP Manual](https://www.php.net/manual/en/book.openssl.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

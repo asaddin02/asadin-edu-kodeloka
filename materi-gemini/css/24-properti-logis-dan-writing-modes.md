@@ -3,92 +3,147 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Mengonversi seluruh properti fisik (`top/right/bottom/left`, `width/height`) ke properti aliran logis serta merancang teks vertikal atau multibahasa dengan `writing-mode: vertical-rl`.
 
-## Mengapa "Properti Logis Lengkap (`inset-inline`, `margin-block`, `border-start-start-radius`) dan `writing-mode`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Berpikir "Logis" daripada "Fisik"?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`inset-inline`** dan **`writing-mode`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Properti fisik seperti `margin-left` dan `width` mengasumsikan teks mengalir mendatar dari kiri ke kanan. Asumsi itu patah ketika halaman Anda dibaca dalam bahasa Arab atau Ibrani (kanan ke kiri) atau ditata vertikal seperti pada banyak teks Jepang dan Tiongkok. **Properti logis** menggantikan arah layar (kiri, kanan, atas, bawah) dengan arah **aliran teks**: awal dan akhir pada sumbu *inline* dan sumbu *block*. Dengan begitu, satu stylesheet dapat melayani berbagai bahasa tanpa menulis ulang. Properti logis berstatus **Baseline Widely Available** (lintas peramban sejak 2021).
 
-## 1. Konsep Kerja dan Dukungan Standar
+## 1. Dua Sumbu: *Inline* dan *Block*
 
-Fitur `inset-inline` dan `writing-mode` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+- Sumbu **inline** adalah arah teks mengalir dalam satu baris. Pada Bahasa Indonesia (`horizontal-tb`, `ltr`) ia berjalan kiri ke kanan.
+- Sumbu **block** adalah arah baris-baris ditumpuk. Pada `horizontal-tb` ia berjalan atas ke bawah.
+- Setiap sumbu memiliki **start** (awal) dan **end** (akhir).
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`inset-inline`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`writing-mode`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
+Pemetaan pada beberapa kondisi:
 
-## 2. Implementasi Kode CSS Siap Pakai
+| Kondisi | `inline-start` | `inline-end` | `block-start` | `block-end` |
+|---|---|---|---|---|
+| `horizontal-tb`, `ltr` (Indonesia, Inggris) | kiri | kanan | atas | bawah |
+| `horizontal-tb`, `rtl` (Arab, Ibrani) | kanan | kiri | atas | bawah |
+| `vertical-rl`, `ltr` (teks vertikal Jepang/Tiongkok, kolom bergerak ke kiri) | atas | bawah | kanan | kiri |
 
-Berikut adalah pola penerapan `inset-inline` dan `writing-mode` sesuai praktik terbaik CSS modern:
+Karena itu, `inline-size` berarti lebar pada mode horizontal, tetapi **tinggi** pada mode vertikal; `block-size` kebalikannya.
+
+## 2. Daftar Konversi Fisik ke Logis
+
+| Fisik | Logis |
+|---|---|
+| `width`, `min-width`, `max-width` | `inline-size`, `min-inline-size`, `max-inline-size` |
+| `height`, `min-height`, `max-height` | `block-size`, `min-block-size`, `max-block-size` |
+| `margin-left` / `margin-right` | `margin-inline-start` / `margin-inline-end` |
+| `margin-top` / `margin-bottom` | `margin-block-start` / `margin-block-end` |
+| `padding-left` + `padding-right` | `padding-inline` (satu atau dua nilai: awal akhir) |
+| `padding-top` + `padding-bottom` | `padding-block` |
+| `border-left` | `border-inline-start` |
+| `top` / `bottom` | `inset-block-start` / `inset-block-end` |
+| `left` / `right` | `inset-inline-start` / `inset-inline-end` |
+| `top: 0; right: 0; bottom: 0; left: 0` | `inset: 0` |
+| `border-top-left-radius` | `border-start-start-radius` |
+| `border-top-right-radius` | `border-start-end-radius` |
+| `border-bottom-left-radius` | `border-end-start-radius` |
+| `border-bottom-right-radius` | `border-end-end-radius` |
+| `text-align: left` / `right` | `text-align: start` / `end` |
+| `float: left` / `right` | `float: inline-start` / `inline-end` |
+
+Beberapa catatan:
+- Pada properti sudut seperti `border-start-start-radius`, kata pertama adalah sisi **block** dan kata kedua adalah sisi **inline**. Pada `horizontal-tb` + `ltr`, `start-start` adalah sudut kiri atas; pada `rtl`, ia berpindah menjadi sudut kanan atas.
+- Shorthand dua nilai mengikuti urutan *awal, akhir*: `margin-block: 1rem 3rem` berarti `margin-block-start: 1rem` dan `margin-block-end: 3rem`.
+- Untuk menengahkan kotak: `margin-inline: auto`.
 
 ```css
-/* Contoh penerapan Properti Logis Lengkap (`inset-inline`, `margin-block`, `border-start-start-radius`) dan `writing-mode` */
-.panel {
-  inline-size: min(100%, 40rem);
+.kartu {
+  inline-size: min(100%, 36rem);
+  margin-inline: auto;
   padding-block: 1.5rem;
-  padding-inline: 2rem;
-  border-start-start-radius: 0.75rem;
+  padding-inline: 1.25rem;
+  border-inline-start: 4px solid oklch(55% 0.2 255);
+  border-start-start-radius: 1rem;
+  border-end-start-radius: 1rem;
+  text-align: start;
+}
+
+.lencana {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-end: 0.75rem;   /* otomatis pindah ke kiri pada halaman RTL */
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan inset-inline</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+## 3. `writing-mode` dan Teks Vertikal
+
+Properti `writing-mode` menentukan arah aliran baris:
+- `horizontal-tb` (bawaan): baris mendatar, ditumpuk dari atas ke bawah.
+- `vertical-rl`: baris tegak, ditumpuk dari **kanan ke kiri** (gaya bahasa Jepang/Tiongkok tradisional).
+- `vertical-lr`: baris tegak, ditumpuk dari **kiri ke kanan** (misalnya aksara Mongolia).
+
+`text-orientation` mengatur arah huruf pada mode vertikal: `mixed` (bawaan; aksara Latin diputar menyamping, aksara Asia Timur tetap tegak), `upright` (semua huruf ditegakkan), dan `sideways`.
+
+```css
+/* Label vertikal pada sisi tab */
+.tab-samping {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding-inline: 0.5rem;     /* pada mode vertikal, padding-inline berarti atas-bawah fisik */
+  padding-block: 1rem;        /* dan padding-block berarti kanan-kiri fisik */
+}
+
+/* Judul vertikal bergaya Jepang di samping artikel */
+.judul-vertikal {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.1em;
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `inset-inline` dan `writing-mode`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+> **💡 Arah Dokumen RTL:** Atur arah bahasa lewat HTML (`<html lang="ar" dir="rtl">`), bukan dengan CSS `direction`, karena `dir` memiliki makna semantik yang dipahami peramban dan teknologi bantu. Dengan properti logis, tata letak Anda otomatis berbalik tanpa aturan tambahan.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+## Kesalahan Umum dan Cara Menghindarinya
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `inset-inline` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+1. **Mencampur properti fisik dan logis pada elemen yang sama.** Misalnya `margin-left: 1rem` bersama `margin-inline-start: 2rem`; keduanya memetakan ke properti yang sama pada `ltr` dan hasil akhirnya ditentukan urutan penulisan. Pilih satu gaya penulisan.
+2. **Menganggap `inline-size` selalu berarti lebar.** Pada `writing-mode: vertical-rl`, `inline-size` adalah tinggi.
+3. **Salah membaca urutan kata pada `border-start-end-radius`.** Kata pertama adalah sisi *block*, kata kedua sisi *inline*: `start-end` adalah sudut di awal block dan akhir inline (kanan atas pada `ltr` mendatar).
+4. **Memakai `text-align: left` untuk teks isi.** Pada halaman RTL, teks akan terlihat rata di sisi yang salah. Gunakan `text-align: start`.
 
-## Latihan Praktik
+## Latihan Praktik: Komponen Dua Arah
 
-Buatlah berkas `24-properti-logis-dan-writing-modes.html` dan stylesheet pendampingnya:
-1. Terapkan kode `inset-inline` dan `writing-mode` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+Buatlah berkas `logis.html` dan `logis.css`:
+1. Ubah komponen kartu yang memakai `margin-left`, `padding-right`, `border-left`, dan `width` menjadi versi logis seluruhnya.
+2. Tambahkan atribut `dir="rtl"` pada `<html>` dan amati bahwa garis aksen serta lencana otomatis pindah sisi.
+3. Buat label tab vertikal dengan `writing-mode: vertical-rl` dan bandingkan `text-orientation: mixed` dengan `upright`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `inset-inline` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `inset-inline` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Sebuah elemen memakai `writing-mode: vertical-rl`. Dimensi fisik manakah yang dikendalikan oleh `inline-size`?
+- A. Lebar.
+- B. Padding horizontal.
+- C. Tinggi.
+- D. Ketebalan border.
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `inset-inline` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** C
+**Penjelasan:** Pada mode vertikal, sumbu inline berjalan tegak (atas ke bawah), sehingga `inline-size` mengatur tinggi fisik elemen, sedangkan `block-size` mengatur lebarnya.
 
 ### Soal 2
-Dalam konteks **Properti Logis Lengkap (`inset-inline`, `margin-block`, `border-start-start-radius`) dan `writing-mode`**, bagaimana `writing-mode` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`writing-mode`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Pada halaman `dir="ltr"` mendatar, `border-start-start-radius: 1rem` membulatkan sudut mana? Dan pada `dir="rtl"`?
+- A. Kiri atas pada `ltr`; kanan atas pada `rtl`.
+- B. Kiri bawah pada `ltr`; kanan bawah pada `rtl`.
+- C. Kanan atas pada `ltr`; kiri atas pada `rtl`.
+- D. Kiri atas pada keduanya, karena properti logis tidak memedulikan arah.
 
-**Jawaban Benar:** B
-**Penjelasan:** `writing-mode` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** A
+**Penjelasan:** `start-start` berarti awal sumbu block (atas pada mode mendatar) dan awal sumbu inline (kiri pada `ltr`, kanan pada `rtl`). Karena itu sudutnya berpindah mengikuti arah penulisan.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Apa arti `margin-block: 1rem 3rem;`?
+- A. Margin kiri `1rem` dan margin kanan `3rem`.
+- B. Margin atas dan bawah sama-sama `1rem`, sedangkan `3rem` diabaikan.
+- C. Margin atas `3rem` dan margin bawah `1rem`.
+- D. `margin-block-start: 1rem` dan `margin-block-end: 3rem`.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** D
+**Penjelasan:** Shorthand dua nilai pada properti logis mengikuti urutan awal lalu akhir sumbu tersebut. Pada mode mendatar, sumbu block adalah vertikal, jadi awal adalah atas dan akhir adalah bawah.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [CSS logical properties and values — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Logical_properties_and_values)
+- [`writing-mode` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/writing-mode)
+- [`border-start-start-radius` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/border-start-start-radius)
+- [CSS Logical Properties and Values Level 1 — W3C](https://www.w3.org/TR/css-logical-1/)

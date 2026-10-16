@@ -76,6 +76,5 @@ Saat mengintegrasikan fitur `Streams API` ke dalam aplikasi produksi, langkah re
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Streams API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)
+- [Using readable streams — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams)

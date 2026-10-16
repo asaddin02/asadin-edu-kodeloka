@@ -58,7 +58,7 @@ final class KoleksiTerukur
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Deklarasi tipe bawaan PHP `array` tidak memberi tahu isi elemen di dalamnya; tanpa anotasi `@param array<int, Produk>` dan analisis statis PHPStan, bug salah ketik kunci array baru akan meledak saat kode sudah berjalan di produksi.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena kesalahan tipe isi array (misalnya salah ketik kunci) baru ketahuan ketika kode sudah berjalan di produksi dan menimbulkan galat, padahal analisis statis dapat menangkapnya lebih awal tanpa menjalankan kode
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -76,7 +76,7 @@ Manakah pernyataan yang benar mengenai penggunaan `/** @template T of object \n 
 **Penjelasan:** Pola `/** @template T of object \n @param class-string<T> $namaKelas \n @return T */` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
 
 ### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Analisis Statis Tingkat Lanjut (PHPStan / Psalm) dan Anotasi PHPDoc Generics (`@template`, `array<string, int>`)` ke dalam arsitektur aplikasi?
+Langkah manakah yang paling tepat saat mengintegrasikan materi "Analisis Statis Tingkat Lanjut (PHPStan / Psalm) dan Anotasi PHPDoc Generics (@template, array<string, int>)" ke dalam arsitektur aplikasi?
 - A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
 - B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
 - C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
@@ -87,7 +87,9 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Analisis Statis 
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Getting Started — PHPStan](https://phpstan.org/user-guide/getting-started)
+- [PHPDocs Basics and PHPDoc Types — PHPStan](https://phpstan.org/writing-php-code/phpdoc-types)
+- [Psalm Documentation](https://psalm.dev/docs/)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

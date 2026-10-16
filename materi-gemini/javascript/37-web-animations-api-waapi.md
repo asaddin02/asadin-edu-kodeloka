@@ -30,7 +30,7 @@ async function hapusKartuDenganAnimasi(elemenKartu) {
         { opacity: 1, transform: "scale(1)" },
         { opacity: 0, transform: "scale(0.92)" }
       ],
-      { duration: 200, easing: " cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
+      { duration: 200, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
     );
     await animasi.finished;
   }
@@ -80,6 +80,5 @@ Saat mengintegrasikan fitur `Web Animations API (WAAPI)` ke dalam aplikasi produ
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [Web Animations API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API)
+- [`Element.animate()` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Element/animate)

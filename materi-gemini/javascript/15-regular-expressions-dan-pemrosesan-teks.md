@@ -26,7 +26,7 @@ Sebuah pola `RegExp` dapat ditulis sebagai literal `/pola/flags` atau lewat kons
 ### Bendera (*Flags*) Penting pada RegExp Modern
 - **`i` (*ignoreCase*):** Mengabaikan perbedaan huruf besar dan kecil.
 - **`g` (*global*):** Mencari seluruh kemunculan di dalam teks, bukan berhenti pada kecocokan pertama saja.
-- **`u` (*unicode*) / `v` (*unicodeSets* — Baseline Newly Available sejak 2024):** Mengaktifkan dukungan penuh karakter UTF-16/emoji dan properti karakter Unicode `\p{...}`!
+- **`u` (*unicode*) / `v` (*unicodeSets* — Baseline Widely Available sejak Maret 2026; didukung semua peramban utama sejak September 2023):** Mengaktifkan dukungan penuh karakter UTF-16/emoji dan properti karakter Unicode `\p{...}`!
 
 ## 2. Mengekstrak Data Terstruktur dengan *Named Capture Groups* (`(?<nama>...)`)
 
@@ -115,5 +115,5 @@ Apa penyebab terjadinya kerentanan *Regular Expression Denial of Service (ReDoS)
 **Penjelasan:** Mesin RegExp berbasis *backtracking* akan mencoba semua kemungkinan cara memecah string di antara kuantifier dalam dan luar sebelum menyerah. Menghindari kuantifier bersarang yang ambigu dan membatasi panjang input sebelum validasi regex adalah kunci pencegahan ReDoS.
 
 ## Sumber
-- [Regular expressions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
+- [Regular expressions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions)
 - [Text Processing (`RegExp` and `String`) — TC39 ECMAScript Specification](https://tc39.es/ecma262/multipage/text-processing.html)

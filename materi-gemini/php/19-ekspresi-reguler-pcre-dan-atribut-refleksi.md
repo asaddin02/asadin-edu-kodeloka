@@ -43,7 +43,7 @@ echo $teksHtml;
 
 ## 2. Mengenal PHP Attributes (`#[...]` — Sejak PHP 8.0 hingga 8.5)
 
-Di pelajaran sebelumnya, kita telah memakai atribut bawaan PHP seperti `#[\Override]`, `#[\Deprecated]`, dan `#[\NoDiscard]`, serta atribut PHPUnit seperti `#[Test]` dan `#[DataProvider]`.
+Di pelajaran sebelumnya, kita telah memakai atribut bawaan PHP seperti `#[\Override]` dan `#[\NoDiscard]`; atribut bawaan lain seperti `#[\Deprecated]` serta atribut PHPUnit seperti `#[Test]` dan `#[DataProvider]` akan ditemui pada pelajaran berikutnya.
 
 Apa sebenarnya **Attributes (`#[...]`)** itu?
 Sebelum PHP 8.0, pengembang terpaksa menulis konfigurasi metadata di dalam komentar teks `/** @Route("/kelas") */` (*docblock annotations*) lalu mengurainya dengan regex yang lambat dan rawan salah ketik.
@@ -148,10 +148,10 @@ Apa fungsi dari metode `$attr->newInstance()` ketika kita membaca atribut PHP 8 
 - D. Menjalankan metode Controller secara langsung.
 
 **Jawaban Benar:** B
-**Penjelasan:** `ReflectionAttribute::getAttributes()` terlebih dahulu mengembalikan representasi refleksi yang ringan. Ketika `$attr->newInstance()` dipanggil, PHP memanggil konstruktor class Attribute tersebut dengan argumen yang tertulis pada deklarasi atributnya dan mengembalikan objeknya.
+**Penjelasan:** Metode `getAttributes()` pada objek refleksi (misalnya `ReflectionMethod`) terlebih dahulu mengembalikan array objek `ReflectionAttribute`, yaitu representasi refleksi yang ringan. Ketika `$attr->newInstance()` dipanggil, PHP memanggil konstruktor class Attribute tersebut dengan argumen yang tertulis pada deklarasi atributnya dan mengembalikan objeknya.
 
 ### Soal 3
-Bagaimana cara membatasi agar sebuah *Custom Attribute* yang kita buat hanya boleh ditempelkan pada **properti class** saja (dan langsung ditolak jika tidak sengaja ditempelkan pada fungsi atau class)?
+Bagaimana cara membatasi agar sebuah *Custom Attribute* yang kita buat hanya boleh ditempelkan pada **properti class** saja (dan ditolak oleh PHP saat `newInstance()` dipanggil jika tidak sengaja ditempelkan pada fungsi atau class)?
 - A. Menambahkan `#[Attribute(Attribute::TARGET_PROPERTY)]` di atas deklarasi class Attribute tersebut.
 - B. Menjadikan class Attribute tersebut sebagai `abstract class`.
 - C. Menyimpan class Attribute di dalam folder `properties/`.
@@ -162,5 +162,7 @@ Bagaimana cara membatasi agar sebuah *Custom Attribute* yang kita buat hanya bol
 
 ## Sumber
 - [PCRE (Regular Expressions) — PHP Manual](https://www.php.net/manual/en/book.pcre.php)
-- [Attributes — PHP Manual](https://www.php.net/manual/en/langref.php)
+- [Attributes overview — PHP Manual](https://www.php.net/manual/en/language.attributes.overview.php)
+- [Reading attributes with the Reflection API — PHP Manual](https://www.php.net/manual/en/language.attributes.reflection.php)
+- [PCRE pattern modifiers — PHP Manual](https://www.php.net/manual/en/reference.pcre.pattern.modifiers.php)
 - [PHP 8.5 Release Announcement (Closures in Constant Expressions / Attributes) — PHP.net](https://www.php.net/releases/8.5/en.php)

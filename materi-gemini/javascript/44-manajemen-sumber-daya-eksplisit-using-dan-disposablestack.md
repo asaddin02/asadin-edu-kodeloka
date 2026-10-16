@@ -1,4 +1,4 @@
-# Manajemen Sumber Daya Eksplisit (ES2025/ES2026): `using`, `await using`, dan `Symbol.dispose`
+# Manajemen Sumber Daya Eksplisit (ES2027): `using`, `await using`, dan `Symbol.dispose`
 
 - **Tingkat:** Lanjut
 - **Ringkasan:** Mengotomatiskan pelepasan sumber daya (koneksi berkas, transaksi database, kunci mutex, atau *event listener* sementara) secara deterministik begitu keluar dari cakupan blok `{ ... }` menggunakan deklarasi **`using`**, **`await using`**, **`Symbol.dispose`**, dan **`DisposableStack`**.
@@ -18,6 +18,8 @@ Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dio
 | **API / Sintaks Utama** | `using kunci = akuisisiKunci(); // otomatis memanggil [Symbol.dispose]() saat keluar blok` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
 | **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
 | **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
+
+> **Status dukungan:** Deklarasi `using` dan `DisposableStack` sudah berjalan di Chrome/Edge 134+, Firefox 141+, Deno, dan Node.js 24 (diuji pada v24.18), tetapi Safari baru berstatus pratinjau sehingga fitur ini belum berstatus Baseline. Gunakan `try...finally` bila Anda harus mendukung Safari.
 
 ## Implementasi Kode JavaScript Modern (ES2024–ES2026)
 
@@ -75,7 +77,7 @@ Manakah pernyataan yang paling tepat mengenai penggunaan `using kunci = akuisisi
 **Penjelasan:** `using kunci = akuisisiKunci(); // otomatis memanggil [Symbol.dispose]() saat keluar blok` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
 
 ### Soal 3
-Saat mengintegrasikan fitur `Manajemen Sumber Daya Eksplisit (ES2025/ES2026)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
+Saat mengintegrasikan fitur `Manajemen Sumber Daya Eksplisit (ES2027)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
 - A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
 - B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
 - C. Menyimpan seluruh data sensitif di variabel global `window`
@@ -86,6 +88,6 @@ Saat mengintegrasikan fitur `Manajemen Sumber Daya Eksplisit (ES2025/ES2026)` ke
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
-- [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)
+- [`using` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/using)
+- [`DisposableStack` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DisposableStack)
+- [Explicit Resource Management — TC39 proposal](https://github.com/tc39/proposal-explicit-resource-management)

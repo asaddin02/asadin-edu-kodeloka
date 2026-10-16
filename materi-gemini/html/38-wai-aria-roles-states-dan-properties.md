@@ -7,7 +7,7 @@
 
 Dalam pengembangan web profesional, menguasai **Mendalami WAI-ARIA: Peran (*Roles*), Status (*States*), dan Properti (*Properties*)** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
 
-Pada pelajaran ini kita membedah cara kerja **`aria-labelledby`** dan **`aria-expanded`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML).
+Pada pelajaran ini kita membedah cara kerja **`aria-labelledby`** dan **`aria-expanded`** berdasarkan spesifikasi [WAI-ARIA 1.2](https://www.w3.org/TR/wai-aria-1.2/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA).
 
 ## 1. Konsep Inti dan Aturan Standar
 
@@ -29,18 +29,33 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `aria-labelledby` dan 
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Implementasi Mendalami WAI-ARIA: Peran (*Roles*), Status (*States*), dan Properti (*Properties*) — Kodeloka</title>
+    <title>ARIA: Status dan Properti — Kodeloka</title>
   </head>
   <body>
     <main>
-      <section aria-labelledby="judul-bagian">
-        <h1 id="judul-bagian">Mendalami WAI-ARIA: Peran (*Roles*), Status (*States*), dan Properti (*Properties*)</h1>
-        <p>
-          Penerapan <code>aria-labelledby</code> dan <code>aria-expanded</code> memastikan komponen
-          bekerja secara konsisten di seluruh peramban modern (Baseline).
-        </p>
-      </section>
+      <h1>ARIA: Status dan Properti</h1>
+
+      <!-- Tombol pembuka panel: aria-expanded menyatakan status, aria-controls menunjuk panel -->
+      <button type="button" id="tombol-faq" aria-expanded="false" aria-controls="panel-faq">
+        Tampilkan FAQ
+      </button>
+
+      <!-- aria-labelledby mengambil nama dari teks tombol yang sudah tampil -->
+      <div id="panel-faq" role="region" aria-labelledby="tombol-faq" hidden>
+        <p>Ya, semua kelas di Kodeloka gratis.</p>
+      </div>
     </main>
+
+    <script>
+      const tombol = document.getElementById("tombol-faq");
+      const panel = document.getElementById("panel-faq");
+
+      tombol.addEventListener("click", () => {
+        const terbuka = tombol.getAttribute("aria-expanded") === "true";
+        tombol.setAttribute("aria-expanded", String(!terbuka));
+        panel.hidden = terbuka;
+      });
+    </script>
   </body>
 </html>
 ```
@@ -95,7 +110,7 @@ Bagaimana cara memverifikasi bahwa implementasi `aria-labelledby` dan `aria-expa
 **Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
 
 ## Sumber
-- [HTML: HyperText Markup Language — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML)
-- [HTML elements reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements)
-- [HTML Living Standard — WHATWG](https://html.spec.whatwg.org/multipage/)
-- [Learn HTML — web.dev](https://web.dev/learn/html)
+- [ARIA — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA)
+- [Accessible Rich Internet Applications (WAI-ARIA) 1.2 — W3C](https://www.w3.org/TR/wai-aria-1.2/)
+- [ARIA in HTML — W3C](https://www.w3.org/TR/html-aria/)
+- [ARIA Authoring Practices Guide — W3C WAI](https://www.w3.org/WAI/ARIA/apg/)

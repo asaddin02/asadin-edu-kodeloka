@@ -25,7 +25,7 @@ Bagi manusia yang melihat layar setelah CSS dimuat, halaman tersebut tampak norm
 
 HTML menyediakan elemen struktural yang secara otomatis memetakan **ARIA Landmarks** (penanda wilayah aksesibilitas) tanpa perlu menulis atribut ARIA tambahan:
 
-```
+```text
 +-------------------------------------------------------------------+
 | <header>  (Landmark: banner — jika berada langsung di <body>)     |
 |   +-----------------------------------------------------------+   |
@@ -87,7 +87,7 @@ Banyak pengembang tertukar saat memilih antara `<article>`, `<section>`, dan `<d
 
 ### 5. `<aside>` dan `<search>`
 - **`<aside>`:** Mewakili konten yang berkaitan secara tidak langsung dengan konten utama di sekitarnya, seperti kotak info tambahan (*callout*), bilah samping daftar artikel populer, atau iklan.
-- **`<search>`:** Elemen semantik baru (status **Baseline Widely Available** sejak akhir 2023) yang dirancang khusus untuk membungkus formulir atau fitur pencarian maupun penyaringan (*filtering*) data di halaman, menggantikan kebutuhan menulis `<div role="search">`.
+- **`<search>`:** Elemen semantik baru (tersedia di semua peramban utama sejak Oktober 2023; berstatus **Baseline Widely Available** sejak April 2026) yang dirancang khusus untuk membungkus formulir atau fitur pencarian maupun penyaringan (*filtering*) data di halaman, menggantikan kebutuhan menulis `<div role="search">`.
 
 ## Contoh Kode Lengkap: Struktur Halaman Artikel Edukasi
 

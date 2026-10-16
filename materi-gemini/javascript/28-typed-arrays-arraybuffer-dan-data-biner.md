@@ -76,6 +76,7 @@ Saat mengintegrasikan fitur `Pengolahan Data Biner` ke dalam aplikasi produksi, 
 
 ## Sumber
 
-- [MDN Web Docs — JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [MDN Web Docs — JavaScript Built-in Objects Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects)
+- [`ArrayBuffer` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
+- [`Uint8Array` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+- [`TextEncoder` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder)
 - [TC39 ECMAScript® Language Specification](https://tc39.es/ecma262/)

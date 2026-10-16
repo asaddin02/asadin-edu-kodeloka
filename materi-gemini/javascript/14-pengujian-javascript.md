@@ -7,7 +7,7 @@
 
 Menguji aplikasi hanya dengan mengklik-klik layar secara manual setiap kali Anda mengubah kode akan menjadi beban yang sangat lambat begitu fitur bertambah banyak. Dengan **pengujian otomatis (*automated tests*)**, Anda dapat memverifikasi ratusan skenario perhitungan, validasi, dan penanganan galat hanya dalam waktu kurang dari satu detik melalui perintah **`npm test`**.
 
-Kabar terbaik di ekosistem JavaScript modern: sejak Node.js 18/20+, Anda **tidak perlu lagi menginstal pustaka pihak ketiga yang berat** hanya untuk menjalankan pengujian unit! Runtime Node.js sudah menyediakan modul bawaan **`node:test`** dan **`node:assert/strict`** (perhatikan bahwa repositori Kodeloka sendiri menggunakan `node --test` pada berkas `tests/site.test.mjs`!).
+Kabar terbaik di ekosistem JavaScript modern: sejak Node.js 18 (berstatus stabil sejak Node.js 20), Anda **tidak perlu lagi menginstal pustaka pihak ketiga yang berat** hanya untuk menjalankan pengujian unit! Runtime Node.js sudah menyediakan modul bawaan **`node:test`** dan **`node:assert/strict`** (sebagai pembanding, repositori Kodeloka sendiri memakai `node:assert/strict` pada berkas `tests/site.test.mjs` yang dijalankan lewat `npm test`).
 
 ## 1. Struktur Pengujian dengan Pola *Arrange – Act – Assert (AAA)*
 
@@ -188,5 +188,5 @@ Apa manfaat menyuntikkan dependensi seperti `fungsiFetch = globalThis.fetch` seb
 **Penjelasan:** Dengan mengizinkan fungsi menerima dependensi eksternal sebagai parameter (dengan nilai bawaan `globalThis.fetch` untuk penggunaan produksi normal), pengujian unit dapat dengan mudah menyuplai fungsi *mock* tanpa perlu melakukan penyadapan jaringan yang rumit.
 
 ## Sumber
-- [JavaScript Guide — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
-- [ECMAScript Language Specification — TC39](https://tc39.es/ecma262/)
+- [Test runner — Node.js Documentation](https://nodejs.org/docs/latest/api/test.html)
+- [Assert — Node.js Documentation](https://nodejs.org/docs/latest/api/assert.html)

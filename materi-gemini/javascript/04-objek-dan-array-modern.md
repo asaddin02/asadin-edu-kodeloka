@@ -112,14 +112,14 @@ console.log(skorKoreksi); // [85, 100, 78, 92]
 ```
 
 > **💡 Jangan Lupa Pembanding Angka `(a, b) => a - b` pada `sort()` / `toSorted()`!**
-> Jika Anda memanggil `[10, 2, 100].toSorted()` tanpa fungsi pembanding, JavaScript akan mengubah semua angka menjadi teks string lalu mengurutkannya berdasarkan abjad ASCII, sehingga menghasilkan `[10, 100, 2]`! Untuk mengurutkan angka, selalu berikan `(a, b) => a - b` (naik) atau `(a, b) => b - a` (turun).
+> Jika Anda memanggil `[10, 2, 100].toSorted()` tanpa fungsi pembanding, JavaScript akan mengubah semua angka menjadi teks string lalu mengurutkannya berdasarkan urutan kode karakter UTF-16, sehingga menghasilkan `[10, 100, 2]`! Untuk mengurutkan angka, selalu berikan `(a, b) => a - b` (naik) atau `(a, b) => b - a` (turun).
 
 ### Mengambil Elemen dari Belakang dengan `.at(-1)`
 Daripada menulis `daftar[daftar.length - 1]` yang panjang untuk mengambil elemen paling akhir dari sebuah array, gunakan metode **`daftar.at(-1)`** (Baseline Widely Available)!
 
 ## 4. Mengelompokkan Data dengan `Object.groupBy()` (Sejak ES2024)
 
-Sebelumnya, mengelompokkan daftar objek berdasarkan kategori mengharuskan penulisan `.reduce()` yang bertele-tele. Sejak **ECMAScript 2024** (status **Baseline Newly Available**), Anda cukup memanggil **`Object.groupBy(iterable, callback)`**:
+Sebelumnya, mengelompokkan daftar objek berdasarkan kategori mengharuskan penulisan `.reduce()` yang bertele-tele. Sejak **ECMAScript 2024** (status **Baseline Widely Available**; didukung semua peramban utama sejak Maret 2024), Anda cukup memanggil **`Object.groupBy(iterable, callback)`**:
 
 ```js
 const inventarisServer = [

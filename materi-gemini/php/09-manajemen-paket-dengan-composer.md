@@ -9,7 +9,7 @@
 
 Dua berkas utama yang selalu berdampingan di akar proyek PHP adalah:
 1. **`composer.json`:** Daftar keinginan (*manifest*) yang menyatakan paket apa saja yang dibutuhkan proyek beserta **rentang versi yang diizinkan**, persyaratan versi PHP/ekstensi (`php`, `ext-pdo`, `ext-mbstring`), serta aturan autoloading PSR-4.
-2. **`composer.lock`:** Catatan versi **eksak** (misalnya `v3.7.0` beserta commit hash dan checksum SHA-256) yang benar-benar terpasang saat ini.
+2. **`composer.lock`:** Catatan versi **eksak** (misalnya `v3.7.0` beserta referensi commit sumbernya dan `content-hash` dari `composer.json`) yang benar-benar terpasang saat ini.
 
 ## 2. Membaca Aturan *Semantic Versioning (SemVer)*: `^` (Caret) vs `~` (Tilde)
 
@@ -126,6 +126,8 @@ Menurut standar gaya kode PSR-12 / PER Coding Style, di manakah tanda kurung kur
 
 ## Sumber
 - [Basic usage — Composer Documentation](https://getcomposer.org/doc/01-basic-usage.md)
+- [Versions and constraints — Composer Documentation](https://getcomposer.org/doc/articles/versions.md)
+- [Command-line interface (`audit`, `install`, `validate`) — Composer Documentation](https://getcomposer.org/doc/03-cli.md)
 - [The composer.json schema — Composer Documentation](https://getcomposer.org/doc/04-schema.md)
 - [PSR-12: Extended Coding Style — PHP-FIG](https://www.php-fig.org/psr/psr-12/)
 - [PER Coding Style — PHP-FIG](https://www.php-fig.org/per/coding-style/)

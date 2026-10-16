@@ -52,7 +52,7 @@ final readonly class NominalRupiah
 ### Soal 1
 Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Obsesi primitif (*Primitive Obsession*)—yaitu meneruskan email, nomor telepon, kode mata uang, dan nominal harga semuanya sebagai `string` atau `int` telanjang ke puluhan fungsi—membuat urutan argumen mudah tertukar dan validasi harus ditulis berulang-ulang.*?
 - A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
+- B. Karena nilai primitif telanjang mudah tertukar urutan argumennya dan aturan validasi tersebar serta terulang di banyak tempat, sehingga rawan bug yang sulit dilacak
 - C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
 - D. Karena hanya berlaku pada sistem operasi Windows 95
 
@@ -81,7 +81,8 @@ Langkah manakah yang paling tepat saat mengintegrasikan materi `Arsitektur Bersi
 
 ## Sumber
 
-- [PHP Manual — Language Reference & Extensions](https://www.php.net/manual/en/langref.php)
+- [Properties (readonly) — PHP Manual](https://www.php.net/manual/en/language.oop5.properties.php)
+- [Classes and Objects — PHP Manual](https://www.php.net/manual/en/language.oop5.basic.php)
 - [PHP 8.4 Release Announcement](https://www.php.net/releases/8.4/en.php)
 - [PHP 8.5 Release Announcement](https://www.php.net/releases/8.5/en.php)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)

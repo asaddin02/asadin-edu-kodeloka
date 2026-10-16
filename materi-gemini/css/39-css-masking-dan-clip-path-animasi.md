@@ -3,89 +3,156 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Membuat efek pudar bertahap pada tepi gambar atau daftar gulir menggunakan `mask-image: linear-gradient(...)`, serta menganimasikan perubahan poligon `clip-path` dengan jumlah titik yang sama.
 
-## Mengapa "CSS Masking (`mask-image`) dan Animasi Pemotongan Bentuk dengan `clip-path`" Penting dalam Pengembangan CSS Modern?
+## Mengapa Masking dan Clipping?
 
-Dalam membangun antarmuka web berskala produksi, penguasaan terhadap **`mask-image`** dan **`clip-path`** memungkinkan Anda menyelesaikan permasalahan tata letak, interaksi, dan aksesibilitas langsung di mesin CSS peramban—tanpa perlu membebani halaman dengan skrip JavaScript yang rumit.
+Dua teknik ini sama-sama "memotong" tampilan elemen, tetapi dengan cara berbeda:
+- **`clip-path`** memotong dengan **bentuk** bertepi tegas (lingkaran, persegi, poligon). Bagian di luar bentuk hilang sepenuhnya.
+- **`mask-image`** memotong dengan **gambar atau gradien**: bagian yang opak pada masker tampak, bagian yang transparan tersembunyi, dan nilai di tengahnya **memudar** secara bertahap.
 
-## 1. Konsep Kerja dan Dukungan Standar
+Pelajaran 16 sudah memperkenalkan `clip-path` statis. Di sini kita membahas masker dan menganimasikan keduanya.
 
-Fitur `mask-image` dan `clip-path` bekerja terintegrasi dengan model kaskade dan tata letak CSS modern:
+## 1. `mask-image`: Pudar Bertahap
 
-| Komponen / Fitur | Peran Utama | Manfaat di Lingkungan Produksi |
-|---|---|---|
-| **`mask-image`** | Mengendalikan seleksi, perhitungan ukuran, atau status visual secara deklaratif. | Mengurangi ketergantungan pada manipulasi class/style via JavaScript. |
-| **`clip-path`** | Menangani adaptasi ruang, lapisan, atau kondisi khusus pengguna. | Menjaga konsistensi tampilan lintas ukuran layar dan perangkat bantu. |
-
-## 2. Implementasi Kode CSS Siap Pakai
-
-Berikut adalah pola penerapan `mask-image` dan `clip-path` sesuai praktik terbaik CSS modern:
+Pada gambar atau gradien, masker bekerja berdasarkan **kanal alfa**: piksel masker yang opak membuat elemen terlihat, yang transparan menyembunyikannya.
 
 ```css
-/* Contoh penerapan CSS Masking (`mask-image`) dan Animasi Pemotongan Bentuk dengan `clip-path` */
-.daftar-pudar-bawah {
-  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+/* Foto memudar menuju transparan di tepi bawah */
+.sampul {
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
+  mask-image: linear-gradient(to bottom, black 70%, transparent);
+}
+
+/* Daftar yang dapat digulir dengan tepi atas dan bawah memudar */
+.daftar-gulir {
+  max-block-size: 18rem;
+  overflow-y: auto;
+  -webkit-mask-image: linear-gradient(
+    to bottom, transparent, black 1.5rem, black calc(100% - 1.5rem), transparent
+  );
+  mask-image: linear-gradient(
+    to bottom, transparent, black 1.5rem, black calc(100% - 1.5rem), transparent
+  );
 }
 ```
 
-```html
-<!-- Struktur HTML pendamping yang semantik -->
-<div class="wadah-contoh">
-  <article class="komponen-contoh">
-    <h2>Penerapan mask-image</h2>
-    <p>Komponen ini memanfaatkan kemampuan asli mesin CSS peramban modern.</p>
-  </article>
-</div>
+Catatan:
+- Warna pada gradien masker tidak berpengaruh; yang dipakai adalah **opasitasnya**. `black` hanyalah contoh warna opak.
+- `mask-image` unprefixed berstatus **Baseline Widely Available** sejak Desember 2023. Menulis versi `-webkit-` di atasnya masih berguna untuk peramban yang lebih lama.
+- Properti pendamping: `mask-size`, `mask-position`, `mask-repeat`, dan `mask-composite` (menggabungkan beberapa lapisan masker dengan `add`, `subtract`, `intersect`, `exclude`). Singkatannya `mask`.
+- Masker dapat berupa gambar SVG (`mask-image: url(bentuk.svg)`), sehingga elemen dapat berbentuk logo atau ikon tertentu.
+
+### Masker Tidak Memengaruhi Interaksi
+
+Spesifikasi menyatakan bahwa `mask-image` **tidak memengaruhi geometri maupun *hit-testing*** kotak elemen. Bagian yang tampak tersembunyi oleh masker **tetap menerima klik atau hover**. Berbeda dengan itu, area di luar `clip-path` **tidak menerima** peristiwa pointer. Jangan menyembunyikan tombol atau tautan hanya dengan masker.
+
+## 2. Menganimasikan `clip-path`
+
+`clip-path` dapat ditransisikan, dengan syarat **bentuk di awal dan akhir sejenis** sehingga nilai antara dapat dihitung:
+
+- `circle()` ke `circle()`: ubah jari-jari atau titik pusat.
+- `inset()` ke `inset()`: geser tepi pemotongan.
+- `polygon()` ke `polygon()`: **jumlah titik harus sama**; peramban menginterpolasi koordinat titik yang berpasangan.
+
+```css
+/* Efek "tirai": gambar tersingkap dari kiri ke kanan */
+.penyingkap {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 600ms ease-out;
+}
+.penyingkap.tampak {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Lingkaran yang membesar dari pusat */
+.dialog-lingkaran {
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 500ms ease-out;
+}
+.dialog-lingkaran.terbuka {
+  clip-path: circle(75% at 50% 50%);
+}
+
+/* Poligon dengan jumlah titik sama (4 titik): spanduk miring menjadi persegi */
+.spanduk {
+  clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+  transition: clip-path 400ms ease;
+}
+.spanduk:hover {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
 ```
 
-> **💡 Tips Praktis & Debugging di DevTools:**
-> Saat menguji `mask-image` dan `clip-path`, bukalah panel **Computed** di Browser DevTools (`F12`) untuk melihat nilai akhir yang dihitung oleh peramban setelah kaskade, pewarisan, dan satuan relatif diselesaikan.
+Jika jumlah titik poligon berbeda, atau jika bentuk berbeda jenis (`circle()` ke `polygon()`), peramban tidak dapat menginterpolasi dan perubahan terjadi **seketika** tanpa animasi. Bila perlu, tambahkan titik duplikat agar jumlahnya sama.
 
-## 3. Kesalahan Umum yang Harus Dihindari
+Untuk menyingkap elemen secara dinamis, kombinasikan dengan `animation` dan `@keyframes`, atau ketika memakai transisi masuk `@starting-style` (Pelajaran 41).
 
-1. **Menulis aturan yang terlalu mengikat struktur tag HTML:**
-   Utamakan penggunaan kelas komponen yang datar dan bersih agar spesifisitas tetap rendah dan mudah dikelola di dalam `@layer`.
-2. **Melupakan pengujian pada berbagai ukuran viewport dan preferensi aksesibilitas:**
-   Pastikan penggunaan `mask-image` tetap nyaman ketika pengguna memperbesar teks hingga `200%` atau mengaktifkan mode pengurangan gerak.
+## 3. Aksesibilitas dan Performa
 
-## Latihan Praktik
+- **Gerakan:** Efek tirai atau lingkaran yang besar termasuk gerakan; hormati `prefers-reduced-motion` dengan mematikan transisi atau memakai perubahan seketika.
+- **Konten tetap ada di pohon aksesibilitas.** `clip-path` dan `mask-image` hanya mengubah tampilan. Teks yang "disembunyikan" lewat klip masih dibaca pembaca layar. Gunakan `display: none` atau atribut `hidden` untuk menyembunyikan konten dari semua pengguna.
+- **Gunakan masker pada konten yang tidak kritis.** Teks yang memudar di tepi tetap terbaca, tetapi jangan memudarkan informasi penting.
+- **Performa:** Animasi `clip-path` memicu penggambaran ulang; uji pada perangkat sasaran dan hindari pada elemen sangat besar yang dianimasikan terus-menerus.
 
-Buatlah berkas `39-css-masking-dan-clip-path-animasi.html` dan stylesheet pendampingnya:
-1. Terapkan kode `mask-image` dan `clip-path` seperti pada contoh di atas.
-2. Uji perilakunya dengan mengubah ukuran jendela peramban serta memeriksa statusnya di panel **Styles** DevTools.
+```css
+@media (prefers-reduced-motion: reduce) {
+  .penyingkap,
+  .dialog-lingkaran,
+  .spanduk {
+    transition: none;
+  }
+}
+```
+
+## Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menganimasikan poligon dengan jumlah titik berbeda.** Tidak ada interpolasi; perubahan terjadi seketika.
+2. **Menyembunyikan tombol dengan masker.** Area tersembunyi tetap bisa diklik; gunakan `clip-path` atau `display: none` sesuai kebutuhan.
+3. **Mengira warna gradien masker penting.** Hanya opasitasnya yang dipakai.
+4. **Memakai masker untuk membuat teks "tidak terbaca" bagi pembaca layar.** Masker hanya visual.
+5. **Lupa menyediakan kondisi `prefers-reduced-motion`.**
+
+## Latihan Praktik: Galeri dengan Efek Pudar dan Penyingkapan
+
+Buatlah berkas `masker-clip.html` dan `masker.css`:
+1. Buat daftar gulir berisi 15 butir dengan tepi atas dan bawah memudar menggunakan `mask-image`.
+2. Buat gambar yang tersingkap dari kiri ke kanan dengan transisi `clip-path: inset()` saat kelas `.tampak` ditambahkan.
+3. Buat spanduk poligon empat titik yang berubah bentuk saat `:hover`, lalu coba menambah satu titik pada keadaan akhir dan amati animasinya berhenti berjalan.
+4. Tambahkan blok `prefers-reduced-motion` yang mematikan semua transisi.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa keuntungan utama menggunakan fitur CSS `mask-image` dibandingkan mengandalkan perhitungan manual di JavaScript?
-- A. Karena JavaScript tidak dapat mengubah gaya elemen sama sekali
-- B. Karena `mask-image` dievaluasi langsung oleh mesin perender CSS peramban pada tahap perhitungan gaya/tata letak secara instan tanpa membebani utas utama JavaScript
-- C. Karena berkas CSS tidak perlu diunduh melalui jaringan
-- D. Agar elemen otomatis tersembunyi di perangkat seluler
+Apa efek `mask-image: linear-gradient(to bottom, black 70%, transparent);` pada sebuah gambar?
+- A. Bagian bawah gambar memudar menjadi transparan, dimulai dari sekitar 70% tinggi gambar.
+- B. Gambar diwarnai hitam di bagian atas.
+- C. Gambar dipotong menjadi poligon.
+- D. Gambar diputar 70 derajat.
 
-**Jawaban Benar:** B
-**Penjelasan:** Menyerahkan logika presentasi dan tata letak ke fitur asli CSS seperti `mask-image` menjaga pemisahan tanggung jawab (*separation of concerns*) dan menghindari *layout thrashing* dari JavaScript.
+**Jawaban Benar:** A
+**Penjelasan:** Masker bekerja dengan opasitas gradien: bagian yang opak (`black` hingga 70%) terlihat penuh, lalu perlahan menuju transparan di bagian bawah sehingga gambar memudar.
 
 ### Soal 2
-Dalam konteks **CSS Masking (`mask-image`) dan Animasi Pemotongan Bentuk dengan `clip-path`**, bagaimana `clip-path` membantu meningkatkan kualitas antarmuka pengguna?
-- A. Dengan menghapus seluruh elemen `<style>` dari dokumen
-- B. Dengan menyediakan kontrol deklaratif (`clip-path`) yang merespons konteks wadah, interaksi, atau preferensi perangkat secara otomatis dan konsisten
-- C. Dengan memaksa halaman menggunakan ukuran tetap `1024px`
-- D. Dengan mematikan fitur *zoom* pada peramban
+Manakah transisi `clip-path` yang **dapat** dianimasikan secara halus?
+- A. Dari `circle(0%)` ke `polygon(0 0, 100% 0, 100% 100%, 0 100%)`.
+- B. Dari `polygon(0 0, 100% 0, 100% 100%)` (3 titik) ke `polygon(0 0, 100% 0, 100% 100%, 0 100%)` (4 titik).
+- C. Dari `inset(0 100% 0 0)` ke `inset(0)`.
+- D. Dari `none` ke `url(#bentuk)`.
 
-**Jawaban Benar:** B
-**Penjelasan:** `clip-path` dirancang di dalam spesifikasi CSS modern untuk menangani variasi kondisi tampilan secara adaptif tanpa merusak aksesibilitas.
+**Jawaban Benar:** C
+**Penjelasan:** Kedua nilai berjenis `inset()` sehingga dapat diinterpolasi. Opsi A dan D berbeda jenis bentuk, dan opsi B memiliki jumlah titik poligon yang berbeda; perubahannya terjadi seketika.
 
 ### Soal 3
-Alat bantu manakah di dalam Browser DevTools yang paling tepat untuk memeriksa nilai akhir suatu properti CSS setelah seluruh perhitungan kaskade, `@layer`, dan fungsi dinamis selesai dievaluasi?
-- A. Panel Console
-- B. Panel Computed di dalam tab Elements / Inspector
-- C. Panel Application -> Local Storage
-- D. Panel Security
+Sebuah tombol ditutupi masker sehingga tampak transparan di sudutnya. Apa yang terjadi bila pengguna mengeklik area sudut yang tampak tersembunyi?
+- A. Klik diabaikan, karena area tersebut tidak terlihat.
+- B. Peramban menampilkan pesan kesalahan.
+- C. Klik tetap diterima tombol, karena masker tidak memengaruhi hit-testing.
+- D. Tombol dihapus dari DOM.
 
-**Jawaban Benar:** B
-**Penjelasan:** Tab **Computed** menampilkan nilai akhir aktual yang diterapkan peramban pada sebuah elemen beserta rujukan langsung ke baris aturan CSS pemenangnya.
+**Jawaban Benar:** C
+**Penjelasan:** `mask-image` tidak memengaruhi geometri maupun hit-testing kotak elemen. Berbeda dengan `clip-path`, bagian yang tersembunyi karena masker tetap menerima peristiwa pointer.
 
 ## Sumber
-- [CSS: Cascading Style Sheets — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS)
-- [CSS reference — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference)
-- [Learn CSS — web.dev](https://web.dev/learn/css)
+- [CSS Masking — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Masking)
+- [`mask-image` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/mask-image)
+- [`clip-path` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/clip-path)
+- [CSS Masking Module Level 1 — W3C](https://www.w3.org/TR/css-masking-1/)
