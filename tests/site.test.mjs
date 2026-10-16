@@ -40,7 +40,8 @@ for (const file of html) {
   for (const m of src.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
     try { JSON.parse(m[1]); } catch (e) { problems.push(`${rel}: bad JSON-LD ${e.message}`); }
   }
-  const scriptless = src.replace(/<script[\s\S]*?<\/script>/g, '');
+  // Code samples (<pre>, <code>) are text, not links, even when they show href="…".
+  const scriptless = src.replace(/<script[\s\S]*?<\/script>|<pre[\s\S]*?<\/pre>|<code[\s\S]*?<\/code>/g, '');
   for (const m of scriptless.matchAll(/(?:href|src)="([^"#]+)(?:#[^"]*)?"/g)) {
     const url = m[1];
     if (/^(https?:|mailto:|data:)/.test(url)) continue;
@@ -57,7 +58,7 @@ assert.equal(locs.length, indexable, 'sitemap lists every indexable page');
 assert.match(await readFile(join(dist, 'robots.txt'), 'utf8'), new RegExp(`Sitemap: ${SITE}/sitemap.xml`));
 
 const home = await readFile(join(dist, 'index.html'), 'utf8');
-assert.equal((home.match(/class="course-card[^"]*" href="[a-z0-9-]+\/" data-folder=/g) || []).length, 19, 'home ships all 19 course cards as HTML');
+assert.equal((home.match(/class="course-card[^"]*" href="[a-z0-9-]+\/" data-folder=/g) || []).length, 23, 'home ships all 23 course cards as HTML');
 
 if (problems.length) {
   console.error(problems.slice(0, 40).join('\n'));

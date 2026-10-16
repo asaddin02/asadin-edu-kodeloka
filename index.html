@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Kodeloka: kelas pemrograman gratis berbahasa Indonesia. 19 kelas dan lebih dari 500 modul tentang Golang, FastAPI, Next.js, PostgreSQL, Redis, Kafka, Docker, Kubernetes, Git, CI/CD, Linux, keamanan, dan observabilitas, lengkap dengan praktik dan kuis.">
+<meta name="description" content="Kodeloka: kelas pemrograman gratis berbahasa Indonesia. 23 kelas dan lebih dari 600 modul tentang HTML, CSS, JavaScript, PHP, Golang, FastAPI, Next.js, PostgreSQL, Redis, Kafka, Docker, Kubernetes, Git, CI/CD, Linux, keamanan, dan observabilitas, lengkap dengan praktik dan kuis.">
 <title>Kodeloka · Belajar Pemrograman, Backend, dan DevOps dalam Bahasa Indonesia</title>
 <link rel="icon" type="image/svg+xml" href="assets/brand/kodeloka-mark.svg">
 <style>
@@ -1027,7 +1027,7 @@
         </div>
         <div class="catalog-status" id="hasilStat" aria-live="polite"></div>
         <div id="hasil"></div>
-        <noscript><p>Aktifkan JavaScript untuk menampilkan katalog interaktif. Kamu tetap dapat membuka <a href="golang/">kelas Golang</a> atau <a href="linux/">Linux &amp; Shell</a>.</p></noscript>
+        <noscript><p>Aktifkan JavaScript untuk menampilkan katalog interaktif. Kamu tetap dapat membuka <a href="html/">kelas HTML</a>, <a href="golang/">kelas Golang</a>, atau <a href="linux/">Linux &amp; Shell</a>.</p></noscript>
         <aside class="offline-note" aria-label="Cara progres disimpan">
             <div class="offline-symbol">&gt;_</div>
             <div><b>Belajar dengan ritmemu sendiri.</b><p>Tanpa akun dan tanpa iklan. Progres, penanda, dan catatanmu tersimpan di peramban ini saja, tidak dikirim ke server mana pun.</p></div>
@@ -1048,6 +1048,10 @@ const TOPIK = [
     { nama: "FastAPI", folder: "fastapi", ikon: "⚡", modul: 24, bidang: "Bahasa & Framework", ringkas: "API Python modern: Pydantic v2, dependency injection, async, WebSocket, lifespan, dan penerapan produksi.", tag: ["Pydantic v2", "async", "SQLModel"] },
     { nama: "Next.js", folder: "next", ikon: "▲", modul: 23, bidang: "Bahasa & Framework", ringkas: "App Router, Server Component, Server Action, caching, dan pola rendering pada Next.js versi terbaru.", tag: ["App Router", "RSC", "caching"] },
     { nama: "Microservices", folder: "microservices", ikon: "🧩", modul: 24, bidang: "Bahasa & Framework", ringkas: "Pemecahan layanan, komunikasi antar layanan, resilience, Saga, contract testing, dan distributed tracing.", tag: ["Saga", "resilience", "tracing"] },
+    { nama: "HTML", folder: "html", ikon: "🧱", modul: 27, bidang: "Bahasa & Framework", baru: true, ringkas: "Struktur halaman web dari nol: semantik, tautan, media, tabel, formulir, aksesibilitas, metadata, dan performa.", tag: ["semantik", "formulir", "a11y"] },
+    { nama: "CSS", folder: "css", ikon: "🎨", modul: 20, bidang: "Bahasa & Framework", baru: true, ringkas: "Selektor dan kaskade, box model, flexbox, grid, container query, warna modern, animasi, dan arsitektur CSS.", tag: ["grid", "flexbox", "@container"] },
+    { nama: "JavaScript", folder: "javascript", ikon: "⚡", modul: 22, bidang: "Bahasa & Framework", baru: true, ringkas: "Bahasa web dari dasar: closure, class, event loop, async/await, fetch, DOM, modul ES, keamanan, dan pengujian.", tag: ["async", "DOM", "fetch"] },
+    { nama: "PHP", folder: "php", ikon: "🐘", modul: 25, bidang: "Bahasa & Framework", baru: true, ringkas: "PHP modern untuk web: tipe, OOP, Composer, keluaran aman, PDO, kata sandi, CSRF, pengujian, dan produksi.", tag: ["PHP 8.5", "PDO", "OWASP"] },
     { nama: "PostgreSQL", folder: "postgresql", ikon: "🐘", modul: 12, bidang: "Data & Pesan", ringkas: "Arsitektur, indeks, EXPLAIN ANALYZE, MVCC dan VACUUM, partisi, replikasi, sampai migrasi tanpa downtime.", tag: ["indeks", "MVCC", "replikasi"] },
     { nama: "Redis", folder: "redis", ikon: "🔴", modul: 21, bidang: "Data & Pesan", ringkas: "Struktur data, strategi caching, persistensi, Streams, Cluster, dan pola penguncian terdistribusi.", tag: ["cache", "Streams", "Cluster"] },
     { nama: "Apache Kafka", folder: "kafka", ikon: "🌊", modul: 13, bidang: "Data & Pesan", ringkas: "Log terdistribusi, partisi dan urutan, KRaft, transaksi, Schema Registry, Connect, Streams, dan pola outbox.", tag: ["KRaft", "exactly-once", "outbox"] },
@@ -1066,7 +1070,7 @@ const TOPIK = [
 ];
 const URUTAN_BIDANG = ["Bahasa & Framework", "Data & Pesan", "Infrastruktur", "Keamanan & Sistem", "Observabilitas & Uji"];
 const TONE_BIDANG = { "Bahasa & Framework": "bahasa", "Data & Pesan": "data", "Infrastruktur": "infra", "Keamanan & Sistem": "security", "Observabilitas & Uji": "observe" };
-const COURSE_MARKS = { "golang": "Go", "fastapi": "Py", "next": "N/", "microservices": "μs", "postgresql": "Pg", "redis": "Re", "kafka": "Kf", "rabbitmq": "Rq", "nginx": "Nx", "docker": "Dk", "kubernetes": "K8", "kong": "Kg", "git-ci-cd": "Git", "linux": ">_", "keamanan": "{✓}", "opentelemetry": "Ot", "prometheus": "Pr", "grafana": "Gr", "k6": "k6" };
+const COURSE_MARKS = { "golang": "Go", "fastapi": "Py", "next": "N/", "microservices": "μs", "html": "<>", "css": "{}", "javascript": "JS", "php": "<?", "postgresql": "Pg", "redis": "Re", "kafka": "Kf", "rabbitmq": "Rq", "nginx": "Nx", "docker": "Dk", "kubernetes": "K8", "kong": "Kg", "git-ci-cd": "Git", "linux": ">_", "keamanan": "{✓}", "opentelemetry": "Ot", "prometheus": "Pr", "grafana": "Gr", "k6": "k6" };
 const RAIL_KATALOG_MOBILE = matchMedia("(max-width: 560px)");
 let bidangAktif = "SEMUA";
 let kataCari = "";

@@ -27,6 +27,30 @@
     "description": "Kelas arsitektur microservices berbahasa Indonesia: 24 modul tentang database per service, messaging, orkestrasi dan koreografi, Saga, API Gateway, CQRS, resilience, service discovery, dan contract testing."
   },
   {
+    "slug": "html",
+    "name": "HTML",
+    "title": "Belajar HTML Bahasa Indonesia: Semantik, Formulir, Media, Aksesibilitas, SEO",
+    "description": "Kelas HTML berbahasa Indonesia: 27 modul tentang cara web bekerja, teks semantik, tautan, media responsif, tabel, formulir, elemen interaktif, aksesibilitas, metadata, dan performa."
+  },
+  {
+    "slug": "css",
+    "name": "CSS",
+    "title": "Belajar CSS Bahasa Indonesia: Kaskade, Flexbox, Grid, Responsif, Animasi",
+    "description": "Kelas CSS berbahasa Indonesia: 20 modul tentang selektor dan kaskade, box model, satuan, flexbox, grid, desain responsif, warna dan tipografi, animasi, variabel CSS, dan performa."
+  },
+  {
+    "slug": "javascript",
+    "name": "JavaScript",
+    "title": "Belajar JavaScript Bahasa Indonesia: Closure, Promise, DOM, Fetch, Keamanan",
+    "description": "Kelas JavaScript berbahasa Indonesia: 22 modul tentang tipe dan operator, closure, objek dan class, event loop, Promise dan async/await, fetch, DOM, modul ES, keamanan, dan pengujian."
+  },
+  {
+    "slug": "php",
+    "name": "PHP",
+    "title": "Belajar PHP Bahasa Indonesia: PHP 8.5, OOP, PDO, Keamanan, PHPUnit",
+    "description": "Kelas PHP berbahasa Indonesia: 25 modul tentang PHP 8.4–8.5, tipe dan OOP modern, Composer, keluaran aman, session, unggah berkas, PDO, kata sandi, CSRF, PHPUnit, dan PHP-FPM."
+  },
+  {
     "slug": "postgresql",
     "name": "PostgreSQL",
     "title": "Belajar PostgreSQL Bahasa Indonesia: Indeks, EXPLAIN, Transaksi, VACUUM, Partisi, Replikasi",

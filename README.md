@@ -1,13 +1,13 @@
 # Kodeloka
 
-Kelas pemrograman, backend, dan DevOps berbahasa Indonesia: 19 kelas dan 543 modul, gratis dan tanpa akun.
+Kelas pemrograman, backend, dan DevOps berbahasa Indonesia: 23 kelas dan 637 modul, gratis dan tanpa akun.
 Kodeloka bagian dari [Asadin Edu](https://asadinedu.com/), bersama Biotaloka, Kimialoka, Fisikaloka, dan Mitoloka.
 
 Situs: <https://kodeloka.asadinedu.com/>
 
 | Bidang | Kelas |
 |---|---|
-| Bahasa & Framework | Golang (267 bab), FastAPI, Next.js 16, Microservices |
+| Bahasa & Framework | HTML, CSS, JavaScript, PHP, Golang (267 bab), FastAPI, Next.js 16, Microservices |
 | Data & Pesan | PostgreSQL, Redis, Apache Kafka, RabbitMQ |
 | Infrastruktur | Nginx, Docker, Kubernetes, Kong API Gateway, Git & CI/CD |
 | Keamanan & Sistem | Linux & Shell, Keamanan Aplikasi |

@@ -1,0 +1,515 @@
+{
+  "html": {
+    "nama": "HTML",
+    "ikon": "🧱",
+    "sub": "struktur halaman web",
+    "tagline": "Fondasi setiap halaman web: semantik, formulir, media, dan aksesibilitas",
+    "kategori": [
+      [
+        "Fondasi",
+        [
+          "01",
+          "20",
+          "02",
+          "03",
+          "21",
+          "22",
+          "04",
+          "05",
+          "43"
+        ]
+      ],
+      [
+        "Media & Tabel",
+        [
+          "06",
+          "31",
+          "14",
+          "23",
+          "25",
+          "26",
+          "32",
+          "07"
+        ]
+      ],
+      [
+        "Formulir",
+        [
+          "08",
+          "09",
+          "18",
+          "27",
+          "24"
+        ]
+      ],
+      [
+        "Elemen Interaktif",
+        [
+          "12",
+          "30",
+          "28",
+          "29",
+          "16",
+          "15"
+        ]
+      ],
+      [
+        "Aksesibilitas",
+        [
+          "10",
+          "38",
+          "39",
+          "40",
+          "41",
+          "17",
+          "44"
+        ]
+      ],
+      [
+        "Metadata & Performa",
+        [
+          "11",
+          "33",
+          "34",
+          "35",
+          "13",
+          "36",
+          "37"
+        ]
+      ],
+      [
+        "Praktik & Proyek",
+        [
+          "19",
+          "42",
+          "45"
+        ]
+      ]
+    ],
+    "tunda": [
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42",
+      "43",
+      "44"
+    ],
+    "tunda_alasan": "Templat generik: tabel, latihan, dan kuis berulang antarpelajaran; dikembalikan ke Gemini untuk ditulis ulang (16 Okt 2026).",
+    "title": "Belajar HTML Bahasa Indonesia: Semantik, Formulir, Media, Aksesibilitas, SEO",
+    "description": "Kelas HTML berbahasa Indonesia: 27 modul tentang cara web bekerja, teks semantik, tautan, media responsif, tabel, formulir, elemen interaktif, aksesibilitas, metadata, dan performa."
+  },
+  "css": {
+    "nama": "CSS",
+    "ikon": "🎨",
+    "sub": "tampilan dan tata letak",
+    "tagline": "Dari selektor dan kaskade sampai grid, container query, dan animasi modern",
+    "kategori": [
+      [
+        "Fondasi",
+        [
+          "01",
+          "20",
+          "21",
+          "02",
+          "22",
+          "23",
+          "03",
+          "24",
+          "04",
+          "25",
+          "26"
+        ]
+      ],
+      [
+        "Tata Letak",
+        [
+          "05",
+          "06",
+          "28",
+          "29",
+          "07",
+          "30",
+          "31",
+          "32",
+          "08",
+          "33",
+          "17"
+        ]
+      ],
+      [
+        "Warna, Teks & Visual",
+        [
+          "09",
+          "34",
+          "35",
+          "36",
+          "27",
+          "37",
+          "38",
+          "16",
+          "39"
+        ]
+      ],
+      [
+        "Gerak & Interaksi",
+        [
+          "10",
+          "40",
+          "41",
+          "42",
+          "14",
+          "43",
+          "15",
+          "44",
+          "45"
+        ]
+      ],
+      [
+        "Komponen & Arsitektur",
+        [
+          "11",
+          "13",
+          "46",
+          "47",
+          "12",
+          "48",
+          "19"
+        ]
+      ],
+      [
+        "Performa & Proyek",
+        [
+          "18",
+          "49",
+          "50"
+        ]
+      ]
+    ],
+    "tunda": [
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46",
+      "47",
+      "48",
+      "49"
+    ],
+    "tunda_alasan": "Templat generik: tabel, latihan, dan kuis berulang antarpelajaran; dikembalikan ke Gemini untuk ditulis ulang (16 Okt 2026).",
+    "title": "Belajar CSS Bahasa Indonesia: Kaskade, Flexbox, Grid, Responsif, Animasi",
+    "description": "Kelas CSS berbahasa Indonesia: 20 modul tentang selektor dan kaskade, box model, satuan, flexbox, grid, desain responsif, warna dan tipografi, animasi, variabel CSS, dan performa."
+  },
+  "javascript": {
+    "nama": "JavaScript",
+    "ikon": "⚡",
+    "sub": "interaksi di peramban",
+    "tagline": "Bahasa web dari dasar sampai asinkron, Web API, keamanan, dan arsitektur aplikasi",
+    "kategori": [
+      [
+        "Fondasi",
+        [
+          "01",
+          "02",
+          "22",
+          "23",
+          "03",
+          "24"
+        ]
+      ],
+      [
+        "Objek & Data",
+        [
+          "04",
+          "25",
+          "05",
+          "06",
+          "26",
+          "27",
+          "07",
+          "15",
+          "16"
+        ]
+      ],
+      [
+        "Asinkron & Iterasi",
+        [
+          "08",
+          "17",
+          "09",
+          "29",
+          "43",
+          "44"
+        ]
+      ],
+      [
+        "DOM & Peramban",
+        [
+          "10",
+          "18",
+          "11",
+          "12",
+          "30",
+          "31",
+          "32",
+          "35",
+          "41",
+          "40"
+        ]
+      ],
+      [
+        "Grafis & Media",
+        [
+          "36",
+          "37",
+          "38",
+          "39"
+        ]
+      ],
+      [
+        "Biner, Worker & Offline",
+        [
+          "28",
+          "19",
+          "45",
+          "34",
+          "20"
+        ]
+      ],
+      [
+        "Keamanan & Kualitas",
+        [
+          "13",
+          "33",
+          "49",
+          "14",
+          "21",
+          "42",
+          "54",
+          "48"
+        ]
+      ],
+      [
+        "Arsitektur & Ekosistem",
+        [
+          "46",
+          "47",
+          "53",
+          "50",
+          "51",
+          "52",
+          "55"
+        ]
+      ]
+    ],
+    "tunda": [
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46",
+      "47",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "53",
+      "54"
+    ],
+    "tunda_alasan": "Templat generik: tabel, latihan, dan kuis berulang antarpelajaran; dikembalikan ke Gemini untuk ditulis ulang (16 Okt 2026).",
+    "title": "Belajar JavaScript Bahasa Indonesia: Closure, Promise, DOM, Fetch, Keamanan",
+    "description": "Kelas JavaScript berbahasa Indonesia: 22 modul tentang tipe dan operator, closure, objek dan class, event loop, Promise dan async/await, fetch, DOM, modul ES, keamanan, dan pengujian."
+  },
+  "php": {
+    "nama": "PHP",
+    "ikon": "🐘",
+    "sub": "pemrograman sisi server",
+    "tagline": "PHP modern untuk web: tipe, OOP, keamanan, basis data, pengujian, dan produksi",
+    "kategori": [
+      [
+        "Fondasi",
+        [
+          "01",
+          "02",
+          "03",
+          "04",
+          "17",
+          "26"
+        ]
+      ],
+      [
+        "OOP & Struktur Kode",
+        [
+          "05",
+          "06",
+          "07",
+          "08",
+          "09",
+          "19",
+          "25",
+          "35"
+        ]
+      ],
+      [
+        "Web & Keamanan Dasar",
+        [
+          "10",
+          "11",
+          "12",
+          "13",
+          "16",
+          "15",
+          "14"
+        ]
+      ],
+      [
+        "Data & Berkas",
+        [
+          "33",
+          "18",
+          "27",
+          "28",
+          "29",
+          "47"
+        ]
+      ],
+      [
+        "Arsitektur Aplikasi",
+        [
+          "20",
+          "22",
+          "34",
+          "42",
+          "43",
+          "31",
+          "32"
+        ]
+      ],
+      [
+        "Layanan & Proses",
+        [
+          "21",
+          "44",
+          "36",
+          "37",
+          "38",
+          "39",
+          "48"
+        ]
+      ],
+      [
+        "Keamanan Lanjut",
+        [
+          "30",
+          "45",
+          "46",
+          "54"
+        ]
+      ],
+      [
+        "Kualitas & Produksi",
+        [
+          "23",
+          "49",
+          "41",
+          "40",
+          "50",
+          "24",
+          "51",
+          "52",
+          "53",
+          "55"
+        ]
+      ]
+    ],
+    "tunda": [
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46",
+      "47",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "53",
+      "54"
+    ],
+    "tunda_alasan": "Templat generik: tabel, latihan, dan kuis berulang antarpelajaran; dikembalikan ke Gemini untuk ditulis ulang (16 Okt 2026).",
+    "title": "Belajar PHP Bahasa Indonesia: PHP 8.5, OOP, PDO, Keamanan, PHPUnit",
+    "description": "Kelas PHP berbahasa Indonesia: 25 modul tentang PHP 8.4–8.5, tipe dan OOP modern, Composer, keluaran aman, session, unggah berkas, PDO, kata sandi, CSRF, PHPUnit, dan PHP-FPM."
+  }
+}
