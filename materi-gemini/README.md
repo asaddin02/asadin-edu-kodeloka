@@ -1,34 +1,54 @@
 Status: BERJALAN
 
-## Catatan dari Claude Code (16 Oktober 2026), baca ini dulu
+## Catatan dari Claude Code (17 Oktober 2026), baca ini dulu
 
-Materi sesi pertama sudah dikoreksi dan sebagian sudah tayang. Mulai sesi berikutnya dari **berkas yang ada di repo sekarang**, karena isinya sudah memuat koreksi. Jangan mengembalikannya ke versi lamamu. Daftar koreksi per kelas ada di `koreksi-claude/`; baca untuk tahu kesalahan apa yang sering terjadi.
+Tugas lengkapnya ada di `GEMINI.md` di akar repo. Ringkasnya ada tiga tugas: selesaikan empat kelas dasar web, lengkapi penjelasan di kelas lama, dan tulis modul baru. Mulai dari **berkas yang ada di repo sekarang**, karena isinya sudah memuat koreksi Claude. Jangan mengembalikannya ke versi lamamu. Daftar koreksi per kelas ada di `koreksi-claude/`; bacalah untuk tahu kesalahan apa yang sering terjadi.
 
-**Sudah tayang di situs (94 pelajaran):**
-- HTML 01–26 dan 45 (27 pelajaran);
-- CSS 01–19 dan 50 (20);
-- JavaScript 01–21 dan 55 (22);
-- PHP 01–24 dan 55 (25).
+### Kemajuan (perbarui di setiap sesi)
 
-**Perlu ditulis ulang olehmu (belum tayang).** Pelajaran berikut dibuat dari satu templat. Tabel "Aspek / Praktik Buruk / Praktik Modern", latihan, dan kuisnya sama di semua berkas. Isi spesifiknya hanya satu contoh kode dan satu jebakan. Judul dan ringkasannya menjanjikan jauh lebih banyak daripada isinya.
-- HTML 27–44 (18 berkas);
-- JavaScript 22–54 (33);
-- PHP 25–54 (30).
+| Tugas | Bagian | Jumlah | Selesai |
+| :--- | :--- | ---: | ---: |
+| 1 | HTML 27–44, tulis ulang | 18 | 0 |
+| 1 | JavaScript 22–54, tulis ulang | 33 | 0 |
+| 1 | PHP 25–54, tulis ulang | 30 | 0 |
+| 1 | CSS 20–49, periksa dan lengkapi draf Claude | 30 | 0 |
+| 2 | `perbaikan/`: modul kelas lama yang dilengkapi | 361 modul bertanda tipis | 0 |
+| 3 | `modul-baru/`: modul baru untuk kelas lama | bebas | 0 |
 
-Untuk setiap berkas: tulis isi yang benar-benar membahas semua hal yang dijanjikan judul dan ringkasannya. Kualitasnya harus setara dengan pelajaran 01–19: penjelasan konsep, beberapa contoh kode yang memakai fitur itu, kesalahan umum, latihan yang spesifik untuk topiknya, dan 3 soal kuis yang menguji topik itu, bukan soal umum. Pertahankan nama berkas, judul, tingkat, dan format kuis (`### Soal N`, opsi `- A.` sampai `- D.`, `**Jawaban Benar:**`, `**Penjelasan:**`), lalu tutup dengan `## Sumber` berisi halaman spesifik, bukan halaman indeks.
+### Tugas 1: empat kelas dasar web
 
-**CSS 20–49: jangan diubah.** Pelajaran ini sudah ditulis ulang oleh Claude dan sedang menunggu keputusan pemilik.
+**Sudah tayang di situs (94 pelajaran):** HTML 01–26 dan 45 (27 pelajaran), CSS 01–19 dan 50 (20), JavaScript 01–21 dan 55 (22), PHP 01–24 dan 55 (25). Boleh diperdalam langsung di berkasnya.
 
-**`pembaruan-19-kelas/`: belum dipasang.** Masalahnya:
-- audit "0 modul" di semua berkas salah: setiap kelas sudah punya 8 sampai 267 modul, datanya ada di `<folder>/app.js`, bukan `data/modules.json`;
-- banyak modul mengulang materi yang sudah ada di kelas itu;
-- tidak ada kuis per modul.
+**Perlu ditulis ulang (belum tayang):** HTML 27–44, JavaScript 22–54, dan PHP 25–54. Pelajaran ini dibuat dari satu templat. Tabel "Aspek / Praktik Buruk / Praktik Modern", latihan, dan kuisnya sama di semua berkas. Isi spesifiknya hanya satu contoh kode dan satu jebakan. Judul dan ringkasannya menjanjikan jauh lebih banyak daripada isinya.
 
-Kalau ingin melanjutkan: baca dulu `app.js` kelas yang bersangkutan, tulis hanya modul yang benar-benar baru, dan beri setiap modul 2–3 soal kuisnya sendiri.
+Untuk setiap berkas:
+- tulis isi yang benar-benar membahas semua hal yang dijanjikan judul dan ringkasannya;
+- samakan mutunya dengan pelajaran 01–19: penjelasan konsep, beberapa contoh kode yang memakai fitur itu, kesalahan umum, latihan yang spesifik untuk topiknya, dan 3 soal kuis yang menguji topik itu, bukan soal umum;
+- pertahankan nama berkas, judul, tingkat, dan format kuis (`### Soal N`, opsi `- A.` sampai `- D.`, `**Jawaban Benar:**`, `**Penjelasan:**`);
+- tutup dengan `## Sumber` berisi halaman spesifik, bukan halaman indeks.
 
-Ubah baris pertama menjadi `Status: SELESAI` lagi setelah semua yang di atas selesai.
+**CSS 20–49:** sudah ditulis ulang oleh Claude dari templatmu, tetapi belum tayang. Periksa faktanya, perdalam bagian yang masih pendek, dan tambahkan contoh. Jangan menulis dari nol.
+
+### Tugas 2: `perbaikan/`
+
+Daftar semua 637 modul ada di `DAFTAR-MODUL.md`, lengkap dengan jumlah kata dan halamannya. Format berkas perbaikan ada di `GEMINI.md`. Kelas yang paling tipis: Golang (median 48 kata per bab), FastAPI (53), Next.js (124), Git & CI/CD (139), Microservices (144), Docker (177), dan Redis (246).
+
+### Tugas 3: `modul-baru/`
+
+Satu berkas per modul, di `modul-baru/<folder>/`. `pembaruan-19-kelas/` belum dipasang, karena auditnya salah, banyak modulnya mengulang materi yang sudah ada, dan tidak ada kuis per modul. Bahannya boleh dipakai lagi setelah dicek terhadap `DAFTAR-MODUL.md`.
+
+### Catatan sesi Gemini
+
+Tulis di sini berkas yang kamu tulis atau ubah di setiap sesi, tanda `Perlu dicek`, dan sampai mana kamu berhenti.
+
+- (belum ada sesi baru)
+
+Ubah baris pertama menjadi `Status: SELESAI` setelah ketiga tugas menurutmu sudah lebih dari cukup.
 
 ---
+
+> Indeks di bawah ini ditulis Gemini di sesi pertama (16 Oktober 2026). Jumlah, status tayang, dan audit 19 kelas di dalamnya sudah tidak berlaku; pegang catatan Claude di atas dan `DAFTAR-MODUL.md`.
+
 # Kurikulum Super Lengkap Kodeloka: HTML (45), CSS (50), JavaScript (55), PHP (55), & Pembaruan 19 Kelas (`materi-gemini/`)
 
 Dokumen ini adalah indeks utama, panduan urutan belajar, laporan audit kelengkapan seluruh repositori, serta panduan integrasi teknis bagi **Claude Code** dan **Codex** untuk memindahkan **205 pelajaran dasar web** (**HTML**, **CSS**, **JavaScript**, dan **PHP**) sekaligus **19 paket pembaruan materi 2025/2026 (60 modul baru)** untuk 19 kelas lainnya ke platform [Kodeloka](https://kodeloka.asadinedu.com/).
