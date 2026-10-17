@@ -116,6 +116,36 @@ Untuk popover, gunakan selektor `[popover]:popover-open` sebagai pengganti `dial
 }
 ```
 
+## Studi Kasus Produksi: Notifikasi Toast Popover dengan Transisi Masuk dan Keluar
+
+Menggabungkan Popover API (`[popover]`) dengan `@starting-style` dan `transition-behavior: allow-discrete` memungkinkan Anda membuat notifikasi *toast* yang meluncur halus tanpa perlu menghitung waktu penghapusan DOM di JavaScript:
+
+```css
+.notifikasi-toast[popover] {
+  opacity: 0;
+  translate: 0 1rem;
+  transition:
+    opacity 220ms ease-out,
+    translate 220ms ease-out,
+    overlay 220ms allow-discrete,
+    display 220ms allow-discrete;
+}
+
+.notifikasi-toast[popover]:popover-open {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@starting-style {
+  .notifikasi-toast[popover]:popover-open {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+}
+```
+
+Urutan deklarasi sangat penting: blok `@starting-style` harus ditulis **setelah** aturan `:popover-open` normal agar peramban mengenali nilai awal transisi saat elemen pertama kali ditampilkan.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menulis `display: none` di akhir transisi tanpa `allow-discrete`.** Elemen langsung lenyap; animasi keluar tidak terlihat.

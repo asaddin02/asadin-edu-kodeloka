@@ -131,6 +131,30 @@ Anchor positioning hanya mengatur **posisi visual**. Hubungan semantik tetap dik
 }
 ```
 
+## Studi Kasus Produksi: Menu Konteks dan Popover Bantuan yang Tidak Pernah Terpotong Layar
+
+Dengan menggabungkan `@position-try` kustom dan kata kunci `flip-block` / `flip-inline`, popover bantuan dapat menyesuaikan posisinya sekaligus mengubah perataan teks atau ukurannya ketika ruang di bawah tombol terlalu sempit:
+
+```css
+.tombol-info {
+  anchor-name: --jangkar-info;
+}
+
+.popover-info[popover] {
+  position: fixed;
+  position-anchor: --jangkar-info;
+  inset: auto;
+  position-area: block-end span-inline-end;
+  margin-block-start: 0.5rem;
+  position-try-fallbacks:
+    flip-block,
+    flip-inline,
+    flip-block flip-inline;
+}
+```
+
+Ketika tombol berada di sudut kanan bawah layar, peramban secara otomatis mencoba membalik posisi ke atas (`flip-block`) atau ke kiri (`flip-inline`) hingga menemukan area yang muat di dalam *viewport*.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **`position-area` tidak berpengaruh.** Biasanya elemen tidak `absolute`/`fixed`, atau `position-anchor` belum diatur.

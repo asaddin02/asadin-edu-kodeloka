@@ -105,6 +105,31 @@ Dengan `add`, ikon tetap berada `100px` ke kanan sambil berputar. Dengan `replac
 
 > **💡 Alternatif:** Properti individual (`translate`, `rotate`, `scale`) juga menghindari masalah menimpa: animasikan `rotate` sambil `translate` tetap berlaku, karena keduanya properti terpisah.
 
+## Studi Kasus Produksi: Skeleton Loader dan Tombol Berdenyut yang Menggabungkan Transformasi
+
+Dengan `animation-composition: add`, Anda dapat menambahkan animasi denyut halus pada elemen yang sudah memiliki transformasi posisi tanpa menimpa koordinat `transform` dasarnya:
+
+```css
+@keyframes denyut-lembut {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
+.pin-lokasi {
+  /* Transformasi dasar untuk memusatkan pin di atas peta */
+  transform: translate(-50%, -100%);
+  animation: denyut-lembut 1.8s ease-in-out infinite;
+  animation-composition: add;
+}
+
+.pin-lokasi:hover,
+.pin-lokasi:focus-visible {
+  animation-play-state: paused;
+}
+```
+
+Tanpa `animation-composition: add`, aturan `@keyframes` yang mengubah `transform: scale(...)` akan menghapus `translate(-50%, -100%)` dan membuat pin bergeser dari titik koordinatnya.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Elemen "melompat" setelah animasi selesai.** Tambahkan `animation-fill-mode: forwards` (atau `both`), atau pastikan gaya dasar sama dengan keyframe akhir.

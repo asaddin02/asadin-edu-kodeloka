@@ -92,6 +92,36 @@ Tips agar bayangan tampak natural:
 - **Performa:** Menganimasikan `box-shadow` memicu *paint* pada setiap bingkai. Untuk efek *hover* yang halus, taruh bayangan besar pada pseudo-element `::after`, lalu animasikan **`opacity`**-nya.
 - **Kontras:** Indikator fokus harus mudah terlihat; WCAG 2.2 meminta kontras yang cukup untuk komponen antarmuka (SC 1.4.11).
 
+## Studi Kasus Produksi: Sistem Elevasi Tiga Tingkat dan Fokus Tahan Mode Kontras Tinggi
+
+Dalam sistem desain modern, elevasi kartu dibagi menjadi beberapa tingkat bayangan berlapis yang dikombinasikan dengan `outline` transparan agar kartu tetap memiliki batas tegas saat pengguna mengaktifkan Windows Contrast Themes (`forced-colors`):
+
+```css
+:root {
+  --elevasi-1:
+    0 1px 2px oklch(20% 0.02 250 / 0.06),
+    0 2px 4px oklch(20% 0.02 250 / 0.06);
+  --elevasi-2:
+    0 2px 4px oklch(20% 0.02 250 / 0.05),
+    0 8px 16px -2px oklch(20% 0.02 250 / 0.1),
+    0 16px 32px -4px oklch(20% 0.02 250 / 0.08);
+}
+
+.kartu-interaktif {
+  border-radius: 0.75rem;
+  box-shadow: var(--elevasi-1);
+  /* Terlihat otomatis sebagai garis batas pada forced-colors: active */
+  outline: 1px solid transparent;
+}
+
+.kartu-interaktif:focus-visible {
+  outline: 3px solid oklch(55% 0.22 255);
+  outline-offset: 3px;
+}
+```
+
+Trik `outline: 1px solid transparent` tidak mengubah tampilan visual di mode standar, tetapi langsung berubah menjadi garis batas sistem yang jelas ketika `box-shadow` dihapus oleh mode warna paksa.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menghapus cincin fokus (`outline: none`) tanpa pengganti.** Gunakan `outline` yang jelas pada `:focus-visible`.

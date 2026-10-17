@@ -3,82 +3,138 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Menguasai siklus hidup **Service Worker** (`install`, `activate`, `fetch`), mencegat permintaan jaringan untuk menerapkan strategi *Cache-First* atau *Stale-While-Revalidate* dengan **Cache Storage API**, serta menyusun berkas `manifest.webmanifest` untuk *Progressive Web App*.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Service Worker Disebut sebagai Proxy Jaringan yang Dapat Diprogram di Peramban?
 
-Dalam rekayasa perangkat lunak modern, penguasaan `self.addEventListener('fetch', (event) => { event.respondWith(...); });` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
+**Service Worker** adalah jenis Web Worker khusus yang berjalan di latar belakang terpisah dari tab halaman web, tidak memiliki akses langsung ke DOM, namun memiliki kemampuan luar biasa: **mencegat setiap permintaan jaringan HTTP (`fetch`) yang keluar dari halaman dalam cakupan wilayahnya (*scope*)** dan memutuskan apakah permintaan tersebut dijawab dari jaringan, dari penyimpanan lokal **Cache Storage API (`caches`)**, atau dibuatkan respons cadangan saat pengguna sedang luring (*offline*).
+
+Karena kemampuannya yang begitu besar, Service Worker hanya diizinkan terdaftar pada konteks aman (**HTTPS** atau `localhost`).
 
 > **⚠️ Jebakan Umum di Lapangan:** Meng-cache berkas HTML utama secara permanen dengan strategi *Cache-First* tanpa mekanisme pembaruan versi cache di fase `activate` akan membuat pengguna terjebak melihat versi aplikasi lama selamanya meskipun server sudah diperbarui.
 
-## Konsep Inti dan Mekanisme di Balik Layar
+## 1. Tiga Fase Siklus Hidup Service Worker (`install`, `activate`, `fetch`)
 
-Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dioptimalkan di tingkat C++/Rust:
+Ketika halaman mendaftarkan Service Worker dengan `navigator.serviceWorker.register("/sw.js")`, berkas `/sw.js` melewati siklus hidup ketat:
 
-| Aspek Teknis | Pola Modern yang Direkomendasikan | Praktik Warisan yang Wajib Dihindari |
+| Fase Event di `sw.js` | Kapan Dipicu? | Tugas Utama & Metode Penting |
 | :--- | :--- | :--- |
-| **API / Sintaks Utama** | `self.addEventListener('fetch', (event) => { event.respondWith(...); });` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
-| **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
-| **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
+| **`install`** | Saat berkas `sw.js` baru pertama kali diunduh atau isinya berubah minimal 1 byte dari versi sebelumnya. | Mengunduh dan menyimpan aset kerangka awal (*App Shell*) ke dalam `caches.open(NAMA_CACHE)` di dalam **`event.waitUntil(...)`**. |
+| **`activate`** | Setelah Service Worker lama tidak lagi mengendalikan tab mana pun dan versi baru siap mengambil alih. | **Menghapus cache versi lama** (`caches.delete(kunciLama)`) di dalam **`event.waitUntil(...)`** agar kuota penyimpanan pengguna tidak penuh. |
+| **`fetch`** | Setiap kali halaman dalam cakupan meminta dokumen HTML, CSS, JS, gambar, atau panggilan `fetch()`. | Memanggil **`event.respondWith(promiseRespons)`** untuk menerapkan strategi caching yang sesuai. |
 
-## Implementasi Kode JavaScript Modern (ES2024–ES2026)
+## 2. Memilih Strategi Caching yang Tepat dan Menghapus Cache Lama
+
+Jangan gunakan satu strategi cache yang sama untuk semua jenis berkas!
+1. **Aset Statis Ber-Hash (misalnya `/assets/app.8f92a1.js`, fon `.woff2`):** Gunakan **Cache-First (Falling back to Network)** karena namanya pasti berubah jika isinya berubah.
+2. **Dokumen Navigasi HTML (`req.mode === "navigate"`) atau Data API:** Gunakan **Network-First (Falling back to Cache)** atau **Stale-While-Revalidate** agar pengguna selalu mendapatkan artikel terbaru saat daring, namun tetap bisa membuka halaman yang pernah dikunjungi saat luring (*offline*):
 
 ```javascript
 // sw.js (Service Worker)
-const NAMA_CACHE = "kodeloka-statis-v1";
-const ASET_AWAL = ["/", "/style.css", "/app.js"];
+const NAMA_CACHE = "kodeloka-statis-v2";
+const ASET_AWAL = ["/", "/style.css", "/app.js", "/offline.html"];
 
+// 1. Fase Install: Simpan aset inti ke Cache Storage
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(NAMA_CACHE).then((cache) => cache.addAll(ASET_AWAL))
   );
 });
 
+// 2. Fase Activate: Bersihkan cache dari versi sebelumnya (mis. v1)
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((daftarNama) =>
+      Promise.all(
+        daftarNama
+          .filter((nama) => nama !== NAMA_CACHE)
+          .map((namaLama) => caches.delete(namaLama))
+      )
+    )
+  );
+});
+
+// 3. Fase Fetch: Network-First untuk navigasi HTML, Cache-First untuk aset statis GET
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        caches.match(event.request).then((tersimpan) => tersimpan || caches.match("/offline.html"))
+      )
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((tersimpan) => tersimpan || fetch(event.request))
   );
 });
 ```
 
-> **💡 Tips Arsitektur:** Selalu bungkus utilitas infrastruktur seperti di atas ke dalam modul ES tersendiri (`utils/`) yang dilengkapi dengan pengujian unit otomatis (`node:test`) agar dapat digunakan kembali secara konsisten di seluruh proyek.
+## 3. Strategi *Stale-While-Revalidate* dan Kloning `response.clone()`
+
+Karena tubuh objek `Response` adalah sebuah `ReadableStream` yang **hanya dapat dibaca satu kali**, apabila Anda ingin menyimpan hasil `fetch(req)` ke dalam `cache.put(req, ...)` sekaligus mengembalikannya ke peramban, Anda **wajib** memanggil **`responsJaringan.clone()`**:
+
+```javascript
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(NAMA_CACHE);
+  const responsTersimpan = await cache.match(request);
+
+  const janjiJaringan = fetch(request).then((responsBaru) => {
+    if (responsBaru.ok) {
+      // Wajib clone() karena satu aliran dikirim ke cache dan satu lagi ke halaman!
+      cache.put(request, responsBaru.clone());
+    }
+    return responsBaru;
+  });
+
+  return responsTersimpan || janjiJaringan;
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mencoba meng-cache permintaan `POST`, `PUT`, atau `DELETE` ke dalam `Cache` API:** `cache.put()` hanya mendukung permintaan dengan metode `GET` dan akan melempar `TypeError` jika diberi permintaan `POST`. Selalu periksa `if (event.request.method !== "GET") return;` di awal pendengar `fetch`.
+2. **Memanggil `cache.put(req, res)` dan `return res` tanpa `res.clone()`:** Tubuh respons akan terkunci/habis dikonsumsi oleh salah satu pihak dan memicu `TypeError: Response body is already used`.
+3. **Menempatkan berkas `sw.js` di dalam subfolder `/assets/js/sw.js`:** Cakupan (*scope*) maksimum sebuah Service Worker ditentukan oleh lokasi direktori berkasnya. Jika diletakkan di `/assets/js/sw.js`, ia hanya bisa mencegat permintaan ke `/assets/js/*` dan tidak bisa mencegat halaman utama `/`! Letakkan `sw.js` di akar domain (`/sw.js`).
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah berkas modul ES baru untuk menguji pola `self.addEventListener('fetch', (event) => { event.respondWith(...); });` pada kasus nyata di proyek Anda.
-2. Tambahkan skenario uji batas (*edge case*): masukan kosong, karakter Unicode/emoji, pembatalan mendadak, atau kegagalan jaringan.
-3. Jalankan dan verifikasi menggunakan *DevTools Console / Memory / Performance panel* atau `node --test`.
+1. Buat berkas `pendaftaran-sw.mjs` untuk sisi halaman utama yang memeriksa `if ("serviceWorker" in navigator)` lalu mendaftarkan `/sw.js` setelah event `load`.
+2. Buat berkas `sw.js` lengkap dengan fase `install`, `activate` (penghapusan cache usang), dan `fetch` (menggabungkan *Network-First* untuk HTML dan *Stale-While-Revalidate* untuk aset statis dengan `.clone()`).
+3. Uji di Chrome/Firefox DevTools (**Application -> Service Workers -> centang Offline**) bahwa halaman tetap terbuka saat jaringan dimatikan.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Meng-cache berkas HTML utama secara permanen dengan strategi *Cache-First* tanpa mekanisme pembaruan versi cache di fase `activate` akan membuat pengguna terjebak melihat versi aplikasi lama selamanya meskipun server sudah diperbarui.*?
-- A. Karena hanya berdampak pada ukuran berkas CSS eksternal
-- B. Karena dapat memicu bug akurasi data, kebocoran memori, celah keamanan, atau penurunan kinerja antarmuka pada kondisi nyata Pengguna
-- C. Karena fitur tersebut hanya berjalan pada peramban tahun 1999
-- D. Karena JavaScript tidak mendukung fungsi asinkron
+Mengapa berkas HTML utama (`/index.html`) sebaiknya **tidak** disajikan dengan strategi *Cache-First* permanen tanpa mekanisme pembaruan atau pergantian nama cache di fase `activate`?
+- A. Karena `Cache` API tidak dapat menyimpan berkas yang mengandung tag `<html>`
+- B. Karena pada strategi *Cache-First*, peramban akan terus menyajikan `index.html` lama dari cache lokal tanpa pernah menghubungi server, sehingga pengguna terjebak pada versi aplikasi lama meskipun server sudah merilis pembaruan
+- C. Karena berkas HTML akan otomatis terhapus setiap 5 menit
+- D. Karena Service Worker tidak dapat membaca permintaan navigasi
 
 **Jawaban Benar:** B
-**Penjelasan:** Meng-cache berkas HTML utama secara permanen dengan strategi *Cache-First* tanpa mekanisme pembaruan versi cache di fase `activate` akan membuat pengguna terjebak melihat versi aplikasi lama selamanya meskipun server sudah diperbarui.
+**Penjelasan:** Jika HTML utama dikunci dengan *Cache-First* murni tanpa revalidasi atau rotasi versi cache saat `activate`, pengguna yang sudah pernah membuka situs tidak akan menerima referensi bundel JS/CSS baru dari server.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `self.addEventListener('fetch', (event) => { event.respondWith(...); });` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
-
-**Jawaban Benar:** A
-**Penjelasan:** `self.addEventListener('fetch', (event) => { event.respondWith(...); });` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
-
-### Soal 3
-Saat mengintegrasikan fitur `Service Workers, Cache Storage API, dan Aplikasi Web Offline-First (PWA)` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
-- A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
-- B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
-- C. Menyimpan seluruh data sensitif di variabel global `window`
-- D. Mematikan mode ketat (*strict mode*) pada modul ES
+Mengapa saat menyimpan respons hasil `fetch(event.request)` ke dalam Cache Storage sekaligus mengembalikannya ke halaman, Anda wajib memanggil ` cache.put(event.request, response.clone())`?
+- A. Untuk menggandakan kecepatan unduhan jaringan
+- B. Karena isi tubuh (*body*) dari objek `Response` berupa `ReadableStream` yang hanya dapat dikonsumsi satu kali; `response.clone()` membuat salinan aliran kedua agar satu aliran dapat disimpan ke cache dan aliran asli dikembalikan ke peramban
+- C. Karena `cache.put()` mengubah status kode HTTP menjadi `404`
+- D. Untuk menghapus header CORS dari objek `Response`
 
 **Jawaban Benar:** B
-**Penjelasan:** Kode JavaScript kelas produksi wajib menerapkan *defensive programming*, deteksi kapabilitas platform bila menggunakan API perangkat, dan manajemen siklus hidup sumber daya yang rapi.
+**Penjelasan:** Mengonsumsi `Response` dua kali (satu oleh `cache.put()` dan satu oleh perender halaman) tanpa `.clone()` akan melempar `TypeError` karena stream tubuh respons sudah terkunci/terpakai.
+
+### Soal 3
+Apa fungsi dari pemanggilan `event.waitUntil(promise)` di dalam pendengar event `install` dan `activate` pada Service Worker?
+- A. Menghentikan utas utama halaman web selama 10 detik
+- B. Memberi tahu peramban agar tidak menganggap fase `install` atau `activate` selesai (dan tidak mematikan Service Worker) sampai `Promise` di dalamnya (seperti pengunduhan `cache.addAll` atau penghapusan cache lama) benar-benar tuntas
+- C. Menunda pengiriman formulir pengguna hingga baterai penuh
+- D. Mengubah `Promise` menjadi fungsi sinkron
+
+**Jawaban Benar:** B
+**Penjelasan:** Peramban dapat menghentikan proses Service Worker kapan saja jika dianggap menganggur. `event.waitUntil()` memperpanjang masa hidup fase peristiwa tersebut sampai seluruh pekerjaan asinkron di dalamnya berhasil diselesaikan.
 
 ## Sumber
 

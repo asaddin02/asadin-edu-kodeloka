@@ -85,6 +85,26 @@ Di panel **Elements > Styles**, klik kotak warna di samping properti `color` unt
 - Tidak ada `!important` yang tidak perlu dan tidak ada aturan yang saling menimpa tanpa alasan.
 - Gaya cetak diuji.
 
+## Studi Kasus Produksi: Memperbaiki Penyebab *Layout Shift* (CLS) dan *Paint Storm* dari Hasil Audit
+
+Setelah menemukan pergeseran tata letak (area ungu di *Layout Shift Regions*) dan penggambaran ulang terus-menerus (area hijau di *Paint Flashing*) melalui DevTools, berikut pola perbaikan CSS yang paling sering diterapkan di produksi:
+
+```css
+/* SEBELUM AUDIT: memicu Layout Shift saat gambar dimuat & Paint terus-menerus */
+.banner-buruk {
+  transition: top 250ms ease, left 250ms ease, box-shadow 250ms ease;
+}
+
+/* SESUDAH AUDIT: ruang gambar dipesan lebih dulu & animasi berjalan di kompositor */
+.banner-rapi {
+  aspect-ratio: 16 / 9;
+  contain: layout paint;
+  transition: transform 250ms ease, opacity 250ms ease;
+}
+```
+
+Mengganti transisi properti geometri (`top`, `left`, `width`, `height`) menjadi `transform` dan `opacity`, serta memesan rasio ruang media dengan `aspect-ratio`, secara konsisten menurunkan skor CLS di bawah ambang batas `0,1` dan menjaga animasi tetap mulus pada 60 fps.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menghapus CSS "merah" di Coverage tanpa memeriksa status lain.** Aturan untuk `:hover`, mode gelap, atau halaman lain bisa saja diperlukan.

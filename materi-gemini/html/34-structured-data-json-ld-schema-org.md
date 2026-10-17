@@ -3,25 +3,24 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Menyusun skema JSON-LD yang valid di dalam `<script type="application/ld+json">` untuk kursus edukasi, artikel teknis, daftar pertanyaan umum (FAQ), dan jejak navigasi (*breadcrumbs*).
 
-## Mengapa Topik "Data Terstruktur Schema.org dengan JSON-LD (`Course`, `TechArticle`, `FAQPage`, `BreadcrumbList`)" Penting di Lingkungan Produksi?
+## Mengapa Mesin Pencari Membutuhkan Data Terstruktur JSON-LD?
 
-Dalam pengembangan web profesional, menguasai **Data Terstruktur Schema.org dengan JSON-LD (`Course`, `TechArticle`, `FAQPage`, `BreadcrumbList`)** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Mesin pencari seperti Google dan Bing dapat membaca teks di dalam `<h1>` dan `<p>`, tetapi untuk memastikan arti eksplisit dari sebuah halaman—apakah halaman tersebut adalah **artikel teknis (`TechArticle`)**, **katalog kursus (`Course`)**, beserta **urutan jejak halamannya (`BreadcrumbList`)**—mesin pencari mengandalkan data terstruktur berbasis kosakata **[Schema.org](https://schema.org/)**.
 
-Pada pelajaran ini kita membedah cara kerja **`application/ld+json`** dan **`Schema.org`** berdasarkan kosakata [Schema.org](https://schema.org/) dan spesifikasi [JSON-LD 1.1](https://www.w3.org/TR/json-ld11/) dari W3C, serta dokumentasi [Google Search Central](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data) untuk fitur hasil pencarian.
+Di antara tiga format data terstruktur yang ada (JSON-LD, Microdata, dan RDFa), **JSON-LD (*JavaScript Object Notation for Linked Data*)** di dalam elemen `<script type="application/ld+json">` adalah format yang paling direkomendasikan karena terpisah rapi dari markup tampilan HTML sehingga tidak mudah rusak saat desain CSS/HTML diubah.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Struktur Dasar JSON-LD: `@context`, `@type`, dan Penggabungan dengan `@graph`
 
-Peramban modern memproses `application/ld+json` dan `Schema.org` mengikuti aturan semantik dan keamanan yang ketat:
+Sebuah blok JSON-LD disematkan di dalam `<head>` (atau `<body>`) menggunakan `<script type="application/ld+json">`. Peramban tidak mengeksekusi isi skrip ini sebagai kode JavaScript, melainkan menyimpannya sebagai blok data JSON murni.
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
-|---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `application/ld+json` dan `Schema.org` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| Kunci JSON-LD | Arti & Aturan Penulisan |
+|---|---|
+| `"@context": "https://schema.org"` | Memberi tahu pengurai bahwa seluruh nama properti di dalam objek mengacu pada kamus kosakata Schema.org. |
+| `"@type"` | Jenis entitas Schema.org, misalnya `"TechArticle"`, `"Course"`, `"BreadcrumbList"`, atau `"Organization"`. |
+| `"@id"` | Pengenal URI unik kanonis untuk entitas tersebut agar dapat dirujuk silang oleh entitas lain di halaman yang sama. |
+| `"@graph": [ ... ]` | Menggabungkan beberapa entitas sekaligus (misalnya informasi artikel **dan** jejak *breadcrumb*) di dalam satu tag `<script type="application/ld+json">`. |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
-
-Berikut adalah pola penulisan HTML modern yang menerapkan `application/ld+json` dan `Schema.org` secara benar:
+Berikut adalah contoh penggunaan `@graph` untuk menggabungkan `TechArticle` dan `BreadcrumbList` dalam satu halaman materi:
 
 ```html
 <!DOCTYPE html>
@@ -63,56 +62,89 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `application/ld+json` 
 </html>
 ```
 
-> **Perhatian untuk `FAQPage`:** Sejak 2023 Google hanya menampilkan hasil kaya FAQ untuk situs pemerintah dan kesehatan yang terkenal, dan Google mengumumkan bahwa fitur hasil kaya FAQ tidak lagi tampil di Google Search mulai 7 Mei 2026. Markup `FAQPage` tetap valid sebagai kosakata Schema.org, tetapi jangan mengharapkannya menghasilkan tampilan khusus di Google. Sebaliknya, `BreadcrumbList` dan tipe lain yang masih didukung perlu dicek di dokumentasi Google Search Central sebelum diterapkan.
+Perhatikan bahwa pada item terakhir `BreadcrumbList` (`position: 3`, yaitu halaman yang sedang dibuka saat ini), properti `"item"` (URL) boleh dikosongkan karena secara otomatis mengacu ke URL halaman saat ini.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `application/ld+json` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 2. Skema `Course` dan Status Terbaru `FAQPage` di Mesin Pencari
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Untuk halaman utama sebuah kelas pemrograman, Anda dapat menggunakan tipe **`Course`** beserta properti `provider`:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `application/ld+json` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `Schema.org`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Belajar HTML Modern Bahasa Indonesia",
+  "description": "Kelas HTML lengkap dari cara web bekerja, semantik, formulir, aksesibilitas WCAG 2.2, hingga optimasi performa.",
+  "inLanguage": "id",
+  "isAccessibleForFree": true,
+  "provider": {
+    "@type": "Organization",
+    "name": "Kodeloka — Asadin Edu",
+    "sameAs": "https://kodeloka.asadinedu.com/"
+  }
+}
+</script>
+```
+
+> **⚠️ Perhatian untuk `FAQPage`:** Sejak 2023 Google hanya menampilkan hasil kaya FAQ untuk situs pemerintah dan kesehatan yang terkenal, dan Google mengumumkan bahwa fitur hasil kaya FAQ tidak lagi tampil di Google Search mulai 7 Mei 2026. Markup `FAQPage` tetap valid sebagai kosakata Schema.org, tetapi jangan mengharapkannya menghasilkan tampilan khusus di Google. Sebaliknya, `BreadcrumbList` dan tipe lain yang masih didukung perlu dicek di dokumentasi Google Search Central sebelum diterapkan.
+
+## 3. Keamanan Penyisipan JSON-LD Dinamis (Mencegah Pecahnya `</script>`)
+
+Apabila Anda mencetak JSON-LD secara dinamis dari sisi server (misalnya menggunakan `JSON.stringify()` di Node.js atau `json_encode()` di PHP) yang memuat judul atau teks dari database, ada satu celah keamanan klasik: jika teks di dalam JSON mengandung urutan karakter **`</script>`**, parser HTML peramban akan langsung menutup blok `<script type="application/ld+json">` di tengah jalan dan mengeksekusi sisa teks setelahnya sebagai HTML/XSS!
+
+Untuk mencegahnya, selalu ganti karakter `<` menjadi urutan escape Unicode `<` (atau gunakan flag `JSON_HEX_TAG` di PHP):
+
+```javascript
+// Cara aman mencetak objek menjadi string JSON-LD di dalam template HTML
+function buatJsonLdAman(dataObjek) {
+  return JSON.stringify(dataObjek).replace(/</g, "\u003c");
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menyisipkan koma gantung (*trailing comma*) atau komentar `//` di dalam JSON-LD:** Isi `<script type="application/ld+json">` wajib berupa JSON murni sesuai spesifikasi RFC 8259. Satu koma berlebih di akhir elemen array atau satu komentar `//` akan membuat seluruh blok JSON-LD gagal diurai.
+2. **Menulis klaim di JSON-LD yang tidak terlihat oleh pengunjung halaman (*cloaking*):** Pedoman kualitas mesin pencari mewajibkan data di dalam JSON-LD mencerminkan konten yang benar-benar tampil dan dapat dibaca pengguna di halaman tersebut.
+3. **Lupa meng-escape karakter `<` saat menghasilkan JSON-LD dari data dinamis:** Selalu ubah `<` menjadi `<` agar urutan `</script>` di dalam string JSON tidak memutus elemen `<script>` HTML.
 
 ## Latihan Praktik
 
-Buatlah berkas `34-structured-data-json-ld-schema-org.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `application/ld+json` dan `Schema.org` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `34-structured-data-json-ld-schema-org.html` untuk halaman kelas "Belajar CSS Grid":
+1. Buat satu blok `<script type="application/ld+json">` yang menggunakan `"@graph"` untuk menggabungkan tiga entitas sekaligus: `Organization` (penerbit), `Course` (informasi kursus gratis berbahasa Indonesia), dan `BreadcrumbList` (3 tingkat navigasi).
+2. Pastikan konten visual di dalam `<main>` (judul `<h1>`, deskripsi kursus, dan elemen `<nav aria-label="Jejak halaman">`) sesuai persis dengan data yang dideklarasikan di dalam JSON-LD.
+3. Validasi sintaks JSON di dalamnya menggunakan `JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent)` di konsol DevTools.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `application/ld+json` dalam konteks **Data Terstruktur Schema.org dengan JSON-LD (`Course`, `TechArticle`, `FAQPage`, `BreadcrumbList`)** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `application/ld+json`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Apa fungsi dari kunci `"@graph"` di dalam sebuah blok `<script type="application/ld+json">`?
+- A. Menggambar grafik batang secara otomatis di dalam elemen `<canvas>`
+- B. Menggabungkan beberapa objek entitas Schema.org (seperti `TechArticle`, `BreadcrumbList`, dan `Organization`) di dalam satu blok JSON-LD tunggal
+- C. Mengubah format JSON-LD menjadi kueri GraphQL
+- D. Menyembunyikan halaman dari indeks mesin pencari
 
 **Jawaban Benar:** B
-**Penjelasan:** `application/ld+json` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Properti `@graph` di JSON-LD menerima array berisi beberapa node entitas yang saling terkait di halaman yang sama sehingga Anda cukup menulis satu blok `<script type="application/ld+json">` dengan satu deklarasi `"@context": "https://schema.org"`.
 
 ### Soal 2
-Mengapa penerapan `Schema.org` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`Schema.org`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Mengapa saat menghasilkan JSON-LD secara dinamis di server, setiap karakter `<` di dalam string JSON perlu diubah menjadi `<`?
+- A. Karena JSON standar tidak mengizinkan huruf besar
+- B. Agar apabila teks mengandung string `</script>`, parser HTML peramban tidak menganggapnya sebagai tag penutup elemen `<script type="application/ld+json">` yang dapat memicu celah Cross-Site Scripting (XSS)
+- C. Untuk memperkecil ukuran berkas hingga 80%
+- D. Karena Schema.org mengharuskan semua teks ditulis dalam kode ASCII heksadesimal
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Parser HTML memindai kemunculan pertama `</script>` tanpa memedulikan tanda kutip string JSON. Mengubah `<` menjadi `<` tetap menghasilkan karakter `<` yang identik saat diurai oleh `JSON.parse()`, tetapi aman dari pemutusan tag `<script>` HTML.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `application/ld+json` dan `Schema.org` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Manakah pernyataan yang **benar** mengenai penggunaan tipe `FAQPage` Schema.org untuk hasil pencarian Google per Mei 2026?
+- A. Google menampilkan hasil kaya FAQ untuk semua situs blog pribadi tanpa terkecuali
+- B. Google telah menghentikan tampilan hasil kaya (*rich result*) FAQ di Google Search sejak Mei 2026, meskipun `FAQPage` tetap merupakan kosakata Schema.org yang valid
+- C. `FAQPage` menggantikan fungsi elemen `<title>` dan `<meta name="description">`
+- D. `FAQPage` wajib ditulis di dalam berkas CSS eksternal
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Sesuai pembaruan Google Search Central, fitur tampilan khusus FAQ di hasil pencarian telah dihentikan sejak 7 Mei 2026, sehingga pengembang tidak boleh lagi mengandalkannya sebagai strategi tampilan hasil kaya di Google Search.
 
 ## Sumber
 - [JSON-LD 1.1 — W3C](https://www.w3.org/TR/json-ld11/)

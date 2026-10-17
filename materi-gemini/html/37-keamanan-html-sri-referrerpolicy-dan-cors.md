@@ -3,25 +3,19 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Melindungi halaman dari modifikasi aset CDN pihak ketiga menggunakan *Subresource Integrity* (`integrity="sha384-..."`), mengelola atribut `crossorigin="anonymous"`, serta mengendalikan kebocoran URL lewat `referrerpolicy`.
 
-## Mengapa Topik "Keamanan Markup HTML: Subresource Integrity (`integrity`), `crossorigin`, dan `referrerpolicy`" Penting di Lingkungan Produksi?
+## Mengapa Memuat Skrip atau Stylesheet Eksternal Tanpa Pengamanan Sangat Berbahaya?
 
-Dalam pengembangan web profesional, menguasai **Keamanan Markup HTML: Subresource Integrity (`integrity`), `crossorigin`, dan `referrerpolicy`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Banyak situs memuat pustaka JavaScript atau CSS dari *Content Delivery Network* (CDN) pihak ketiga. Namun, apa yang terjadi apabila server CDN tersebut diretas atau akun penerbit pustaka diambil alih, lalu berkas `pustaka.js` di CDN disisipi skrip pencuri kata sandi? Tanpa verifikasi integritas, peramban pengunjung situs Anda akan langsung mengeksekusi skrip jahat tersebut dengan hak akses penuh di domain Anda!
 
-Pada pelajaran ini kita membedah cara kerja **`integrity`** dan **`referrerpolicy`** berdasarkan spesifikasi [Subresource Integrity](https://www.w3.org/TR/sri/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Subresource_Integrity).
+Selain risiko modifikasi aset eksternal, setiap kali halaman Anda memuat gambar eksternal atau pengguna mengeklik tautan keluar, peramban mengirimkan header HTTP **`Referer`** yang dapat membocorkan jalur URL sensitif (seperti `/reset-sandi?token=rahasia123` atau `/dasbor/proyek-internal-42`) kepada server pihak ketiga. HTML menyediakan tiga atribut pertahanan utama untuk mengatasi masalah ini: **`integrity`**, **`crossorigin`**, dan **`referrerpolicy`**.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Memverifikasi Keaslian Berkas dengan Subresource Integrity (`integrity`)
 
-Peramban modern memproses `integrity` dan `referrerpolicy` mengikuti aturan semantik dan keamanan yang ketat:
+Spesifikasi [W3C Subresource Integrity (SRI)](https://www.w3.org/TR/sri/) memungkinkan Anda mencantumkan nilai *cryptographic hash* (**`sha256-`**, **`sha384-`**, atau **`sha512-`** dalam pengodean Base64) dari isi berkas yang Anda harapkan pada elemen `<script>` atau `<link rel="stylesheet">`.
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
-|---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `integrity` dan `referrerpolicy` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
-
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
-
-Berikut adalah pola penulisan HTML modern yang menerapkan `integrity` dan `referrerpolicy` secara benar:
+Saat peramban selesai mengunduh berkas dari CDN, peramban menghitung ulang hash SHA-384 dari byte berkas yang diterima lalu membandingkannya dengan nilai atribut `integrity`:
+- Jika cocok persis, skrip atau stylesheet dijalankan.
+- Jika berubah **walau hanya satu karakter spasi**, peramban langsung **menolak mengeksekusi berkas tersebut** dan mencatat galat keamanan di Console!
 
 ```html
 <!DOCTYPE html>
@@ -56,54 +50,81 @@ Untuk skrip lintas-origin, atribut `crossorigin="anonymous"` wajib ada dan serve
 
 > **Status dukungan (Oktober 2026):** Subresource Integrity (`integrity`) dan `referrerpolicy` berstatus *Baseline Widely Available*.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `integrity` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 2. Peran Atribut `crossorigin`: `"anonymous"` vs `"use-credentials"`
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Atribut `crossorigin` pada `<script>`, `<link>`, `<img`, `<audio>`, dan `<video>` mengatur bagaimana peramban melakukan permintaan CORS (*Cross-Origin Resource Sharing*) ke domain lain:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `integrity` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `referrerpolicy`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+| Nilai `crossorigin` | Pengiriman Kredensial (Cookie / TLS Client Cert) | Kegunaan Utama di Produksi |
+|---|---|---|
+| `crossorigin="anonymous"` (atau `crossorigin` kosong) | **Tidak mengirim** cookie atau kredensial pengguna ke domain lintas-asal. | Wajib disertakan saat memakai `integrity` (SRI) pada CDN publik, memuat fon `@font-face`, atau membaca piksel gambar CDN di `<canvas>`. |
+| `crossorigin="use-credentials"` | **Mengirim** cookie/kredensial lintas-asal (server wajib merespons dengan `Access-Control-Allow-Credentials: true`). | Hanya untuk aset privat di subdomain internal perusahaan yang memerlukan verifikasi cookie sesi. |
+
+Selain untuk SRI, menambahkan `crossorigin="anonymous"` pada `<script src="https://cdn...">` memungkinkan penangkap galat global `window.addEventListener("error")` melihat pesan galat lengkap dan nomor baris skrip, alih-alih hanya menerima pesan disensor `"Script error."`.
+
+## 3. Mencegah Kebocoran URL Sensitif dengan `referrerpolicy`
+
+Atribut **`referrerpolicy`** dapat dipasang per elemen (`<a>`, `<img>`, `<script>`, `<link>`, `<iframe>`) atau secara global untuk seluruh halaman melalui `<meta name="referrer" content="...">`:
+
+| Nilai `referrerpolicy` | Apa yang Dikirim di Header HTTP `Referer`? | Kapan Digunakan? |
+|---|---|---|
+| `strict-origin-when-cross-origin` (Bawaan peramban modern) | Mengirim URL lengkap untuk navigasi *same-origin*, tetapi **hanya mengirim origin (`https://kodeloka.id/`)** saat menuju domain lain melalui HTTPS, dan tidak mengirim apa pun jika turun ke HTTP. | Kebijakan dasar yang seimbang untuk sebagian besar halaman umum. |
+| `no-referrer` | **Sama sekali tidak mengirim** header `Referer` dalam kondisi apa pun. | Pada halaman yang memuat token rahasia di URL (seperti halaman reset kata sandi, tautan undangan privat, atau pemuatan skrip CDN pihak ketiga). |
+| `same-origin` | Mengirim URL lengkap hanya ke domain yang sama; **kosong** untuk semua domain luar. | Aplikasi internal/dasbor administrasi agar tidak membocorkan keberadaan domain internal ke luar. |
+
+```html
+<!-- Mengunci kebijakan referrer seluruh halaman dari dalam <head> -->
+<meta name="referrer" content="same-origin">
+
+<!-- Atau mengunci khusus pada tautan keluar dan gambar eksternal -->
+<a href="https://contoh-eksternal.com" referrerpolicy="no-referrer" rel="noopener">
+  Buka Dokumentasi Eksternal
+</a>
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Memasang `integrity="sha384-..."` pada URL CDN yang isinya berubah-ubah (seperti `/latest/app.js`):** SRI hanya boleh dipasang pada URL berkas yang **terkunci versinya** (misalnya `/v4.2.1/app.min.js`). Jika CDN memperbarui isi berkas `/latest/app.js`, hash-nya akan berubah dan peramban semua pengunjung Anda akan langsung memblokir skrip tersebut!
+2. **Menulis `integrity` pada skrip lintas-origin tanpa `crossorigin="anonymous"`:** Tanpa mode CORS, peramban tidak diizinkan membaca isi respons lintas-origin untuk memverifikasi hash-nya sehingga skrip gagal dimuat.
+3. **Menaruh token rahasia di URL tanpa `referrerpolicy="no-referrer"`:** Jika halaman `/reset?token=xyz` memuat satu gambar saja dari server pihak ketiga tanpa `no-referrer` (di peramban lama) atau pengguna mengeklik tautan eksternal, token dapat bocor melalui log `Referer`.
 
 ## Latihan Praktik
 
-Buatlah berkas `37-keamanan-html-sri-referrerpolicy-dan-cors.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `integrity` dan `referrerpolicy` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `37-keamanan-html-sri-referrerpolicy-dan-cors.html` dan berkas skrip lokal `sapa.js`:
+1. Buat berkas `sapa.js` berisi `console.log("Skrip terverifikasi SRI!");` lalu hitung hash SHA-384-nya menggunakan perintah `openssl dgst -sha384 -binary sapa.js | openssl base64 -A`.
+2. Muat `sapa.js` di dalam berkas HTML menggunakan `<script src="sapa.js" integrity="sha384-..." crossorigin="anonymous" referrerpolicy="no-referrer"></script>`.
+3. Coba ubah satu huruf di dalam `sapa.js` tanpa memperbarui nilai `integrity` di HTML, muat ulang peramban, dan amati pesan pemblokiran keamanan di tab **Console** DevTools.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `integrity` dalam konteks **Keamanan Markup HTML: Subresource Integrity (`integrity`), `crossorigin`, dan `referrerpolicy`** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `integrity`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Apa yang dilakukan peramban ketika berkas JavaScript dari CDN yang dimuat dengan `<script src="https://cdn.contoh.id/lib.js" integrity="sha384-..." crossorigin="anonymous">` telah dimodifikasi oleh pihak ketiga sehingga hash SHA-384-nya tidak lagi cocok?
+- A. Peramban tetap menjalankan skrip tersebut sambil menampilkan ikon peringatan kecil di bilah alamat
+- B. Peramban menolak mengeksekusi skrip tersebut sama sekali dan melaporkan galat integritas di Console
+- C. Peramban otomatis mengunduh ulang versi lama dari Wayback Machine
+- D. Peramban menghapus atribut `integrity` secara otomatis
 
 **Jawaban Benar:** B
-**Penjelasan:** `integrity` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Mekanisme Subresource Integrity (SRI) memverifikasi kecocokan hash kriptografis sebelum mengeksekusi berkas; jika tidak cocok, berkas langsung diblokir demi mencegah eksekusi kode yang telah dimanipulasi.
 
 ### Soal 2
-Mengapa penerapan `referrerpolicy` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`referrerpolicy`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Mengapa atribut `crossorigin="anonymous"` wajib disertakan ketika menggunakan atribut `integrity` pada elemen `<script>` atau `<link rel="stylesheet">` yang dimuat dari domain CDN berbeda?
+- A. Agar peramban mengizinkan pembacaan byte respons lintas-origin melalui CORS untuk dihitung hash-nya tanpa mengirimkan cookie pengguna ke server CDN
+- B. Agar skrip dijalankan di dalam Web Worker terpisah
+- C. Untuk menyembunyikan alamat IP pengguna dari server CDN
+- D. Karena atribut `integrity` hanya berlaku pada protokol HTTP tanpa TLS
 
-**Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Jawaban Benar:** A
+**Penjelasan:** Spesifikasi SRI mewajibkan sumber daya lintas-origin dimuat menggunakan CORS (`crossorigin="anonymous"`) agar isi berkas berhak diperiksa oleh peramban sebelum dieksekusi.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `integrity` dan `referrerpolicy` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Nilai `referrerpolicy` manakah yang memastikan peramban **sama sekali tidak mengirimkan** header HTTP `Referer` ketika pengguna mengeklik tautan keluar dari halaman sensitif (seperti halaman pemulihan kata sandi)?
+- A. `referrerpolicy="unsafe-url"`
+- B. `referrerpolicy="origin-when-cross-origin"`
+- C. `referrerpolicy="no-referrer"`
+- D. `referrerpolicy="all"`
 
-**Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Jawaban Benar:** C
+**Penjelasan:** Nilai `no-referrer` menginstruksikan peramban untuk menghilangkan header `Referer` sepenuhnya pada permintaan tersebut sehingga URL maupun nama domain asal tidak bocor ke server tujuan.
 
 ## Sumber
 - [Subresource Integrity — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Subresource_Integrity)

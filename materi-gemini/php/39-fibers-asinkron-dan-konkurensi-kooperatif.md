@@ -3,21 +3,30 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memahami cara kerja **`Fiber`** (sejak PHP 8.1) sebagai primitif *full-stack interruptible functions* yang memungkinkan kerangka kerja asinkron (seperti Revolt, Amp, ReactPHP, atau FrankenPHP worker) menjeda dan melanjutkan eksekusi fungsi tanpa mengotori tumpukan pemanggilan (*call stack*).
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa PHP Memperkenalkan `Fiber` dan Apa Bedanya dengan `Generator` (`yield`)?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `$fiber = new Fiber(function (): void { $data = Fiber::suspend('menunggu IO'); });` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Sebelum hadirnya **`Fiber`**, jika Anda ingin menulis kode I/O asinkron tanpa callback bersarang di PHP, Anda harus menggunakan `Generator` (`yield`). Namun, `Generator` bersifat *stackless*: jika fungsi `A()` memanggil `B()`, dan `B()` memanggil `C()` yang perlu menunggu respons jaringan, maka `C()`, `B()`, dan `A()` **semuanya** terpaksa diubah menjadi fungsi `yield` (*masalah pewarnaan fungsi / function coloring*)!
+
+**`Fiber`** adalah primitif *full-stack coroutine* (fungsi yang memiliki tumpukan pemanggilan sendiri dan dapat dijeda dari kedalaman fungsi mana pun!). Saat `Fiber::suspend()` dipanggil di dalam fungsi terdalam `C()`, seluruh tumpukan pemanggilan `A -> B -> C` dibekukan seketika dan kendali dikembalikan ke penjadwal utama (*Event Loop*), tanpa mengharuskan `A()` atau `B()` tahu bahwa `C()` baru saja dijeda!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Menganggap `Fiber` secara ajaib menjalankan kode PHP secara paralel di banyak inti CPU (*multi-threading*) adalah kesalahpahaman umum; `Fiber` berjalan pada satu thread melalui penjadwalan kooperatif (*cooperative multitasking*) untuk menumpuk waktu tunggu I/O.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Siklus Hidup dan Metode Utama Kelas `Fiber`
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Sebuah instans `Fiber` berjalan di dalam satu thread yang sama dengan pemanggilnya melalui pertukaran kendali kooperatif:
+
+| Metode / Status `Fiber` | Dipanggil Dari Mana? | Perilaku & Nilai Kembalian |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `$fiber = new Fiber(function (): void { $data = Fiber::suspend('menunggu IO'); });` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **`$fiber = new Fiber($callable)`** | Luar Fiber | Membangun objek Fiber baru (status awal: belum berjalan / `!$fiber->isStarted()`). |
+| **`$fiber->start(...$args)`** | Luar Fiber | Memulai eksekusi `$callable` hingga bertemu `Fiber::suspend()` pertama (mengembalikan nilai yang dikirim ke `suspend`), atau hingga fungsi selesai (mengembalikan `null`). |
+| **`Fiber::suspend($nilai)`** | **Hanya di Dalam Fiber!** | Menjeda eksekusi Fiber saat ini, mengirim `$nilai` ke pemanggil `start()`/`resume()`, dan menunggu hingga dibangunkan kembali oleh `resume()` atau `throw()`. |
+| **`$fiber->resume($nilaiMasuk)`** | Luar Fiber (saat `isSuspended()`) | Melanjutkan Fiber dari titik `suspend()` terakhir dengan menyuntikkan `$nilaiMasuk`; mengembalikan nilai `suspend()` berikutnya, atau **`null` jika Fiber sudah selesai (`isTerminated()`)**. |
+| **`$fiber->getReturn()`** | Luar Fiber (saat `isTerminated()`) | Mengambil nilai `return` akhir dari fungsi di dalam Fiber setelah Fiber selesai tanpa eksepsi. |
+| **`$fiber->throw($exception)`** | Luar Fiber (saat `isSuspended()`) | Melempar eksepsi tepat di baris `Fiber::suspend()` di dalam Fiber (sehingga dapat ditangkap oleh `try...catch` di dalam Fiber!). |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Alur Pertukaran Nilai Antara Pemanggil Utama dan `Fiber`
+
+Perhatikan urutan angka `1` sampai `4` pada kode di bawah ini serta perbedaan penting antara nilai kembalian **`$fiber->resume()`** dan **`$fiber->getReturn()`**:
 
 ```php
 <?php
@@ -38,13 +47,56 @@ $hasilAkhir = $fiber->getReturn(); // nilai return fungsi fiber diambil dengan g
 echo "4. Hasil: {$hasilAkhir}\n";
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Menjalankan Beberapa Tugas Secara Konkuren Kooperatif (*Round-Robin Scheduler*)
+
+Bagaimana kerangka kerja asinkron seperti **Amp** atau **Revolt** mengeksekusi banyak permintaan HTTP secara bersamaan menggunakan `Fiber`? Mereka memasukkan beberapa `Fiber` ke dalam antrean penjadwal (*scheduler*): ketika Fiber ke-1 menunggu I/O (`Fiber::suspend()`), penjadwal langsung menjalankan Fiber ke-2 tanpa membuang waktu menunggu!
+
+```php
+<?php
+declare(strict_types=1);
+
+/**
+ * Penjadwal kooperatif sederhana yang menjalankan beberapa Fiber secara bergantian.
+ *
+ * @param list<callable(): mixed> $daftarTugas
+ * @return list<mixed>
+ */
+function jalankanKonkurenKooperatif(array $daftarTugas): array
+{
+    /** @var list<Fiber> $antreanFiber */
+    $antreanFiber = [];
+    foreach ($daftarTugas as $tugas) {
+        $f = new Fiber($tugas);
+        $f->start();
+        $antreanFiber[] = $f;
+    }
+
+    // Lanjutkan semua fiber yang masih berstatus suspended secara bergiliran
+    $masihAdaYangBerjalan = true;
+    while ($masihAdaYangBerjalan) {
+        $masihAdaYangBerjalan = false;
+        foreach ($antreanFiber as $f) {
+            if ($f->isSuspended()) {
+                $f->resume();
+                $masihAdaYangBerjalan = true;
+            }
+        }
+    }
+
+    return array_map(static fn (Fiber $f): mixed => $f->getReturn(), $antreanFiber);
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mengira `$hasil = $fiber->resume()` mengembalikan nilai `return` akhir dari fungsi Fiber:** Ketika sebuah Fiber melanjutkan eksekusi dari `suspend()` terakhir lalu mencapai pernyataan `return "Selesai";`, metode `$fiber->resume()` akan mengembalikan **`null`**! Untuk mengambil nilai `"Selesai"`, Anda **wajib** memanggil **`$fiber->getReturn()`** setelah `$fiber->isTerminated()` bernilai `true`.
+2. **Memanggil `Fiber::suspend()` dari luar konteks Fiber:** Jika kode yang berjalan di tumpukan utama (bukan di dalam Fiber) memanggil `Fiber::suspend()`, PHP akan langsung melempar `FiberError: Cannot suspend outside of a fiber`. Periksa `if (Fiber::getCurrent() !== null)` bila membuat fungsi pustaka yang bisa dipanggil dari dalam maupun luar Fiber.
+3. **Menjalankan fungsi pemblokir sinkron (seperti `sleep(5)` atau `file_get_contents()` jaringan lambat) di dalam Fiber dan mengira Fiber lain tetap berjalan:** Karena semua Fiber berbagi 1 thread tunggal, memanggil `sleep(5)` di dalam satu Fiber akan **membekukan seluruh thread proses PHP beserta seluruh Fiber lainnya selama 5 detik**! Di dalam Fiber, hanya operasi I/O non-blokir yang diserahkan ke Event Loop via `Fiber::suspend()` yang tidak memblokir Fiber lain.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `$fiber = new Fiber(function (): void { $data = Fiber::suspend('menunggu IO'); });` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `PenjadwalFiber.php` yang memuat fungsi `jalankanKonkurenKooperatif()` serta fungsi uji yang mencatat urutan langkah eksekusi dari dua Fiber yang masing-masing memanggil `Fiber::suspend()` dua kali.
+2. Tulis pengujian PHPUnit untuk membuktikan bahwa langkah eksekusi kedua Fiber saling berselang-seling (*interleaved*: `A1, B1, A2, B2, A3, B3`) dan `$fiber->getReturn()` mengembalikan hasil akhir masing-masing Fiber dengan tepat.
 
 ## Kuis Pemahaman
 
@@ -59,24 +111,24 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mengang
 **Penjelasan:** Menganggap `Fiber` secara ajaib menjalankan kode PHP secara paralel di banyak inti CPU (*multi-threading*) adalah kesalahpahaman umum; `Fiber` berjalan pada satu thread melalui penjadwalan kooperatif (*cooperative multitasking*) untuk menumpuk waktu tunggu I/O.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `$fiber = new Fiber(function (): void { $data = Fiber::suspend('menunggu IO'); });` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `$fiber = new Fiber(function (): void { $data = Fiber::suspend('menunggu IO'); });` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi "Konkurensi Kooperatif di PHP Modern dengan Fiber (Fiber" ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Ketika sebuah `Fiber` yang sedang ditangguhkan (`suspended`) dilanjutkan dengan `$nilai = $fiber->resume('data')` lalu fungsi di dalam Fiber tersebut langsung mencapai pernyataan akhir `return 'HASIL_AKHIR';` tanpa memanggil `Fiber::suspend()` lagi, apakah isi dari `$nilai` dan bagaimana cara mengambil `'HASIL_AKHIR'`?
+- A. `$nilai` berisi `'HASIL_AKHIR'` secara langsung
+- B. `$nilai` bernilai **`null`** (karena `resume()` hanya mengembalikan nilai dari `Fiber::suspend()` berikutnya); sedangkan nilai `'HASIL_AKHIR'` harus diambil dengan memanggil **`$fiber->getReturn()`**
+- C. `$fiber->resume()` melempar `FiberError` jika fungsi selesai
+- D. `'HASIL_AKHIR'` otomatis dicetak ke layar dengan `echo`
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Sesuai dokumentasi resmi `Fiber::resume()` dan `Fiber::getReturn()`, ketika eksekusi Fiber selesai (`isTerminated() === true`), `resume()` (atau `start()`) mengembalikan `null`, dan nilai `return` dari callback Fiber diambil melalui `$fiber->getReturn()`.
+
+### Soal 3
+Apa yang terjadi jika Anda memanggil `$fiber->getReturn()` ketika Fiber masih berstatus ditangguhkan (`$fiber->isSuspended() === true`) atau ketika Fiber berhenti karena melempar eksepsi yang tidak tertangkap?
+- A. Mengembalikan `false`
+- B. PHP melempar **`FiberError`**
+- C. Mengembalikan nilai dari `Fiber::suspend()` terakhir
+- D. Memulai ulang Fiber dari awal
+
+**Jawaban Benar:** B
+**Penjelasan:** `Fiber::getReturn()` hanya boleh dipanggil setelah Fiber selesai secara normal (`$fiber->isTerminated() === true` dan tidak keluar karena eksepsi); memanggilnya sebelum selesai atau setelah gagal akan melempar `FiberError`.
 
 ## Sumber
 

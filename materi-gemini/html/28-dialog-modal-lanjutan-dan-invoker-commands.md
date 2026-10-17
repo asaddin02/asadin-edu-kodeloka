@@ -3,25 +3,37 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menguasai siklus hidup penuh elemen `<dialog>`, menangkap nilai kembalian tombol melalui `dialog.returnValue`, mengendalikan penutupan klik-luar dengan atribut `closedby`, serta membuka dialog tanpa JS dengan `commandfor` dan `command`.
 
-## Mengapa Topik "Pola `<dialog>` Lanjutan: `returnValue`, Event `cancel`/`close`, `closedby`, dan Invoker Commands" Penting di Lingkungan Produksi?
+## Mengapa Pola `<dialog>` Modern Mengurangi Ratusan Baris Kode JavaScript?
 
-Dalam pengembangan web profesional, menguasai **Pola `<dialog>` Lanjutan: `returnValue`, Event `cancel`/`close`, `closedby`, dan Invoker Commands** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Membangun jendela modal secara manual dengan `<div>` menuntut pengelolaan jebakan fokus (*focus trap*), penguncian latar belakang (`inert`), penangkapan tombol `Esc`, penataan lapisan atas (*z-index*), serta pengiriman status tombol mana yang diklik pengguna. Elemen `<dialog>` bawaan HTML menangani seluruh kebutuhan tersebut langsung di mesin peramban.
 
-Pada pelajaran ini kita membedah cara kerja **`closedby`** dan **`commandfor`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interactive-elements.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog).
+Lebih jauh lagi, perkembangan terbaru di [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interactive-elements.html) menghadirkan **Invoker Commands API (`commandfor` dan `command`)** untuk memicu pembukaan/penutupan dialog secara deklaratif tanpa satu baris JavaScript pun, serta atribut **`closedby`** untuk mengatur apakah dialog boleh ditutup dengan klik di luar kotak (*light dismiss*).
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Siklus Hidup `<dialog>`: `<form method="dialog">`, `returnValue`, dan Event `cancel` vs `close`
 
-Peramban modern memproses `closedby` dan `commandfor` mengikuti aturan semantik dan keamanan yang ketat:
+Ketika di dalam `<dialog>` terdapat `<form method="dialog">`, menekan salah satu tombol `<button value="...">` di dalam formulir tersebut **tidak akan mengirim permintaan jaringan ke server**, melainkan:
+1. Menutup kotak `<dialog>` secara otomatis;
+2. Menyimpan nilai `value` dari tombol yang ditekan ke dalam properti **`dialog.returnValue`**;
+3. Memicu event **`close`** pada elemen `<dialog>`.
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
-|---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `closedby` dan `commandfor` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+Perhatikan perbedaan penting antara event **`cancel`** dan **`close`**:
+- **Event `cancel`:** Hanya dipicu ketika pengguna meminta pembatalan dialog melalui tombol `Esc` (atau klik di luar dialog jika `closedby="any"`). Event ini dapat dibatalkan dengan `e.preventDefault()` jika Anda perlu mencegah penutupan saat formulir sedang mengirim data.
+- **Event `close`:** Selalu dipicu setiap kali dialog berubah dari terbuka menjadi tertutup—baik karena tombol submit `<form method="dialog">`, pemanggilan `dialog.close("nilai")`, maupun setelah event `cancel`. Perlu diingat bahwa penutupan lewat tombol `Esc` **tidak mengubah** `dialog.returnValue` (nilainya tetap string kosong `""` atau nilai dari penutupan sebelumnya).
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Mengatur Perilaku Penutupan dengan `closedby` dan Pemicu Deklaratif `commandfor`
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `closedby` dan `commandfor` secara benar:
+Secara tradisional, `<dialog>` yang dibuka dengan `showModal()` dapat ditutup dengan menekan `Esc`, tetapi **tidak** tertutup saat pengguna mengeklik area gelap (`::backdrop`) di luar kotak dialog. Atribut **`closedby`** mengendalikan perilaku penutupan ini secara deklaratif:
+
+| Nilai `closedby` | Klik di Luar Dialog (*Light Dismiss*) | Tombol `Esc` / Permintaan Tutup Sistem | Kasus Penggunaan Terbaik |
+|---|---|---|---|
+| `closedby="any"` | **Ya**, menutup dialog | **Ya**, menutup dialog | Jendela pratinjau gambar, pemilihan filter, atau konfirmasi ringan yang mudah ditutup. |
+| `closedby="closerequest"` | **Tidak** menutup dialog | **Ya**, menutup dialog | Perilaku bawaan dialog modal (`showModal()`); mencegah penutupan tak sengaja saat mengisi formulir. |
+| `closedby="none"` | **Tidak** menutup dialog | **Tidak** menutup dialog | Dialog kritis yang mewajibkan pengguna memilih salah satu tombol aksi secara eksplisit. |
+
+Sementara itu, **Invoker Commands API** memungkinkan tombol `<button>` mengendalikan `<dialog>` hanya dengan atribut HTML:
+- `commandfor="id-dialog"`: Menunjuk `id` elemen `<dialog>` target.
+- `command="show-modal"`: Membuka `<dialog>` sebagai modal di *top layer* (setara dengan `dialog.showModal()`).
+- `command="close"`: Menutup `<dialog>` yang sedang terbuka (dan jika tombol memiliki atribut `value`, nilai tersebut diteruskan ke `dialog.returnValue`).
 
 ```html
 <!DOCTYPE html>
@@ -73,54 +85,67 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `closedby` dan `comman
 
 > **Status dukungan (Oktober 2026):** `command` dan `commandfor` berstatus *Baseline Newly Available* sejak Desember 2025. Atribut `closedby` belum berstatus Baseline: didukung Chrome/Edge 134+ dan Firefox 141+, tetapi belum di Safari. Sediakan tombol "Batal" yang jelas di dalam dialog agar pengguna Safari tetap dapat menutupnya.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `closedby` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Mereset `returnValue` dan Mengatur Fokus Awal (`autofocus`)
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Karena `dialog.returnValue` mempertahankan nilai dari penutupan sebelumnya apabila dialog ditutup menggunakan tombol `Esc`, ada jebakan halus jika pengguna membuka dialog untuk kedua kalinya lalu menekan `Esc`: `dialog.returnValue` masih berisi `"hapus"` dari sesi pertama! Untuk menghindarinya, kosongkan `dialog.returnValue = ""` setiap kali dialog ditutup oleh event `cancel` atau sebelum dibuka kembali:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `closedby` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `commandfor`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+```html
+<script>
+  const dialogKonfirmasi = document.getElementById("dialog-hapus");
+
+  dialogKonfirmasi.addEventListener("cancel", () => {
+    // Pastikan nilai kembalian dikosongkan saat pengguna membatalkan dengan Esc
+    dialogKonfirmasi.returnValue = "batal";
+  });
+</script>
+```
+
+Untuk aksi yang bersifat merusak (seperti *"Hapus Proyek"*), pasang atribut **`autofocus`** pada tombol **"Batal"**, bukan pada tombol **"Ya, hapus"**. Dengan demikian, pengguna yang tidak sengaja menekan tombol `Enter` begitu dialog terbuka tidak akan langsung menghapus datanya.
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Membuka dialog dengan menambahkan atribut `open` di HTML untuk dialog modal:** Menambahkan `<dialog open>` secara langsung hanya membuka dialog dalam mode **non-modal** (tanpa `::backdrop`, tidak masuk ke *top layer*, dan latar belakang tidak dikunci). Gunakan `command="show-modal"` atau `dialog.showModal()`.
+2. **Tidak mereset `dialog.returnValue` saat menangani `cancel`:** Jika pengguna menutup dialog dengan `Esc` pada pembukaan kedua, `dialog.returnValue` masih menyimpan nilai lama dari pembukaan pertama kecuali Anda mengaturnya ulang.
+3. **Mengandalkan klik-luar (`closedby="any"`) sebagai satu-satunya cara menutup dialog:** Pengguna papan ketik, pembaca layar, dan peramban yang belum mendukung `closedby` membutuhkan tombol `<button>` penutup yang terlihat jelas di dalam dialog.
 
 ## Latihan Praktik
 
-Buatlah berkas `28-dialog-modal-lanjutan-dan-invoker-commands.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `closedby` dan `commandfor` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `28-dialog-modal-lanjutan-dan-invoker-commands.html` untuk fitur pengarsipan kelas:
+1. Buat tombol `<button type="button" command="show-modal" commandfor="dialog-arsip">Arsipkan Kelas</button>`.
+2. Buat elemen `<dialog id="dialog-arsip" closedby="any" aria-labelledby="judul-arsip">` yang memuat `<form method="dialog">` dengan tiga tombol: `value="batal"` (diberi `autofocus`), `value="arsip-sementara"`, dan `value="arsip-permanen"`.
+3. Pasang pendengar event `cancel` untuk mereset `dialog.returnValue = "batal"`, serta pendengar event `close` yang menampilkan pilihan akhir pengguna di dalam elemen `<output>`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `closedby` dalam konteks **Pola `<dialog>` Lanjutan: `returnValue`, Event `cancel`/`close`, `closedby`, dan Invoker Commands** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `closedby`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Apa yang dilakukan peramban ketika pengguna mengeklik `<button value="setuju">Simpan</button>` yang berada di dalam `<form method="dialog">` di dalam elemen `<dialog>`?
+- A. Peramban mengirim permintaan HTTP `POST` ke URL `/dialog`
+- B. Peramban menutup elemen `<dialog>`, mengisi `dialog.returnValue` dengan string `"setuju"`, dan memicu event `close`
+- C. Peramban memicu event `cancel` tanpa menutup dialog
+- D. Peramban memuat ulang (*reload*) seluruh halaman web
 
 **Jawaban Benar:** B
-**Penjelasan:** `closedby` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Metode formulir `method="dialog"` dirancang khusus untuk elemen `<dialog>`: saat dikirim, dialog langsung ditutup tanpa permintaan jaringan dan atribut `value` dari tombol pemicu disimpan ke dalam `dialog.returnValue`.
 
 ### Soal 2
-Mengapa penerapan `commandfor` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`commandfor`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Manakah nilai atribut `closedby` pada `<dialog>` yang mengizinkan pengguna menutup dialog baik dengan menekan tombol `Esc` maupun dengan mengeklik area latar di luar kotak dialog (*light dismiss*)?
+- A. `closedby="none"`
+- B. `closedby="closerequest"`
+- C. `closedby="any"`
+- D. `closedby="backdrop-only"`
 
-**Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Jawaban Benar:** C
+**Penjelasan:** Nilai `closedby="any"` mengaktifkan penutupan melalui klik di luar dialog (*light dismiss*) sekaligus tombol `Esc` (*close request*), sedangkan `closerequest` hanya mengizinkan `Esc` dan `none` menonaktifkan keduanya.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `closedby` dan `commandfor` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Pasangan atribut deklaratif manakah dari **Invoker Commands API** yang dapat dipasang pada `<button type="button">` untuk membuka `<dialog id="modal-info">` sebagai dialog modal tanpa menulis kode JavaScript?
+- A. `data-toggle="modal" data-target="#modal-info"`
+- B. `command="show-modal" commandfor="modal-info"`
+- C. `popovertarget="modal-info" popovertargetaction="modal"`
+- D. `href="#modal-info" target="_dialog"`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Invoker Commands API menggunakan `commandfor="id-elemen"` untuk menunjuk elemen target dan `command="show-modal"` untuk memanggil perilaku pembukaan modal pada `<dialog>`.
 
 ## Sumber
 - [`<dialog>` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog)

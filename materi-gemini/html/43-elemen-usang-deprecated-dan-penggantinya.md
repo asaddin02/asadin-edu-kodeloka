@@ -3,25 +3,30 @@
 - **Tingkat:** Dasar
 - **Ringkasan:** Mengenali tag dan atribut warisan HTML4 (`<center>`, `<font>`, `<marquee>`, `<strike>`, `<frame>`, `align`, `bgcolor`, `border`) yang telah dihapus dari standar HTML5 agar tidak pernah terbawa ke kode produksi.
 
-## Mengapa Topik "Elemen dan Atribut HTML Usang (*Deprecated/Obsolete*) beserta Pengganti Modernnya" Penting di Lingkungan Produksi?
+## Mengapa Elemen Warisan HTML4 Dihapus dari Standar HTML5?
 
-Dalam pengembangan web profesional, menguasai **Elemen dan Atribut HTML Usang (*Deprecated/Obsolete*) beserta Pengganti Modernnya** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Pada awal sejarah web di tahun 1990-an sebelum CSS didukung secara matang, pembuat halaman web mengatur tampilan visual langsung menggunakan tag dan atribut HTML seperti `<center>`, `<font color="red" size="4">`, `<bgcolor>`, dan `<marquee>`. Pendekatan ini mencampuradukkan **struktur makna dokumen** dengan **presentasi visual**, menyulitkan pembaca layar, membengkakkan ukuran dokumen HTML, dan membuat perubahan desain situs harus dilakukan di ribuan baris HTML satu per satu.
 
-Pada pelajaran ini kita membedah cara kerja **`obsolete`** dan **`html5`** berdasarkan bagian [Obsolete features](https://html.spec.whatwg.org/multipage/obsolete.html) pada WHATWG HTML Living Standard serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements).
+Dalam spesifikasi [WHATWG HTML Living Standard — Obsolete features](https://html.spec.whatwg.org/multipage/obsolete.html), seluruh elemen dan atribut presentasi warisan tersebut dinyatakan **usang (*obsolete / non-conforming*)** dan **dilarang ditulis** oleh pengembang. Meskipun peramban masih merendernya demi kompatibilitas mundur terhadap situs-situs tua, menggunakannya di kode baru akan gagal lulus validator W3C/WHATWG dan menurunkan kualitas aksesibilitas.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Peta Lengkap Elemen HTML Usang dan Pengganti Modernnya
 
-Peramban modern memproses `obsolete` dan `html5` mengikuti aturan semantik dan keamanan yang ketat:
+Apabila Anda sedang meremajakan kode proyek lama (*legacy*) atau menyalin cuplikan kode dari forum lawas, gunakan tabel pemetaan berikut untuk menggantinya dengan elemen semantik HTML5 atau properti CSS yang tepat:
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+| Elemen Usang (Jangan Gunakan) | Mengapa Dihapus? | Pengganti Standar Modern (HTML5 / CSS) |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `obsolete` dan `html5` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| `<center>` | Murni presentasi visual tanpa makna semantik. | Gunakan CSS `text-align: center` (untuk teks sebaris) atau `margin-inline: auto` / Flexbox / Grid (untuk kotak blok). |
+| `<font color="..." face="..." size="...">` | Mengikat warna dan ukuran huruf langsung di markup. | Gunakan elemen semantik yang sesuai (`<p>`, `<strong>`, `<span>`) dan atur `color`, `font-family`, `font-size` di CSS. |
+| `<strike>` | Ambigu antara teks yang tidak lagi akurat dan teks yang dihapus dari revisi dokumen. | Gunakan **`<s>`** untuk informasi yang tidak lagi berlaku (misalnya harga coret diskon), atau **`<del>`** untuk teks yang dihapus dalam riwayat suntingan. |
+| `<tt>` (*Teletype text*) | Hanya mengubah huruf menjadi *monospace* tanpa menjelaskan jenis teksnya. | Gunakan **`<code>`** (kode program), **`<kbd>`** (masukan papan ketik), **`<samp>`** (keluaran program), atau CSS `font-family: monospace`. |
+| `<big>` | Hanya memperbesar ukuran huruf secara visual (sedangkan `<small>` dipertahankan untuk catatan hukum/hak cipta). | Gunakan heading (`<h2>`–`<h6>`), `<strong>`, atau properti CSS `font-size`. |
+| `<acronym>` | Tumpang tindih dan membingungkan dengan singkatan umum. | Gunakan **`<abbr title="...">`** baik untuk singkatan maupun akronim. |
+| `<marquee>` dan `<blink>` | Mengganggu konsentrasi pengguna, melanggar kriteria aksesibilitas WCAG 2.2.2, dan tidak standar. | Hindari teks berkedip; jika animasi geser memang diperlukan, gunakan CSS `@keyframes` dan matikan saat `@media (prefers-reduced-motion: reduce)`. |
+| `<frame>`, `<frameset>`, `<noframes>` | Merusak navigasi tombol Mundur, penandaan URL (*bookmark*), dan pembaca layar. | Gunakan tata letak CSS Grid/Flexbox, atau **`<iframe>`** jika memang harus menyematkan dokumen eksternal. |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Atribut Presentasi yang Usang dan Contoh Kode Modernisasi
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `obsolete` dan `html5` secara benar:
+Selain tag elemen, banyak atribut presentasi warisan pada `<body>`, `<table>`, `<tr>`, `<td>`, `<hr>`, dan `<img>` yang juga telah dinyatakan usang di HTML5 (seperti `align`, `valign`, `bgcolor`, `border`, `cellpadding`, `cellspacing`, serta `width`/`height` pada `<td>`):
 
 ```html
 <!DOCTYPE html>
@@ -71,54 +76,54 @@ Bandingkan dengan markup usang yang **tidak boleh** Anda tulis (contoh ini hanya
 
 Elemen `<marquee>` tidak memiliki pengganti HTML langsung; bila animasi memang diperlukan, gunakan CSS (`@keyframes`) dan hormati `prefers-reduced-motion`.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `obsolete` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Pengecualian Penting: Atribut `width` dan `height` yang Tetap Valid!
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Jangan sampai salah kaprah: meskipun atribut `width` dan `height` telah dinyatakan usang pada elemen **`<td>`**, **`<th>`**, dan **`<table>`**, atribut **`width` dan `height` TETAP VALID dan SANGAT DIANJURKAN** pada elemen media visual seperti **`<img>`**, **`<video>`**, **`<svg>`**, **`<canvas>`**, dan **`<iframe>`**! Pada elemen-elemen media tersebut, `width` dan `height` mendefinisikan ukuran intrinsik aset guna mencegah pergeseran tata letak (CLS).
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `obsolete` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `html5`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Masih menulis `<table border="1" cellpadding="8" width="100%">` pada halaman web modern:** Gunakan properti CSS `border-collapse: collapse`, `border`, `padding`, dan `width: 100%` di stylesheet Anda.
+2. **Mengganti `<center>` dengan `<div align="center">`:** Atribut `align="center"` pada `<div>`, `<p>`, atau `<h1>` sama-sama sudah usang di HTML5! Gunakan `text-align: center` atau Flexbox/Grid di CSS.
+3. **Bingung memilih antara `<s>` dan `<del>` saat mengganti `<strike>`:** Gunakan **`<s>`** untuk menyatakan sesuatu yang sudah tidak lagi akurat atau tidak lagi relevan (seperti harga sebelum diskon), dan gunakan **`<del>`** apabila Anda ingin mencatat penghapusan teks editorial di dalam revisi dokumen.
 
 ## Latihan Praktik
 
-Buatlah berkas `43-elemen-usang-deprecated-dan-penggantinya.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `obsolete` dan `html5` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `43-elemen-usang-deprecated-dan-penggantinya.html` dengan memodernisasi cuplikan HTML4 warisan berikut menjadi HTML5 dan CSS yang 100% valid:
+1. Ubah `<center><font face="Arial" size="5" color="blue"><b>Promo Kelas <acronym title="HyperText Markup Language">HTML</acronym></b></font></center>` menjadi `<h1>` dengan `<abbr>` dan kelas CSS.
+2. Ubah `<p>Harga normal: <strike>Rp 300.000</strike>, ketik <tt>BELAJAR26</tt> saat pendaftaran.</p>` menjadi elemen semantik HTML5 (`<s>` dan `<code>`/`<kbd>`).
+3. Ubah `<table border="1" cellpadding="10" bgcolor="#ffffff">` menjadi tabel semantik dengan `<caption>`, `<th scope="col">`, dan penataan CSS `border-collapse: collapse`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `obsolete` dalam konteks **Elemen dan Atribut HTML Usang (*Deprecated/Obsolete*) beserta Pengganti Modernnya** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `obsolete`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Ketika Anda memodernisasi halaman katalog toko daring yang sebelumnya menggunakan tag usang `<strike>Rp 500.000</strike>` untuk menampilkan harga lama yang sudah didiskon, elemen HTML5 manakah yang paling tepat sebagai penggantinya?
+- A. `<s>Rp 500.000</s>`
+- B. `<tt>Rp 500.000</tt>`
+- C. `<acronym>Rp 500.000</acronym>`
+- D. `<blink>Rp 500.000</blink>`
 
-**Jawaban Benar:** B
-**Penjelasan:** `obsolete` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Jawaban Benar:** A
+**Penjelasan:** Elemen `<s>` digunakan di HTML5 untuk menandai teks yang sudah tidak lagi akurat atau tidak lagi relevan (seperti harga lama sebelum diskon), sedangkan `<del>` digunakan untuk menandai penghapusan teks dalam revisi dokumen.
 
 ### Soal 2
-Mengapa penerapan `html5` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`html5`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Manakah pengganti semantik yang tepat di HTML5 untuk elemen usang `<tt>` (*teletype/monospace*) dan `<acronym>`?
+- A. `<tt>` diganti dengan `<font>`, dan `<acronym>` diganti dengan `<big>`
+- B. `<tt>` diganti dengan `<code>`, `<kbd>`, atau `<samp>` sesuai makna teksnya (atau CSS `font-family: monospace`), sedangkan `<acronym>` diganti dengan `<abbr>`
+- C. `<tt>` diganti dengan `<marquee>`, dan `<acronym>` diganti dengan `<center>`
+- D. Keduanya diganti dengan `<frame>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** HTML5 mengganti `<tt>` yang murni visual dengan elemen semantik spesifik (`<code>` untuk kode, `<kbd>` untuk tombol papan ketik, `<samp>` untuk output komputer) dan menyatukan `<acronym>` ke dalam `<abbr>`.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `obsolete` dan `html5` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Pada elemen manakah atribut HTML `width` dan `height` **masih valid dan sangat dianjurkan** dalam standar HTML5 (berbeda dengan pada `<td>` atau `<table>` yang sudah usang)?
+- A. Pada elemen `<p>` dan `<span>`
+- B. Pada elemen `<img>`, `<video>`, `<svg>`, `<canvas>`, dan `<iframe>` untuk mendefinisikan dimensi intrinsik dan mencegah *Cumulative Layout Shift* (CLS)
+- C. Pada elemen `<ul>` dan `<ol>`
+- D. Pada elemen `<center>` dan `<font>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Pada elemen media tersemat seperti `<img>` dan `<video>`, atribut `width` dan `height` bukanlah atribut presentasi usang, melainkan spesifikasi dimensi intrinsik yang vital untuk menjaga kestabilan tata letak halaman.
 
 ## Sumber
 - [Obsolete features — WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/obsolete.html)

@@ -95,6 +95,40 @@ dialog:modal::backdrop {
 
 > **💡 Catatan:** `:popover-open` adalah padanan untuk elemen `[popover]` yang sedang ditampilkan (Baseline Newly Available sejak April 2024). Jika satu aturan gabungan berisi selektor yang tidak dikenali peramban, **seluruh aturan diabaikan**; karena itu tuliskan `:open` dalam aturan terpisah dari `[open]`, seperti pada contoh di atas.
 
+## Studi Kasus Produksi: Bilah Pencarian Pintar dan Laci `<details>` Aksesibel
+
+Menggabungkan `:focus-within`, `:focus-visible`, dan `:open` memudahkan pembuatan komponen bilah pencarian yang menampilkan petunjuk pintasan papan ketik hanya ketika pengguna berinteraksi di dalamnya:
+
+```css
+.kotak-cari {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid oklch(80% 0.02 250);
+  border-radius: 0.5rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+/* Sorot seluruh pembungkus saat input atau tombol di dalamnya mendapat fokus */
+.kotak-cari:focus-within {
+  border-color: oklch(50% 0.2 255);
+  box-shadow: 0 0 0 3px oklch(50% 0.2 255 / 0.2);
+}
+
+/* Hilangkan outline ganda pada input karena pembungkus sudah menampilkan cincin fokus */
+.kotak-cari input:focus-visible {
+  outline: none;
+}
+
+/* Putar ikon panah saat akordeon <details> terbuka */
+details:open > summary .ikon-panah {
+  rotate: 90deg;
+}
+```
+
+Pastikan Anda hanya menghapus `outline` pada input internal apabila pembungkus `.kotak-cari:focus-within` sudah memberikan indikator fokus dengan rasio kontras minimal 3:1 sesuai WCAG 2.2 SC 1.4.11.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **`:focus { outline: none; }` tanpa pengganti.** Pengguna papan ketik tidak bisa tahu posisi fokus. Ganti dengan gaya `:focus-visible` yang jelas.

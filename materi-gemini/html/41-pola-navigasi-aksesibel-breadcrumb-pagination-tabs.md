@@ -3,25 +3,30 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menulis struktur HTML semantik dan atribut ARIA standar untuk tiga komponen navigasi paling umum di aplikasi web: *Breadcrumbs*, *Pagination*, dan *Tab Interface* (`role="tablist"`, `tab`, `tabpanel`).
 
-## Mengapa Topik "Pola Markup Aksesibel: Jejak Halaman (*Breadcrumbs*), Paginasi, dan Komponen Tab" Penting di Lingkungan Produksi?
+## Mengapa Tiga Pola Navigasi Ini Membutuhkan Struktur Semantik yang Spesifik?
 
-Dalam pengembangan web profesional, menguasai **Pola Markup Aksesibel: Jejak Halaman (*Breadcrumbs*), Paginasi, dan Komponen Tab** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Hampir setiap situs dokumentasi, toko daring, dan dasbor aplikasi memiliki tiga komponen navigasi utama: **Jejak Halaman (*Breadcrumbs*)**, **Paginasi (*Pagination*)**, dan **Antarmuka Tab (*Tabs*)**. Jika ketiganya hanya ditulis sebagai deretan `<div class="nav">` atau `<a href="#">`, pengguna pembaca layar tidak dapat membedakan mana navigasi utama situs, mana jejak hierarki halaman, halaman nomor berapa yang sedang aktif dibuka, dan bagaimana cara berpindah antar-tab dengan papan ketik.
 
-Pada pelajaran ini kita membedah cara kerja **`breadcrumb`** dan **`tablist`** berdasarkan [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-current).
+Panduan resmi [W3C ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/) menetapkan struktur HTML dan atribut ARIA baku untuk ketiga pola ini.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Pola Markup *Breadcrumbs* dan *Pagination* dengan `<nav>` dan `aria-current="page"`
 
-Peramban modern memproses `breadcrumb` dan `tablist` mengikuti aturan semantik dan keamanan yang ketat:
+Ketika satu halaman memiliki lebih dari satu elemen `<nav>` (misalnya navigasi utama di header, jejak *breadcrumb* di atas judul, dan paginasi di bawah daftar artikel), **setiap elemen `<nav>` wajib diberi `aria-label` yang unik** agar pengguna pembaca layar dapat membedakannya di daftar *Landmarks*:
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+| Komponen | Struktur Elemen HTML | Atribut Aksesibilitas Kunci |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `breadcrumb` dan `tablist` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| **Breadcrumbs (Jejak Halaman)** | `<nav aria-label="Jejak halaman">` berisi daftar terurut **`<ol>`** (karena urutan hierarki dari beranda ke halaman saat ini bermakna). | Pasang **`aria-current="page"`** pada tautan item terakhir yang mewakili halaman saat ini. Simbol pemisah `/` atau `›` ditambahkan lewat CSS `::before` agar tidak ikut dibacakan pembaca layar. |
+| **Pagination (Penomoran Halaman)** | `<nav aria-label="Paginasi">` berisi daftar `<ul>` atau `<ol>` tautan nomor halaman. | Pasang **`aria-current="page"`** pada nomor halaman yang sedang aktif, serta `rel="prev"` dan `rel="next"` pada tautan Sebelumnya/Berikutnya. |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Pola Antarmuka Tab (`role="tablist"`, `tab`, `tabpanel`, dan *Roving `tabindex`*)
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `breadcrumb` dan `tablist` secara benar:
+Berbeda dengan *Breadcrumbs* dan *Pagination* yang berpindah antar-URL menggunakan `<a href>`, komponen **Tabs** menampilkan dan menyembunyikan panel konten di halaman yang sama. Menurut W3C APG, antarmuka Tab wajib mengikuti aturan struktur dan papan ketik berikut:
+1. Wadah deretan tombol tab memiliki **`role="tablist"`** (dengan `aria-label` atau `aria-labelledby`).
+2. Setiap tombol tab di dalamnya adalah **`<button type="button" role="tab">`** yang memiliki:
+   - **`aria-selected="true"`** (untuk tab aktif) atau **`"false"`** (untuk tab tidak aktif);
+   - **`aria-controls="id-panel"`** yang menunjuk `id` panel kontennya;
+   - **Roving `tabindex`:** Hanya tab yang sedang aktif yang memiliki `tabindex="0"`, sedangkan seluruh tab lainnya diberi **`tabindex="-1"`**. Pengguna menekan `Tab` sekali untuk masuk ke tab aktif, lalu menggunakan tombol panah **`ArrowRight` / `ArrowLeft`** untuk berpindah antar-tab!
+3. Setiap panel konten memiliki **`role="tabpanel"`**, **`aria-labelledby="id-tab"`**, dan **`tabindex="0"`** (agar isi panel mudah dijangkau dengan satu tekan tombol `Tab` bila di dalam panel tidak ada elemen interaktif pertama). Panel yang tidak aktif disembunyikan dengan atribut **`hidden`**.
 
 ```html
 <!DOCTYPE html>
@@ -91,54 +96,70 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `breadcrumb` dan `tabl
 </html>
 ```
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `breadcrumb` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Menambahkan Pemisah Visual *Breadcrumb* via CSS Agar Tidak Mengganggu Pembaca Layar
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Jika Anda menulis karakter garis miring `/` secara mentah di dalam HTML (`<li><a href="/">Beranda</a> / </li>`), pembaca layar akan membacakan *"Beranda, garis miring, HTML, garis miring..."*. Gunakan pseudo-element CSS `::before` pada `li + li` agar simbol pemisah hanya bersifat visual:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `breadcrumb` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `tablist`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+```css
+nav[aria-label="Jejak halaman"] ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+nav[aria-label="Jejak halaman"] li + li::before {
+  content: "/";
+  margin-inline-end: 0.5rem;
+  color: #64748b;
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menggunakan `role="tablist"` dan `role="tab"` untuk menu navigasi utama situs:** Jika mengeklik item menu membawa pengguna berpindah ke URL halaman baru, itu adalah **navigasi tautan (`<nav>` dengan `<a href>`)**, bukan komponen Tab ARIA! Jangan pasang `role="tab"` pada tautan navigasi halaman.
+2. **Menulis kata `"Navigasi"` di dalam `aria-label` pada elemen `<nav>`:** Pembaca layar sudah otomatis mengumumkan peran `<nav>` sebagai *"navigation"*. Jika Anda menulis `<nav aria-label="Navigasi paginasi">`, pembaca layar akan membacakannya dua kali: *"Navigasi paginasi navigation"*. Cukup tulis `aria-label="Paginasi"` atau `aria-label="Jejak halaman"`.
+3. **Membiarkan semua tombol `role="tab"` memiliki `tabindex="0"`:** Sesuai pola APG, hanya satu tab yang sedang terpilih (`aria-selected="true"`) yang boleh berada di urutan `Tab` (`tabindex="0"`), sementara tab lainnya harus `tabindex="-1"` dan dinavigasi dengan tombol panah.
 
 ## Latihan Praktik
 
-Buatlah berkas `41-pola-navigasi-aksesibel-breadcrumb-pagination-tabs.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `breadcrumb` dan `tablist` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `41-pola-navigasi-aksesibel-breadcrumb-pagination-tabs.html`:
+1. Buat komponen *Breadcrumb* 4 tingkat menggunakan `<nav aria-label="Jejak halaman">` dan `<ol>`, lengkap dengan pemisah CSS `li + li::before` serta `aria-current="page"` pada item terakhir.
+2. Buat komponen *Tabs* dengan 3 tab ("Ringkasan", "Contoh Kode", "Kuis") beserta 3 `role="tabpanel"` yang mendukung navigasi tombol panah `ArrowRight`, `ArrowLeft`, `Home` (ke tab pertama), dan `End` (ke tab terakhir).
+3. Buat komponen *Pagination* 5 halaman di bagian bawah halaman dan beri gaya visual khusus pada tautan yang memiliki selektor `[aria-current="page"]`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `breadcrumb` dalam konteks **Pola Markup Aksesibel: Jejak Halaman (*Breadcrumbs*), Paginasi, dan Komponen Tab** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `breadcrumb`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Atribut dan nilai apakah yang tepat untuk dipasang pada tautan halaman yang sedang aktif di dalam komponen *Breadcrumbs* maupun *Pagination* agar pembaca layar mengumumkannya sebagai halaman saat ini?
+- A. `aria-selected="true"`
+- B. `aria-current="page"`
+- C. `aria-active="1"`
+- D. `role="current"`
 
 **Jawaban Benar:** B
-**Penjelasan:** `breadcrumb` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Atribut `aria-current="page"` memberi tahu teknologi bantu bahwa tautan tersebut menunjuk ke halaman yang sedang dibuka saat ini di dalam serangkaian tautan navigasi.
 
 ### Soal 2
-Mengapa penerapan `tablist` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`tablist`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Dalam pola komponen **Tabs** standar W3C ARIA Authoring Practices Guide (APG), bagaimana cara kerja navigasi papan ketik yang benar di antara tombol-tombol `role="tab"`?
+- A. Hanya tab yang sedang aktif (`aria-selected="true"`) yang memiliki `tabindex="0"`, sedangkan tab lain diberi `tabindex="-1"` dan dipilih menggunakan tombol panah (`ArrowRight` / `ArrowLeft`)
+- B. Semua tab diberi `tabindex="1"` dan dipilih dengan menekan `Alt + F4`
+- C. Tombol `Tab` tidak boleh digunakan sama sekali di seluruh halaman yang memiliki `role="tablist"`
+- D. Semua panel `role="tabpanel"` ditampilkan sekaligus tanpa atribut `hidden`
 
-**Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Jawaban Benar:** A
+**Penjelasan:** Pola *roving tabindex* pada `tablist` memastikan pengguna cukup menekan `Tab` satu kali untuk masuk ke tab aktif lalu berpindah langsung ke isi `tabpanel` aktif pada tekanan `Tab` berikutnya, sementara perpindahan antar-tab dilakukan dengan tombol panah.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `breadcrumb` dan `tablist` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Mengapa elemen daftar di dalam `<nav aria-label="Jejak halaman">` (*Breadcrumbs*) sebaiknya menggunakan `<ol>` (*ordered list*) alih-alih `<ul>`?
+- A. Karena CSS Flexbox hanya bisa diterapkan pada elemen `<ol>`
+- B. Karena jejak halaman merepresentasikan urutan hierarki langkah/tingkatan yang berurutan dari beranda hingga halaman saat ini
+- C. Karena `<ul>` tidak boleh memiliki anak elemen `<li>`
+- D. Karena atribut `aria-current` hanya valid di dalam `<ol>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** *Breadcrumb* menunjukkan jalur hierarki berurutan dari halaman paling atas menuju halaman saat ini, sehingga secara semantik tepat direpresentasikan sebagai daftar terurut (`<ol>`).
 
 ## Sumber
 - [Breadcrumb Pattern — ARIA Authoring Practices Guide (W3C WAI)](https://www.w3.org/WAI/ARIA/apg/patterns/breadcrumb/)

@@ -3,21 +3,32 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Memvalidasi dimensi gambar, menghapus metadata lokasi EXIF demi privasi pengguna, mengubah ukuran gambar (*resize/crop*) secara proporsional dengan `imagescale()`, serta mengonversi unggahan JPEG/PNG menjadi format modern **WebP (`imagewebp`)** dan **AVIF (`imageavif`)**.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Gambar Unggahan Pengguna Tidak Boleh Langsung Disajikan Apa Adanya?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `imagewebp($kanvasBaru, $jalurTujuan, quality: 82);` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Ketika pengguna mengunggah foto dari kamera ponsel modern ke aplikasi Anda, ada tiga masalah besar jika berkas asli tersebut langsung disimpan dan disajikan ke pengunjung lain:
+1. **Ancaman *Image Decompression Bomb* (OOM):** Berkas gambar PNG/JPEG berukuran hanya **200 KB** di disk dapat dimanipulasi memiliki dimensi piksel **20.000 × 20.000 piksel**. Begitu kode PHP Anda memanggil `imagecreatefrompng()` tanpa memeriksa dimensinya lebih dulu, GD akan mengalokasikan bitmap mentah di RAM sebesar $20.000 \times 20.000 \times 4\text{ byte} \approx \mathbf{1,6\text{ GB RAM}}$ dan langsung mematikan proses PHP!
+2. **Kebocoran Privasi Metadata EXIF:** Foto dari ponsel menyimpan koordinat GPS rumah pengguna, jenis perangkat, dan waktu pengambilan di dalam header EXIF.
+3. **Pemborosan Bandwidth:** Foto JPEG 4000px berukuran 5 MB akan memperlambat LCP halaman; mengubah ukurannya menjadi *thumbnail* proporsional dan menyimpannya ke format **WebP (`imagewebp`)** atau **AVIF (`imageavif`)** memangkas ukuran berkas hingga 70–85%!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Memuat gambar unggahan pengguna yang beresolusi 12.000 x 12.000 piksel (*decompression bomb / image bomb*) langsung ke `imagecreatefromjpeg()` tanpa memeriksa lebar dan tinggi piksel terlebih dahulu dengan `getimagesize()` akan menghabiskan ratusan megabyte RAM seketika.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Perbandingan Ekstensi `GD` vs `Imagick` dan Format WebP vs AVIF
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Berikut adalah perbandingan perkakas dan fungsi pengolahan gambar di PHP 8.2–8.5:
+
+| Aspek / Fungsi | Ekstensi `GD` (Bawaan Umum PHP) | Ekstensi `Imagick` (ImageMagick) |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `imagewebp($kanvasBaru, $jalurTujuan, quality: 82);` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **Representasi Objek** | Objek **`GdImage`** (menggantikan `resource` lama sejak PHP 8.0). | Objek **`Imagick`**. |
+| **Pemeriksaan Dimensi Awal** | **`getimagesize($jalur)`** (membaca header dimensi tanpa mendekode seluruh piksel ke RAM!). | `$img->pingImage($jalur)` (membaca metadata tanpa memuat piksel). |
+| **Pembersihan EXIF & Profil** | Otomatis bersih saat digambar ulang ke kanvas `GdImage` baru! | Wajib memanggil **`$img->stripImage()`** secara eksplisit. |
+| **Konversi ke WebP & AVIF** | **`imagewebp($gd, $tujuan, 82)`** dan **`imageavif($gd, $tujuan, 65)`** (PHP 8.1+). | `$img->setImageFormat('webp')` / `'avif'`. |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Alur Aman Pembuatan Thumbnail WebP & AVIF dengan `GD`
+
+Selalu ikuti urutan pertahanan berlapis berikut sebelum memuat piksel gambar ke memori:
+1. Periksa tipe MIME asli berkas menggunakan **`finfo`** (`FILEINFO_MIME_TYPE`).
+2. Baca header dimensi gambar menggunakan **`getimagesize($jalurSumber)`** dan tolak apabila lebar (`$info[0]`) atau tinggi (`$info[1]`) melampaui batas wajar (misalnya `4096` atau `6000` piksel).
+3. Muat ke `GdImage`, ubah ukuran secara proporsional dengan **`imagescale()`**, jaga transparansi alfa untuk PNG/WebP, lalu simpan dengan **`imagewebp()`** atau **`imageavif()`**:
 
 ```php
 <?php
@@ -25,57 +36,109 @@ declare(strict_types=1);
 
 function buatThumbnailWebp(string $jalurSumber, string $jalurTujuan, int $lebarMaks = 600): bool
 {
+    // 1. Baca dimensi dari header berkas TANPA memuat bitmap penuh ke RAM (Cegah Image Bomb!)
     $info = @getimagesize($jalurSumber);
-    if ($info === false || $info[0] > 6000 || $info[1] > 6000) {
-        throw new InvalidArgumentException('Dimensi gambar tidak valid atau terlalu besar.');
+    if ($info === false || $info[0] < 1 || $info[1] < 1 || $info[0] > 6000 || $info[1] > 6000) {
+        throw new InvalidArgumentException('Dimensi gambar tidak valid atau melebihi batas aman 6000px.');
     }
-    $sumber = imagecreatefromstring((string) file_get_contents($jalurSumber));
-    if ($sumber === false) return false;
 
-    $kecil = imagescale($sumber, $lebarMaks);
-    return $kecil !== false && imagewebp($kecil, $jalurTujuan, 82);
+    $mimeDiizinkan = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!in_array($info['mime'], $mimeDiizinkan, strict: true)) {
+        throw new InvalidArgumentException('Format gambar tidak didukung.');
+    }
+
+    // 2. Dekode gambar ke objek GdImage (sekaligus membuang metadata GPS EXIF lama)
+    $sumber = imagecreatefromstring((string) file_get_contents($jalurSumber));
+    if ($sumber === false) {
+        return false;
+    }
+
+    // 3. Kecilkan secara proporsional jika lebar asli melebihi $lebarMaks
+    $kanvasHasil = $info[0] > $lebarMaks ? imagescale($sumber, $lebarMaks) : $sumber;
+    if ($kanvasHasil === false) {
+        return false;
+    }
+
+    // Pertahankan kanal transparansi (alpha channel) untuk PNG/WebP
+    imagepalettetotruecolor($kanvasHasil);
+    imagealphablending($kanvasHasil, true);
+    imagesavealpha($kanvasHasil, true);
+
+    return imagewebp($kanvasHasil, $jalurTujuan, quality: 82);
 }
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Memotong Gambar Persegi Tengah (*Center Square Crop*) untuk Avatar Profil
+
+Untuk foto avatar pengguna yang harus berbentuk persegi `1:1` (misalnya `256 × 256` piksel) tanpa membuat wajah tampak gepeng, potong area persegi di bagian tengah gambar menggunakan **`imagecrop()`** lalu perkecil dengan **`imagescale()`**:
+
+```php
+<?php
+declare(strict_types=1);
+
+function buatAvatarPersegiWebp(GdImage $sumber, string $jalurTujuan, int $ukuranPx = 256): bool
+{
+    $lebar  = imagesx($sumber);
+    $tinggi = imagesy($sumber);
+    $sisi   = min($lebar, $tinggi);
+
+    $potongan = imagecrop($sumber, [
+        'x'      => intdiv($lebar - $sisi, 2),
+        'y'      => intdiv($tinggi - $sisi, 2),
+        'width'  => $sisi,
+        'height' => $sisi,
+    ]);
+    if ($potongan === false) {
+        return false;
+    }
+
+    $avatar = imagescale($potongan, $ukuranPx, $ukuranPx, IMG_BILINEAR_FIXED);
+    return $avatar !== false && imagewebp($avatar, $jalurTujuan, quality: 85);
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mempercayai ukuran byte berkas (`filesize($file) < 2_000_000`) sebagai jaminan bahwa gambar aman didekode ke RAM:** Ukuran berkas terkompresi di disk tidak menentukan ukuran bitmap di RAM! Gambar hitam polos berukuran 10.000 × 10.000 piksel hanya berukuran ~50 KB sebagai berkas PNG karena kompresi *deflate*, tetapi begitu dibuka dengan `imagecreatefrompng()` langsung memakan **400 MB RAM**! Selalu periksa `$info[0]` dan `$info[1]` dari `getimagesize()` terlebih dahulu.
+2. **Menggunakan `getimagesize()` sebagai satu-satunya validator keamanan unggahan berkas:** Penyerang dapat menyisipkan kode PHP di dalam komentar metadata berkas GIF/JPEG yang valid (*polyglot file*). Selalu gabungkan validasi `finfo`, `getimagesize()`, pengubahan nama berkas menjadi UUID acak dengan ekstensi `.webp`, dan **gambar ulang (*re-encode*)** dengan `imagewebp()` agar seluruh metadata/komentar asing terbuang bersih!
+3. **Lupa memanggil `imagepalettetotruecolor()` sebelum `imagewebp()` pada PNG berbasis palet (8-bit):** Fungsi `imagewebp()` di GD menolak gambar palet 8-bit dan akan gagal kecuali diubah ke *truecolor* terlebih dahulu dengan `imagepalettetotruecolor($gd)`.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `imagewebp($kanvasBaru, $jalurTujuan, quality: 82);` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat class `LayananGambarAman` yang memvalidasi batas dimensi maksimum (`$maksPiksel = 4096`), menolak gambar yang melebihi batas tersebut dengan `InvalidArgumentException`, dan menghasilkan berkas `.webp` menggunakan `buatThumbnailWebp`.
+2. Tulis pengujian PHPUnit yang membuat gambar uji di memori menggunakan `imagecreatetruecolor(800, 400)`, menyimpannya ke berkas PNG sementara, mengonversinya dengan `buatThumbnailWebp(..., lebarMaks: 400)`, dan memverifikasi bahwa berkas `.webp` hasil akhirnya memiliki lebar tepat `400` dan tinggi `200`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Memuat gambar unggahan pengguna yang beresolusi 12.000 x 12.000 piksel (*decompression bomb / image bomb*) langsung ke `imagecreatefromjpeg()` tanpa memeriksa lebar dan tinggi piksel terlebih dahulu dengan `getimagesize()` akan menghabiskan ratusan megabyte RAM seketika.*?
-- A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
-- C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
-- D. Karena hanya berlaku pada sistem operasi Windows 95
+Mengapa kode PHP wajib memeriksa lebar dan tinggi piksel menggunakan `getimagesize()` **sebelum** memanggil `imagecreatefromjpeg()` / `imagecreatefrompng()` pada berkas gambar dari pengguna?
+- A. Karena `imagecreatefrompng()` tidak dapat membaca berkas yang namanya huruf kecil
+- B. Untuk menangkal serangan *Image Decompression Bomb*: berkas gambar yang ukuran byte-nya sangat kecil di disk dapat memiliki resolusi puluhan ribu piksel yang ketika didekode menjadi bitmap mentah di memori akan langsung menghabiskan ratusan megabyte hingga gigabyte RAM server
+- C. Karena `getimagesize()` otomatis mengubah gambar menjadi hitam-putih
+- D. Karena PHP 8.5 mewajibkan pemanggilan `getimagesize()` sebelum semua fungsi berkas
 
 **Jawaban Benar:** B
-**Penjelasan:** Memuat gambar unggahan pengguna yang beresolusi 12.000 x 12.000 piksel (*decompression bomb / image bomb*) langsung ke `imagecreatefromjpeg()` tanpa memeriksa lebar dan tinggi piksel terlebih dahulu dengan `getimagesize()` akan menghabiskan ratusan megabyte RAM seketika.
+**Penjelasan:** `getimagesize()` hanya membaca beberapa byte header berkas untuk mengetahui dimensi lebar dan tinggi piksel tanpa mendekode seluruh bitmap ke RAM, sehingga Anda dapat langsung menolak gambar berdimensi ekstrem sebelum mengalokasikan memori.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `imagewebp($kanvasBaru, $jalurTujuan, quality: 82);` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `imagewebp($kanvasBaru, $jalurTujuan, quality: 82);` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Pemrosesan Gambar di Server` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Keuntungan keamanan dan privasi apakah yang didapat secara otomatis ketika server mendekode foto unggahan pengguna ke dalam objek `GdImage` lalu menyimpannya kembali sebagai berkas baru menggunakan `imagewebp($kanvas, $jalurTujuan, 82)`?
+- A. Gambar otomatis diunggah ke akun media sosial pengguna
+- B. Seluruh metadata EXIF tersembunyi (seperti koordinat lokasi GPS rumah pengguna) maupun potensi sisipan payload komentar berbahaya di dalam header berkas asli terbuang bersih karena `imagewebp()` menulis berkas baru murni dari matriks piksel gambar
+- C. Resolusi gambar meningkat menjadi 8K secara otomatis
+- D. Berkas `.webp` dapat dijalankan sebagai skrip PHP
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Proses *re-encoding* melalui GD hanya menyalin nilai warna piksel visual ke berkas keluaran baru, sehingga secara efektif membersihkan metadata EXIF/GPS sekaligus menghancurkan struktur *polyglot payload* yang mungkin disisipkan di bagian komentar berkas asli.
+
+### Soal 3
+Fungsi GD manakah yang harus dipanggil terlebih dahulu pada objek `GdImage` yang berasal dari berkas PNG berbasis palet warna (8-bit indexed color) agar penyimpanan ke format WebP dengan `imagewebp()` tidak gagal?
+- A. `imagedestroy($gd)`
+- B. `imagepalettetotruecolor($gd)` (diikuti `imagesavealpha($gd, true)` bila memiliki transparansi)
+- C. `imagefilter($gd, IMG_FILTER_NEGATE)`
+- D. `imagerotate($gd, 180, 0)`
+
+**Jawaban Benar:** B
+**Penjelasan:** Encoder WebP pada ekstensi GD mengharapkan gambar berformat *truecolor*; memanggil `imagepalettetotruecolor($gd)` mengonversi gambar palet 8-bit menjadi *truecolor* sehingga `imagewebp()` dapat menyimpannya dengan mulus.
 
 ## Sumber
 

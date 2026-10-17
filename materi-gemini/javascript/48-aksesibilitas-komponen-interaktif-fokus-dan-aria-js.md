@@ -3,80 +3,123 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Mengimplementasikan pola interaksi papan ketik standar **WAI-ARIA Authoring Practices (APG)** menggunakan JavaScript: mengelola *Roving `tabindex`* pada kelompok tab/menu, mengembalikan fokus saat dialog ditutup, serta mengumumkan status asinkron ke pembaca layar via `aria-live`.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Komponen Interaktif Kustom Membutuhkan Pengelolaan Fokus di JavaScript?
 
-Dalam rekayasa perangkat lunak modern, penguasaan `itemAktif.tabIndex = 0; itemAktif.focus();` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
+Saat Anda menggunakan elemen HTML bawaan seperti `<select>` atau `<input type="radio">`, peramban sudah menangani ergonomi papan ketik secara otomatis: pengguna menekan tombol `Tab` **satu kali** untuk masuk ke kelompok radio, memilih opsi di dalamnya menggunakan **tombol panah (`ArrowRight` / `ArrowDown`)**, lalu menekan `Tab` satu kali lagi untuk langsung melompat keluar ke kolom formulir berikutnya!
+
+Namun, ketika Anda membangun komponen gabungan kustom (*composite widget*) seperti bilah alat (*toolbar*), daftar tab (`role="tablist"`), atau kisi kartu interaktif, peramban tidak tahu cara mengelompokkan fokusnya. Tanpa pengelolaan fokus JavaScript, pengguna papan ketik terpaksa menekan tombol `Tab` 20 kali untuk melewati 20 tombol di dalam satu bilah alat. Teknik standar [W3C ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/) untuk menyelesaikannya adalah **Roving `tabindex`**.
 
 > **⚠️ Jebakan Umum di Lapangan:** Membiarkan pengguna menekan tombol `Tab` berkali-kali untuk melewati 20 tombol di dalam satu bilah alat (*toolbar*) atau daftar tab melanggar ergonomi aksesibilitas; gunakan pola *Roving `tabindex`* (satu `tabindex='0'` untuk masuk ke kelompok, lalu tombol panah `ArrowRight`/`ArrowLeft` untuk berpindah di dalamnya).
 
-## Konsep Inti dan Mekanisme di Balik Layar
+## 1. Tiga Pilar Rekayasa Aksesibilitas di JavaScript
 
-Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dioptimalkan di tingkat C++/Rust:
+Saat menulis logika komponen UI di JavaScript, pastikan ketiga pilar berikut selalu terpenuhi:
 
-| Aspek Teknis | Pola Modern yang Direkomendasikan | Praktik Warisan yang Wajib Dihindari |
+| Pilar Rekayasa Aksesibilitas | Masalah yang Diselesaikan | Mekanisme DOM / ARIA yang Digunakan |
 | :--- | :--- | :--- |
-| **API / Sintaks Utama** | `itemAktif.tabIndex = 0; itemAktif.focus();` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
-| **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
-| **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
+| **1. Roving `tabindex`** | Mengelompokkan deretan kontrol (tab, toolbar, menu) menjadi **satu pemberhentian `Tab` tunggal**. | Hanya 1 item aktif yang memiliki `el.tabIndex = 0`; seluruh item saudara diberi `el.tabIndex = -1`. Tombol panah (`ArrowRight`/`Left`, `Home`, `End`) memindahkan `tabIndex = 0` dan memanggil `.focus()`. |
+| **2. Pemulihan Fokus (*Focus Restoration*)** | Mencegah fokus terlempar ke awal `<body>` saat elemen yang sedang difokuskan ditutup/dihapus. | Simpan `const pemicu = document.activeElement` sebelum membuka panel/modal, lalu panggil `pemicu?.focus()` saat ditutup. |
+| **3. Sinkronisasi State & Pengumuman Asinkron** | Memberi tahu pembaca layar saat status tombol berubah atau proses `fetch()` selesai. | Perbarui `setAttribute("aria-expanded", String(terbuka))` dan isi teks wadah `role="status"` / `aria-live="polite"`. |
 
-## Implementasi Kode JavaScript Modern (ES2024–ES2026)
+## 2. Implementasi Lengkap *Roving `tabindex`* (Panah, `Home`, dan `End`)
+
+Berikut adalah fungsi utilitas siap pakai yang menerapkan *Roving `tabindex`* lengkap dengan dukungan tombol `ArrowRight`, `ArrowLeft`, `Home` (lompat ke item pertama), dan `End` (lompat ke item terakhir) sesuai spesifikasi W3C APG:
 
 ```javascript
-function pasangRovingTabindex(daftarTombol) {
+export function pasangRovingTabindex(daftarTombol, onPilih) {
   daftarTombol.forEach((btn, idx) => {
     btn.tabIndex = idx === 0 ? 0 : -1;
+
     btn.addEventListener("keydown", (e) => {
-      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-      e.preventDefault();
-      const arah = e.key === "ArrowRight" ? 1 : -1;
-      const idxBaru = (idx + arah + daftarTombol.length) % daftarTombol.length;
-      daftarTombol[idx].tabIndex = -1;
-      daftarTombol[idxBaru].tabIndex = 0;
+      let idxBaru = null;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        idxBaru = (idx + 1) % daftarTombol.length;
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        idxBaru = (idx - 1 + daftarTombol.length) % daftarTombol.length;
+      } else if (e.key === "Home") {
+        idxBaru = 0;
+      } else if (e.key === "End") {
+        idxBaru = daftarTombol.length - 1;
+      }
+
+      if (idxBaru === null) return;
+      e.preventDefault(); // Cegah tombol panah/Home/End menggulir layar halaman!
+
+      daftarTombol.forEach((item, i) => {
+        item.tabIndex = i === idxBaru ? 0 : -1;
+      });
       daftarTombol[idxBaru].focus();
+      onPilih?.(daftarTombol[idxBaru], idxBaru);
     });
   });
 }
 ```
 
-> **💡 Tips Arsitektur:** Selalu bungkus utilitas infrastruktur seperti di atas ke dalam modul ES tersendiri (`utils/`) yang dilengkapi dengan pengujian unit otomatis (`node:test`) agar dapat digunakan kembali secara konsisten di seluruh proyek.
+## 3. Menyimpan dan Memulihkan Fokus Saat Menghapus Item Daftar
+
+Bagaimana jika pengguna menekan tombol **"Hapus"** pada item ke-3 dari daftar tugas (*to-do list*)? Begitu elemen item ke-3 dihapus dari DOM dengan `item.remove()`, fokus papan ketik pengguna akan hilang dan terlempar kembali ke awal halaman!
+
+Pola aksesibel yang benar saat menghapus item dari daftar adalah memindahkan fokus secara cerdas ke **item berikutnya** (atau item sebelumnya jika yang dihapus adalah item terakhir, atau ke judul daftar jika daftar menjadi kosong):
+
+```javascript
+export function hapusItemDaftarDenganFokusAman(elemenItem, daftarInduk, elemenCadanganKosong) {
+  const targetFokusBerikutnya =
+    elemenItem.nextElementSibling?.querySelector("button, a, input") ||
+    elemenItem.previousElementSibling?.querySelector("button, a, input") ||
+    elemenCadanganKosong;
+
+  elemenItem.remove();
+  targetFokusBerikutnya?.focus();
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Lupa memanggil `e.preventDefault()` saat menangani tombol `ArrowDown`, `ArrowUp`, `Home`, atau `End`:** Tanpa `e.preventDefault()`, menekan tombol `ArrowDown` atau `End` untuk berpindah tab juga akan sekaligus menggulir layar peramban ke bawah secara paksa!
+2. **Menulis `el.setAttribute("aria-expanded", !terbuka)` namun lupa memperbarui tampilan visual (atau sebaliknya):** Di CSS modern, Anda bahkan dapat menata tampilan panel langsung menggunakan selektor atribut **`button[aria-expanded="true"]`** sehingga tampilan visual dan status aksesibilitas tidak mungkin tidak sinkron!
+3. **Memanggil `elemen.focus()` pada elemen yang masih berstatus `hidden` atau `display: none`:** Peramban mengabaikan pemanggilan `.focus()` pada elemen yang tersembunyi. Selalu ubah `panel.hidden = false` **terlebih dahulu**, baru panggil `tombolDiDalamPanel.focus()` pada baris setelahnya.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah berkas modul ES baru untuk menguji pola `itemAktif.tabIndex = 0; itemAktif.focus();` pada kasus nyata di proyek Anda.
-2. Tambahkan skenario uji batas (*edge case*): masukan kosong, karakter Unicode/emoji, pembatalan mendadak, atau kegagalan jaringan.
-3. Jalankan dan verifikasi menggunakan *DevTools Console / Memory / Performance panel* atau `node --test`.
+1. Buat halaman `toolbar-editor.html` berisi bilah alat `<div role="toolbar" aria-label="Pemformatan teks">` dengan 5 tombol ("Tebal", "Miring", "Garis Bawah", "Rata Kiri", "Rata Tengah").
+2. Terapkan `pasangRovingTabindex` pada kelima tombol tersebut sehingga menekan `Tab` dari kolom judul langsung masuk ke tombol aktif di toolbar, menekan `Tab` sekali lagi langsung melompat ke `<textarea>` di bawahnya, dan tombol panah/`Home`/`End` berpindah antar-tombol di dalam toolbar.
+3. Saat tombol "Tebal" ditekan, ubah atribut `aria-pressed="true"` / `"false"` pada tombol tersebut.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Membiarkan pengguna menekan tombol `Tab` berkali-kali untuk melewati 20 tombol di dalam satu bilah alat (*toolbar*) atau daftar tab melanggar ergonomi aksesibilitas; gunakan pola *Roving `tabindex`* (satu `tabindex='0'` untuk masuk ke kelompok, lalu tombol panah `ArrowRight`/`ArrowLeft` untuk berpindah di dalamnya).*?
-- A. Karena hanya berdampak pada ukuran berkas CSS eksternal
-- B. Karena dapat memicu bug akurasi data, kebocoran memori, celah keamanan, atau penurunan kinerja antarmuka pada kondisi nyata Pengguna
-- C. Karena fitur tersebut hanya berjalan pada peramban tahun 1999
-- D. Karena JavaScript tidak mendukung fungsi asinkron
+Apa tujuan utama penerapan pola **Roving `tabindex`** pada komponen gabungan seperti bilah alat (`role="toolbar"`) atau deretan tab (`role="tablist"`)?
+- A. Menyembunyikan seluruh tombol dari pembaca layar
+- B. Menjadikan seluruh kelompok komponen hanya memiliki **satu titik henti tombol `Tab`** (`tabindex="0"` pada item yang sedang aktif dan `tabindex="-1"` pada item lainnya), sementara perpindahan antar-item di dalam kelompok dilakukan dengan tombol panah (`ArrowRight`/`ArrowLeft`)
+- C. Mengubah semua elemen `<button>` menjadi `<div>`
+- D. Memaksa pengguna menggunakan tetikus
 
 **Jawaban Benar:** B
-**Penjelasan:** Membiarkan pengguna menekan tombol `Tab` berkali-kali untuk melewati 20 tombol di dalam satu bilah alat (*toolbar*) atau daftar tab melanggar ergonomi aksesibilitas; gunakan pola *Roving `tabindex`* (satu `tabindex='0'` untuk masuk ke kelompok, lalu tombol panah `ArrowRight`/`ArrowLeft` untuk berpindah di dalamnya).
+**Penjelasan:** Dengan *Roving `tabindex`*, pengguna papan ketik dapat melewati bilah alat yang berisi 20 tombol hanya dengan satu kali tekan tombol `Tab`, atau masuk ke dalamnya dan memilih tombol spesifik menggunakan tombol panah.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `itemAktif.tabIndex = 0; itemAktif.focus();` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
-
-**Jawaban Benar:** A
-**Penjelasan:** `itemAktif.tabIndex = 0; itemAktif.focus();` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
-
-### Soal 3
-Saat mengintegrasikan fitur `Rekayasa Aksesibilitas di JavaScript` ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
-- A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
-- B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
-- C. Menyimpan seluruh data sensitif di variabel global `window`
-- D. Mematikan mode ketat (*strict mode*) pada modul ES
+Mengapa kode berikut ini gagal memindahkan fokus papan ketik ke dalam panel dialog kustom?
+```javascript
+tombolTutup.focus();
+panelDialog.hidden = false;
+```
+- A. Karena metode `.focus()` membutuhkan argumen boolean `true`
+- B. Karena pada saat `tombolTutup.focus()` dipanggil, elemen induknya (`panelDialog`) masih memiliki atribut `hidden = true` (`display: none`) sehingga tidak dapat menerima fokus; `panelDialog.hidden = false` wajib dijalankan **sebelum** `tombolTutup.focus()`
+- C. Karena elemen `<button>` tidak memiliki metode `.focus()`
+- D. Karena atribut `hidden` bersifat permanen
 
 **Jawaban Benar:** B
-**Penjelasan:** Kode JavaScript kelas produksi wajib menerapkan *defensive programming*, deteksi kapabilitas platform bila menggunakan API perangkat, dan manajemen siklus hidup sumber daya yang rapi.
+**Penjelasan:** Peramban menolak memberikan fokus pada elemen yang sedang tidak dirender (`hidden`, `display: none`, atau `visibility: hidden`). Tampilkan elemen terlebih dahulu, baru panggil `.focus()`.
+
+### Soal 3
+Ketika pengguna menekan tombol "Hapus" pada salah satu item di dalam daftar interaktif hingga elemen item tersebut dihapus dari DOM (`item.remove()`), ke manakah fokus papan ketik sebaiknya dipindahkan oleh kode JavaScript Anda?
+- A. Dibiarkan saja sehingga fokus terlempar kembali ke elemen `<body>` di paling atas halaman
+- B. Dipindahkan secara terprogram (`.focus()`) ke kontrol interaktif pada item berikutnya (atau item sebelumnya jika item terakhir yang dihapus, atau ke elemen judul/wadah daftar jika seluruh item telah habis)
+- C. Dipindahkan ke bilah alamat URL peramban
+- D. Dikunci dengan `inert` pada seluruh halaman
+
+**Jawaban Benar:** B
+**Penjelasan:** Menghapus elemen yang sedang memegang fokus (`document.activeElement`) tanpa memindahkan fokus secara eksplisit akan mereset fokus ke `<body>`, memaksa pengguna papan ketik dan pembaca layar menavigasi ulang dari awal halaman.
 
 ## Sumber
 

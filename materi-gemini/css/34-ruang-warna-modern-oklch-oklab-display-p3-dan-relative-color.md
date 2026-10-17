@@ -90,6 +90,31 @@ CSS juga memiliki fungsi `contrast-color()` yang memilih `black` atau `white` ma
 
 Catatan: untuk warna bernada menengah, baik hitam maupun putih bisa gagal mencapai kontras yang nyaman, sehingga hasil `contrast-color()` perlu tetap diperiksa. Bila perlu mendukung peramban lama, tulis `color` biasa sebelum baris yang memakai `contrast-color()` sebagai cadangan.
 
+## Studi Kasus Produksi: Sistem Token Warna Semantik Otomatis dengan Relative Color Syntax
+
+Daripada mendefinisikan puluhan variabel warna secara manual untuk latar lembut, bingkai, dan efek *hover*, Anda dapat menurunkannya dari satu warna merek menggunakan sintaks warna relatif `oklch(from ...)`:
+
+```css
+:root {
+  --warna-utama: oklch(55% 0.21 255);
+  /* Turunan otomatis dengan kecerahan dan kroma yang terukur */
+  --utama-hover: oklch(from var(--warna-utama) calc(l - 0.08) c h);
+  --utama-latar-lembut: oklch(from var(--warna-utama) 0.95 0.03 h);
+  --utama-bingkai: oklch(from var(--warna-utama) 0.82 0.08 h);
+  --utama-bayangan: oklch(from var(--warna-utama) l c h / 0.25);
+}
+
+.tombol-utama {
+  background-color: var(--warna-utama);
+  color: white;
+}
+.tombol-utama:hover {
+  background-color: var(--utama-hover);
+}
+```
+
+Ketika nilai `--warna-utama` diganti untuk tema mitra atau mode gelap, seluruh warna turunan otomatis menyesuaikan diri dengan kecerahan persepsi yang tetap konsisten.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menulis `calc(l - 10%)` di `oklch()` relatif.** Kanal `l` adalah angka 0-1; gunakan `calc(l - 0.1)`.

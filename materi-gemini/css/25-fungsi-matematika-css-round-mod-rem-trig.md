@@ -99,6 +99,35 @@ h3 { font-size: calc(1rem * pow(var(--rasio), 2)); }  /* 1.25^2 = 1.56rem */
 
 Fungsi lain: `sqrt(16)` = `4`, `hypot(3px, 4px)` = `5px` (panjang sisi miring), `log()` dan `exp()` untuk logaritma dan eksponensial alami.
 
+## Studi Kasus Produksi: Grid Ritme Vertikal dan Indikator Loading Melingkar
+
+Fungsi `round()` sangat berguna untuk menjaga seluruh ukuran komponen tetap berada pada kelipatan kisi dasar (*baseline grid* `8px`), sedangkan `cos()` dan `sin()` menempatkan titik indikator secara presisi di sekeliling lingkaran:
+
+```css
+:root {
+  --kisi-dasar: 0.5rem; /* 8px */
+}
+
+.kartu-ritme {
+  /* Membulatkan lebar dinamis ke kelipatan 0.5rem terdekat */
+  inline-size: round(nearest, clamp(16rem, 45vw, 32rem), var(--kisi-dasar));
+  padding: round(up, 1.15rem, var(--kisi-dasar));
+}
+
+.titik-orbit {
+  --sudut: calc(360deg / var(--total, 8) * var(--indeks, 0));
+  --jari-jari: 3.5rem;
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  translate:
+    calc(cos(var(--sudut)) * var(--jari-jari) - 50%)
+    calc(sin(var(--sudut)) * var(--jari-jari) - 50%);
+}
+```
+
+Dengan menetapkan `--indeks: 0` hingga `7` pada masing-masing elemen `.titik-orbit`, Anda tidak perlu lagi menghitung koordinat piksel secara manual menggunakan kalkulator atau skrip JavaScript.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menyampur satuan yang tidak sepadan di `mod()`/`rem()`/`round()`.** `mod(10px, 3deg)` tidak valid; kedua argumen harus bertipe sama.

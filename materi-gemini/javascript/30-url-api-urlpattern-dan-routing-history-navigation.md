@@ -3,76 +3,125 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Mengurai dan membangun alamat web secara aman menggunakan objek `URL` dan pencocokan rute `URLPattern`, mengelola riwayat halaman aplikasi *Single-Page Application (SPA)* dengan History API (`history.pushState`, event `popstate`), serta mengenal **Navigation API** modern.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Mengurai dan Merangkai URL dengan RegExp atau Penggabungan String Sangat Rawan Bug?
 
-Dalam rekayasa perangkat lunak modern, penguasaan `const pola = new URLPattern({ pathname: '/kelas/:slug/modul/:nomor' });` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
+Merangkai query string secara manual seperti `"/cari?q=" + kataKunci + "&hal=" + halaman` akan langsung rusak ketika `kataKunci` mengandung karakter `&`, `=`, `#`, atau spasi, serta berisiko membuka celah *Open Redirect* atau *Parameter Pollution*. Demikian pula, memecah URL dengan `.split("/")` gagal menangani URL relatif, port kustom, atau fragmen `#hash`.
+
+Platform web menyediakan tiga API standar untuk menangani alamat dan navigasi halaman secara bersih: konstruktor **`URL`** bersama **`URLSearchParams`**, pencocok pola rute **`URLPattern`**, serta **History API** dan **Navigation API**.
 
 > **⚠️ Jebakan Umum di Lapangan:** Membedah URL menggunakan pemotongan string `.split('/')` atau RegExp buatan tangan sering gagal ketika URL memiliki query string kompleks, hash fragmen, atau port khusus; gunakan konstruktor `new URL(input, base)` dan `URLPattern` bawaan platform.
 
-## Konsep Inti dan Mekanisme di Balik Layar
+## 1. Mengurai, Memvalidasi (`URL.canParse`), dan Memodifikasi Query dengan `URL` & `URLSearchParams`
 
-Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dioptimalkan di tingkat C++/Rust:
+Konstruktor **`new URL(url, base)`** mengurai alamat relatif maupun absolut menjadi komponen yang tervalidasi penuh (`protocol`, `hostname`, `port`, `pathname`, `searchParams`, `hash`). Sejak akhir 2023 (**Baseline Widely Available** per Juni 2026), Anda juga dapat memeriksa apakah sebuah string URL valid tanpa blok `try...catch` menggunakan **`URL.canParse(url, base)`** (atau **`URL.parse(url, base)`** yang mengembalikan `null` jika tidak valid, *Baseline Newly Available* sejak Mei 2024):
 
-| Aspek Teknis | Pola Modern yang Direkomendasikan | Praktik Warisan yang Wajib Dihindari |
+| Properti / Metode | Contoh Hasil pada `new URL("/kelas/js?tingkat=lanjut#kuis", "https://kodeloka.id")` | Fungsi Utama |
 | :--- | :--- | :--- |
-| **API / Sintaks Utama** | `const pola = new URLPattern({ pathname: '/kelas/:slug/modul/:nomor' });` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
-| **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
-| **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
+| `url.origin` | `"https://kodeloka.id"` | Mengembalikan skema + host + port (berguna untuk memverifikasi keamanan *same-origin*). |
+| `url.pathname` | `"/kelas/js"` | Jalur rute halaman tanpa query string maupun hash. |
+| `url.searchParams` | Objek `URLSearchParams` | Membaca (`.get()`, `.getAll()`) dan mengubah (`.set()`, `.append()`, `.delete()`) parameter query dengan pengodean persen otomatis. |
+| `url.hash` | `"#kuis"` | Fragmen jangkar di dalam halaman (diawali `#`). |
+| `URL.canParse(input, base)` | `true` / `false` | Memeriksa validitas sintaks URL secara cepat tanpa melempar `TypeError`. |
 
-## Implementasi Kode JavaScript Modern (ES2024–ES2026)
+## 2. Pencocokan Parameter Rute dengan `URLPattern`
+
+Alih-alih memasang pustaka pencocok rute eksternal untuk mengekstrak parameter seperti `:idKelas` dan `:nomorModul` dari sebuah URL, Web Platform menyediakan **`URLPattern`** (*Baseline Newly Available* sejak September 2025 di Chrome, Edge, Firefox, Safari, dan Node.js):
 
 ```javascript
 const url = new URL("/kelas/javascript?tingkat=lanjut#kuis", "https://kodeloka.id");
-console.log(url.pathname);                  // "/kelas/javascript"
+console.log(url.pathname);                    // "/kelas/javascript"
 console.log(url.searchParams.get("tingkat")); // "lanjut"
+
+// Menambah parameter query dengan pengodean karakter spesial otomatis
+url.searchParams.set("cari", "async & await");
+console.log(url.search);                      // "?tingkat=lanjut&cari=async+%26+await"
 
 // Pencocokan parameter rute dengan URLPattern
 if ("URLPattern" in globalThis) {
-  const ruteKelas = new URLPattern({ pathname: "/kelas/:idKelas" });
-  const cocok = ruteKelas.exec("https://kodeloka.id/kelas/javascript");
-  console.log(cocok?.pathname.groups.idKelas); // "javascript"
+  const ruteModul = new URLPattern({ pathname: "/kelas/:idKelas/modul/:nomor" });
+  const cocok = ruteModul.exec("https://kodeloka.id/kelas/javascript/modul/30");
+  console.log(cocok?.pathname.groups);
+  // { idKelas: "javascript", nomor: "30" }
 }
 ```
 
-> **💡 Tips Arsitektur:** Selalu bungkus utilitas infrastruktur seperti di atas ke dalam modul ES tersendiri (`utils/`) yang dilengkapi dengan pengujian unit otomatis (`node:test`) agar dapat digunakan kembali secara konsisten di seluruh proyek.
+## 3. Mengelola Riwayat SPA: History API (`pushState` & `popstate`) dan Navigation API
+
+Pada aplikasi satu halaman (*Single-Page Application* / filter katalog dinamis), Anda dapat memperbarui URL di bilah alamat peramban tanpa memuat ulang seluruh halaman menggunakan **History API**:
+- **`history.pushState(stateObj, "", urlBaru)`:** Menambahkan entri baru ke riwayat peramban (sehingga tombol **Mundur/Back** pengguna dapat kembali ke tampilan sebelumnya).
+- **`history.replaceState(stateObj, "", urlBaru)`:** Mengganti URL saat ini tanpa menambah tumpukan riwayat baru (cocok saat memperbarui filter pencarian per ketikan).
+- **Event `window.addEventListener("popstate", (e) => { ... })`:** Dipicu hanya ketika pengguna menekan tombol **Mundur/Maju** peramban (atau `history.back()`). Perlu diingat bahwa memanggil `history.pushState()` sendiri **tidak** memicu event `popstate`!
+
+Untuk melengkapi keterbatasan History API klasik, spesifikasi HTML memperkenalkan **Navigation API (`window.navigation`)** (*Baseline Newly Available* sejak Januari 2026) yang memungkinkan satu pendengar `navigation.addEventListener("navigate", (event) => { ... })` mencegat klik tautan internal, pengiriman formulir, dan tombol Mundur/Maju sekaligus menggunakan `event.intercept({ async handler() { ... } })`:
+
+```javascript
+export function terapkanFilterKeUrl(kategori, kataKunci) {
+  const urlBaru = new URL(window.location.href);
+  if (kategori) urlBaru.searchParams.set("kategori", kategori);
+  else urlBaru.searchParams.delete("kategori");
+
+  if (kataKunci) urlBaru.searchParams.set("q", kataKunci);
+  else urlBaru.searchParams.delete("q");
+
+  // Perbarui URL di bilah alamat dan simpan state di riwayat peramban
+  window.history.pushState({ kategori, kataKunci }, "", urlBaru);
+}
+
+// Tangani saat pengguna menekan tombol Mundur / Maju di peramban
+window.addEventListener("popstate", (event) => {
+  const params = new URLSearchParams(window.location.search);
+  console.log("Kembali ke filter:", params.get("kategori"), event.state);
+});
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mengabaikan keamanan skema URL saat mengarahkan pengguna (`window.location.href = urlDariQuery`):** Jika penyerang mengirim parameter `?redirect=javascript:alert(1)` atau `?redirect=https://situs-phishing.com`, aplikasi Anda terkena celah **XSS / Open Redirect**. Selalu parse dengan `const tujuan = new URL(input, window.location.origin)` dan pastikan **`tujuan.origin === window.location.origin`** sebelum mengalihkan!
+2. **Mengharapkan event `popstate` terpanggil saat memanggil `history.pushState()`:** `popstate` hanya terpanggil saat pengguna bernavigasi melintasi entri riwayat (seperti menekan tombol Back/Forward). Panggil fungsi perender tampilan Anda secara langsung setelah `pushState()`.
+3. **Memakai `pushState()` pada setiap ketikan huruf di kotak pencarian:** Jika pengguna mengetik 15 huruf dan setiap ketikan memanggil `pushState()`, pengguna harus menekan tombol *Back* 15 kali untuk keluar dari halaman! Gunakan `replaceState()` untuk pembaruan ketikan beruntun.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah berkas modul ES baru untuk menguji pola `const pola = new URLPattern({ pathname: '/kelas/:slug/modul/:nomor' });` pada kasus nyata di proyek Anda.
-2. Tambahkan skenario uji batas (*edge case*): masukan kosong, karakter Unicode/emoji, pembatalan mendadak, atau kegagalan jaringan.
-3. Jalankan dan verifikasi menggunakan *DevTools Console / Memory / Performance panel* atau `node --test`.
+1. Buat berkas `router-aman.mjs` yang mengekspor fungsi `validasiRedirectInternal(inputUrl, originSaatIni)`: gunakan `URL.canParse(inputUrl, originSaatIni)` dan objek `URL` untuk memastikan URL target memiliki `origin` yang sama persis dengan `originSaatIni` serta berprotokol `http:` atau `https:`.
+2. Tambahkan fungsi `ekstrakParameterModul(urlString)` menggunakan `URLPattern` untuk mengambil `:kelas` dan `:bab` beserta seluruh query parameter-nya sebagai objek biasa (`Object.fromEntries(url.searchParams)`).
+3. Uji kedua fungsi tersebut (termasuk menolak `javascript:alert(1)` dan `https://jahat.com/login`) menggunakan `node:test`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Membedah URL menggunakan pemotongan string `.split('/')` atau RegExp buatan tangan sering gagal ketika URL memiliki query string kompleks, hash fragmen, atau port khusus; gunakan konstruktor `new URL(input, base)` dan `URLPattern` bawaan platform.*?
-- A. Karena hanya berdampak pada ukuran berkas CSS eksternal
-- B. Karena dapat memicu bug akurasi data, kebocoran memori, celah keamanan, atau penurunan kinerja antarmuka pada kondisi nyata Pengguna
-- C. Karena fitur tersebut hanya berjalan pada peramban tahun 1999
-- D. Karena JavaScript tidak mendukung fungsi asinkron
+Bagaimana cara paling aman di JavaScript untuk memastikan bahwa parameter URL tujuan pengalihan (`?next=...`) benar-benar mengarah ke halaman di dalam domain situs Anda sendiri (*same-origin*) dan bukan celah *Open Redirect* atau `javascript:`?
+- A. Memeriksa apakah string diawali dengan `input.includes("kodeloka")`
+- B. Mengurainya dengan `const target = new URL(input, window.location.origin)` lalu memeriksa bahwa `target.origin === window.location.origin`
+- C. Menghapus semua tanda garis miring dengan `.replace("/", "")`
+- D. Menggunakan `eval(input)`
 
 **Jawaban Benar:** B
-**Penjelasan:** Membedah URL menggunakan pemotongan string `.split('/')` atau RegExp buatan tangan sering gagal ketika URL memiliki query string kompleks, hash fragmen, atau port khusus; gunakan konstruktor `new URL(input, base)` dan `URLPattern` bawaan platform.
+**Penjelasan:** Konstruktor `new URL(input, window.location.origin)` menyelesaikan segala bentuk jalur relatif maupun absolut secara kanonis. Membandingkan `target.origin === window.location.origin` menjamin skema, host, dan port tujuan sama persis dengan origin aplikasi Anda.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `const pola = new URLPattern({ pathname: '/kelas/:slug/modul/:nomor' });` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
-
-**Jawaban Benar:** A
-**Penjelasan:** `const pola = new URLPattern({ pathname: '/kelas/:slug/modul/:nomor' });` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
-
-### Soal 3
-Saat mengintegrasikan fitur "Manipulasi URL (`URL`, `URLPattern`), History API (`pushState`), dan Navigation API" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
-- A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
-- B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
-- C. Menyimpan seluruh data sensitif di variabel global `window`
-- D. Mematikan mode ketat (*strict mode*) pada modul ES
+Pada penggunaan `URLPattern`, apa yang dikembalikan oleh kode berikut?
+```javascript
+const pola = new URLPattern({ pathname: "/kelas/:slug/modul/:nomor" });
+const hasil = pola.exec("https://kodeloka.id/kelas/html/modul/12");
+console.log(hasil.pathname.groups);
+```
+- A. `["html", "12"]`
+- B. `{ slug: "html", nomor: "12" }`
+- C. `true`
+- D. `"/kelas/html/modul/12"`
 
 **Jawaban Benar:** B
-**Penjelasan:** Kode JavaScript kelas produksi wajib menerapkan *defensive programming*, deteksi kapabilitas platform bila menggunakan API perangkat, dan manajemen siklus hidup sumber daya yang rapi.
+**Penjelasan:** Metode `.exec()` pada `URLPattern` mengembalikan objek hasil pencocokan untuk setiap komponen URL, di mana `hasil.pathname.groups` memetakan nama parameter bertitik dua (`:slug`, `:nomor`) ke nilai string yang tertangkap.
+
+### Soal 3
+Kapan event `popstate` pada `window` dipicu ketika menggunakan History API?
+- A. Tepat pada saat kode Anda memanggil `history.pushState()` atau `history.replaceState()`
+- B. Ketika entri riwayat aktif berubah karena pengguna menekan tombol Mundur (*Back*) atau Maju (*Forward*) di peramban (atau pemanggilan `history.back()` / `history.forward()` / `history.go()`)
+- C. Hanya ketika halaman pertama kali dimuat dari server
+- D. Setiap kali pengguna menggerakkan kursor tetikus ke bilah alamat
+
+**Jawaban Benar:** B
+**Penjelasan:** Pemanggilan `history.pushState()` atau `history.replaceState()` tidak pernah memicu event `popstate`. Event `popstate` hanya dipancarkan ketika pengguna bernavigasi antar-entri riwayat sesi.
 
 ## Sumber
 

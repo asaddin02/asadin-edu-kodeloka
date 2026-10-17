@@ -3,26 +3,30 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Membaca dan menyalin teks atau data ke papan klip sistem secara asinkron dan aman menggunakan `navigator.clipboard.writeText()`, memproses berkas yang dipilih pengguna melalui `File` API & `URL.createObjectURL()`, serta membangun zona seret-dan-lepas (*Drag and Drop*).
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa API Papan Klip dan Berkas Lokal Dirancang dengan Pembatasan Keamanan Ketat?
 
-Dalam rekayasa perangkat lunak modern, penguasaan `await navigator.clipboard.writeText(kodeSumber);` membedakan aplikasi web yang sekadar berjalan di komputer lokal dari aplikasi produksi yang tangguh, aman, hemat memori, dan siap melayani jutaan pengguna.
+Bayangkan jika sebuah situs web asing dapat secara diam-diam membaca isi papan klip (*clipboard*) Anda—yang mungkin sedang berisi kata sandi atau nomor rekening yang baru saja Anda salin—atau membaca berkas di hard disk komputer Anda tanpa izin. Demi melindungi privasi pengguna, peramban modern mewajibkan interaksi eksplisit pengguna (*transient user activation* seperti klik tombol, pemilihan `<input type="file">`, atau pelepasan berkas *drop*) serta koneksi aman (**HTTPS / `localhost`**) untuk menjalankan operasi papan klip dan berkas lokal.
 
 > **⚠️ Jebakan Umum di Lapangan:** Membuat pratinjau gambar lokal dengan `URL.createObjectURL(file)` tanpa memanggil `URL.revokeObjectURL(objectUrl)` setelah gambar selesai dipakai akan menahan blob berkas tersebut di memori peramban sepanjang umur tab.
 
-## Konsep Inti dan Mekanisme di Balik Layar
+## 1. Perbandingan API Papan Klip, Berkas, dan Seret-Lepas
 
-Peramban modern dan mesin ECMAScript menyediakan primitif standar yang telah dioptimalkan di tingkat C++/Rust:
+Berikut adalah ringkasan API standar yang digunakan untuk menangani penyalinan teks, pratinjau berkas lokal, dan zona seret-lepas:
 
-| Aspek Teknis | Pola Modern yang Direkomendasikan | Praktik Warisan yang Wajib Dihindari |
+| API / Metode | Kegunaan Utama | Syarat & Catatan Penting |
 | :--- | :--- | :--- |
-| **API / Sintaks Utama** | `await navigator.clipboard.writeText(kodeSumber);` | Mengandalkan tebakan perilaku implisit atau pustaka eksternal usang |
-| **Keamanan & Ketahanan** | Memvalidasi masukan, batas memori, dan penutupan sumber daya | Mengabaikan penanganan galat, pembatalan, atau pembersihan memori |
-| **Kinerja Runtime** | Asinkron, malas (*lazy*), dan ramah *Main Thread* | Memblokir utas utama (*Long Tasks*) atau menyalin memori berulang |
+| `await navigator.clipboard.writeText(teks)` | Menyalin string teks ke papan klip sistem operasi secara asinkron (menggantikan `document.execCommand("copy")` yang sudah usang). | Wajib dipanggil di **Secure Context** (`https://` atau `localhost`) di dalam aksi pengguna (`click`/`keydown`). |
+| `await navigator.clipboard.readText()` | Membaca teks dari papan klip sistem operasi. | Memunculkan dialog permintaan izin peramban kepada pengguna. |
+| `URL.createObjectURL(file)` | Membuat URL lokal instan (`blob:https://...`) yang menunjuk langsung ke memori berkas tanpa perlu membaca seluruh isinya ke string Base64. | **Wajib** dibersihkan dengan `URL.revokeObjectURL(url)` saat tidak lagi dibutuhkan agar tidak membocorkan RAM. |
+| `await file.text()` / `await file.arrayBuffer()` | Membaca isi berkas `File`/`Blob` secara asinkron berbasis `Promise` (lebih ringkas daripada `FileReader` lama). | Cocok untuk membaca berkas `.json`, `.csv`, atau `.md` yang dipilih pengguna di sisi klien. |
+| `dragover` & `drop` (`e.dataTransfer.files`) | Menerima berkas yang diseret dari File Explorer/Finder ke area elemen HTML. | Event `dragover` **wajib** memanggil `e.preventDefault()` agar elemen diizinkan menjadi zona tujuan `drop`! |
 
-## Implementasi Kode JavaScript Modern (ES2024–ES2026)
+## 2. Menyalin Kode ke Papan Klip dan Menampilkan Pratinjau Gambar Bebas Kebocoran Memori
+
+Saat menampilkan pratinjau foto yang baru dipilih pengguna melalui `<input type="file">`, `URL.createObjectURL(file)` jauh lebih cepat dan hemat memori dibandingkan `FileReader.readAsDataURL()` (yang membengkakkan ukuran berkas menjadi string Base64 ~33% lebih besar). Pastikan untuk mencabut URL blob begitu gambar selesai dimuat (`onload`):
 
 ```javascript
-async function salinTeksKeClipboard(teks, elemenTombol) {
+export async function salinTeksKeClipboard(teks, elemenTombol) {
   try {
     await navigator.clipboard.writeText(teks);
     elemenTombol.textContent = "Tersalin!";
@@ -31,7 +35,7 @@ async function salinTeksKeClipboard(teks, elemenTombol) {
   }
 }
 
-function tampilkanPratinjauGambar(fileInput, imgTarget) {
+export function tampilkanPratinjauGambar(fileInput, imgTarget) {
   const [file] = fileInput.files ?? [];
   if (!file || !file.type.startsWith("image/")) return;
   const urlSementara = URL.createObjectURL(file);
@@ -40,45 +44,81 @@ function tampilkanPratinjauGambar(fileInput, imgTarget) {
 }
 ```
 
-> **💡 Tips Arsitektur:** Selalu bungkus utilitas infrastruktur seperti di atas ke dalam modul ES tersendiri (`utils/`) yang dilengkapi dengan pengujian unit otomatis (`node:test`) agar dapat digunakan kembali secara konsisten di seluruh proyek.
+## 3. Membangun Zona Seret-dan-Lepas (*Drag and Drop*) Berkas yang Aksesibel
+
+Banyak pengembang membuat zona *Drag and Drop* yang gagal menerima berkas karena satu alasan: ketika berkas dilepaskan di atas halaman web, perilaku bawaan peramban adalah **membuka berkas tersebut sebagai halaman baru** (meninggalkan aplikasi Anda!).
+
+Untuk membuat zona tujuan pelepasan (*drop zone*) bekerja:
+1. Anda **wajib** memanggil `e.preventDefault()` baik pada event **`dragover`** maupun pada event **`drop`**.
+2. Selalu sediakan `<input type="file">` pendamping yang dapat diakses dengan papan ketik (`Tab` dan `Enter`/`Space`), karena pengguna papan ketik dan pembaca layar tidak dapat melakukan gerakan menyeret tetikus (*WCAG 2.1.1 Keyboard* & *2.5.7 Dragging Movements*):
+
+```javascript
+export function pasangZonaDropBerkas(elemenZona, onBerkasDiterima) {
+  // 1. Wajib preventDefault pada dragover agar peramban mengizinkan aksi drop
+  elemenZona.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    elemenZona.classList.add("sedang-diseret");
+  });
+
+  elemenZona.addEventListener("dragleave", () => {
+    elemenZona.classList.remove("sedang-diseret");
+  });
+
+  // 2. Wajib preventDefault pada drop agar peramban tidak membuka berkas di tab
+  elemenZona.addEventListener("drop", (e) => {
+    e.preventDefault();
+    elemenZona.classList.remove("sedang-diseret");
+    const daftarBerkas = [...(e.dataTransfer?.files ?? [])];
+    if (daftarBerkas.length > 0) {
+      onBerkasDiterima(daftarBerkas);
+    }
+  });
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Hanya memasang pendengar event `drop` tanpa mencegah bawaan `dragover`:** Menurut spesifikasi HTML Drag and Drop, elemen DOM secara bawaan **bukanlah** target pelepasan yang valid. Tanpa `e.preventDefault()` di dalam event `dragover`, event `drop` tidak akan pernah dipicu sama sekali!
+2. **Memanggil `navigator.clipboard.writeText()` di situs `http://` (bukan HTTPS):** Objek `navigator.clipboard` bernilai `undefined` pada konteks yang tidak aman (`window.isSecureContext === false`).
+3. **Membuat zona *Drag and Drop* berupa `<div>` murni tanpa `<input type="file">` atau tombol pemilih berkas:** Ini membuat fitur unggah berkas sama sekali tidak bisa digunakan di ponsel maupun oleh pengguna papan ketik.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah berkas modul ES baru untuk menguji pola `await navigator.clipboard.writeText(kodeSumber);` pada kasus nyata di proyek Anda.
-2. Tambahkan skenario uji batas (*edge case*): masukan kosong, karakter Unicode/emoji, pembatalan mendadak, atau kegagalan jaringan.
-3. Jalankan dan verifikasi menggunakan *DevTools Console / Memory / Performance panel* atau `node --test`.
+1. Buat halaman atau modul yang menggabungkan `<label>` + `<input type="file" accept=".json,application/json">` di dalam sebuah zona *Drag and Drop* (` pasangZonaDropBerkas`).
+2. Saat berkas `.json` dipilih atau dijatuhkan ke zona tersebut, baca isinya menggunakan metode modern `const teks = await file.text()`, format ulang dengan `JSON.stringify(JSON.parse(teks), null, 2)`, dan tampilkan di dalam elemen `<pre>`.
+3. Sediakan tombol "Salin JSON" yang memanggil `await navigator.clipboard.writeText(...)` dan mengubah teks tombol menjadi `"Tersalin!"` selama 2 detik.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini berbahaya di lingkungan produksi: *Membuat pratinjau gambar lokal dengan `URL.createObjectURL(file)` tanpa memanggil `URL.revokeObjectURL(objectUrl)` setelah gambar selesai dipakai akan menahan blob berkas tersebut di memori peramban sepanjang umur tab.*?
-- A. Karena hanya berdampak pada ukuran berkas CSS eksternal
-- B. Karena dapat memicu bug akurasi data, kebocoran memori, celah keamanan, atau penurunan kinerja antarmuka pada kondisi nyata Pengguna
-- C. Karena fitur tersebut hanya berjalan pada peramban tahun 1999
-- D. Karena JavaScript tidak mendukung fungsi asinkron
+Mengapa setelah menampilkan pratinjau berkas lokal pada elemen `<img>` menggunakan `const url = URL.createObjectURL(file)`, Anda perlu memanggil `URL.revokeObjectURL(url)` (misalnya di dalam `img.onload` atau saat komponen dihapus)?
+- A. Agar gambar otomatis diunggah ke server
+- B. Karena peramban menyimpan pemetaan URL `blob:` tersebut dan menahan objek berkas di memori RAM sepanjang umur dokumen sampai halaman ditutup atau dicabut secara eksplisit dengan `URL.revokeObjectURL()`
+- C. Karena tanpa `revokeObjectURL()`, gambar akan tampil terbalik
+- D. Untuk mengubah gambar menjadi format SVG
 
 **Jawaban Benar:** B
-**Penjelasan:** Membuat pratinjau gambar lokal dengan `URL.createObjectURL(file)` tanpa memanggil `URL.revokeObjectURL(objectUrl)` setelah gambar selesai dipakai akan menahan blob berkas tersebut di memori peramban sepanjang umur tab.
+**Penjelasan:** Setiap pemanggilan `URL.createObjectURL()` menahan referensi memori ke `Blob`/`File` yang mendasarinya. Memanggil `URL.revokeObjectURL()` membebaskan referensi tersebut agar dapat dibersihkan oleh *Garbage Collector*.
 
 ### Soal 2
-Manakah pernyataan yang paling tepat mengenai penggunaan `await navigator.clipboard.writeText(kodeSumber);` di JavaScript modern?
-- A. Merupakan standar resmi ECMAScript / Web Platform API yang dirancang untuk menyelesaikan masalah secara aman, efisien, dan terukur tanpa peretasan manual
-- B. Wajib dikompilasi menjadi kode PHP terlebih dahulu sebelum dijalankan di peramban
-- C. Hanya dapat dipanggil dari dalam berkas stylesheet CSS
-- D. Telah dihapus dari standar web modern
+Pada pembuatan zona seret-dan-lepas (*Drag and Drop*) berkas, mengapa Anda **wajib** memanggil `event.preventDefault()` di dalam pendengar event `dragover` sekaligus `drop`?
+- A. Karena tanpa `preventDefault()` pada `dragover`, peramban menganggap elemen tersebut bukan zona pelepasan yang diizinkan sehingga event `drop` tidak akan terpicu; dan tanpa `preventDefault()` pada `drop`, peramban akan langsung membuka berkas yang dijatuhkan sebagai halaman baru
+- B. Untuk mematikan kursor tetikus pengguna
+- C. Agar berkas otomatis terkompresi menjadi `.zip`
+- D. Karena `dragover` hanya bekerja pada elemen `<canvas>`
 
 **Jawaban Benar:** A
-**Penjelasan:** `await navigator.clipboard.writeText(kodeSumber);` adalah bagian dari spesifikasi resmi ECMAScript (TC39) atau Web Platform API (WHATWG/W3C) yang didukung oleh peramban modern.
+**Penjelasan:** Spesifikasi HTML menetapkan perilaku bawaan `dragover` adalah menolak pelepasan (*reset current drag operation to "none"*). Membatalkannya dengan `e.preventDefault()` menandakan elemen siap menerima `drop`, dan `e.preventDefault()` pada `drop` mencegah peramban menavigasi tab ke berkas lokal tersebut.
 
 ### Soal 3
-Saat mengintegrasikan fitur "Interaksi Berkas Lokal, Papan Klip (`navigator.clipboard`), dan Drag and Drop API" ke dalam aplikasi produksi, langkah rekayasa manakah yang paling tepat?
-- A. Mengabaikan semua potensi eksepsi agar kode terlihat lebih pendek
-- B. Memeriksa dukungan fitur bila perlu (*feature detection*), menangani skenario kegagalan secara eksplisit, dan membersihkan sumber daya saat komponen dihancurkan
-- C. Menyimpan seluruh data sensitif di variabel global `window`
-- D. Mematikan mode ketat (*strict mode*) pada modul ES
+Apa syarat lingkungan keamanan peramban agar `navigator.clipboard.writeText()` dapat dipanggil?
+- A. Halaman harus dimuat melalui protokol tidak terenkripsi `http://`
+- B. Halaman harus berjalan di dalam **Secure Context** (`https://` atau `localhost`) dan dipicu oleh interaksi pengguna aktif (seperti klik tombol)
+- C. Pengguna wajib mematikan fitur JavaScript terlebih dahulu
+- D. Harus dipanggil di dalam `Web Worker`
 
 **Jawaban Benar:** B
-**Penjelasan:** Kode JavaScript kelas produksi wajib menerapkan *defensive programming*, deteksi kapabilitas platform bila menggunakan API perangkat, dan manajemen siklus hidup sumber daya yang rapi.
+**Penjelasan:** Clipboard API hanya diekspos pada konteks aman (`window.isSecureContext === true`, yaitu HTTPS atau `localhost`) dan penulisan ke papan klip memerlukan aktivasi pengguna (*transient user activation*).
 
 ## Sumber
 

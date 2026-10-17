@@ -92,6 +92,31 @@ Hal yang perlu diperhatikan:
 - Spesifisitas `:nth-child(An+B of S)` adalah satu pseudo-class `(0, 1, 0)` ditambah spesifisitas selektor `S` yang paling spesifik.
 - Dukungan peramban: Chrome 111, Firefox 113, dan Safari 9 mendukung sintaks `of S`; statusnya **Baseline Widely Available** (tersedia lintas peramban sejak Mei 2023).
 
+## Studi Kasus Produksi: Indikator Jenis Tautan dan Tabel Data Dinamis
+
+Di halaman dokumentasi dan laporan perusahaan, menggabungkan selektor atribut case-insensitive (`i`) dengan `:nth-child(An+B of S)` memungkinkan Anda menata tautan unduhan dan tabel yang dapat disaring tanpa perlu menambahkan kelas utilitas secara manual di setiap baris HTML:
+
+```css
+/* Menandai tautan eksternal aman dan tautan unduhan berkas secara otomatis */
+a[href^="https://" i]:not([href*="kodeloka.asadinedu.com" i])::after {
+  content: " ↗";
+  font-size: 0.85em;
+}
+
+a[href$=".pdf" i]::before {
+  content: "[PDF] ";
+  font-weight: 700;
+  color: oklch(45% 0.18 25);
+}
+
+/* Zebra striping yang tetap konsisten meskipun baris disembunyikan dengan atribut hidden */
+tbody tr:nth-child(even of :not([hidden])) {
+  background-color: oklch(96% 0.01 250);
+}
+```
+
+Pola ini menjaga markup HTML tetap bersih dan memastikan warna belang tabel tidak pernah rusak ketika pengguna menyaring baris data di sisi klien.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menyangka `:nth-child(2)` memilih elemen kedua dari sebuah jenis tag.** `p:nth-child(2)` hanya cocok jika anak ke-2 dari induknya *kebetulan* berupa `<p>`. Untuk menghitung per tag, gunakan `p:nth-of-type(2)`.

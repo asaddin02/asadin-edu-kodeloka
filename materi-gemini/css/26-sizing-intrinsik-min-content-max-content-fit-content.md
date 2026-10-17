@@ -85,6 +85,33 @@ Kata kunci `min-content`, `max-content`, dan `fit-content` terutama bermakna pad
 
 Perhatikan bahwa `max-content` bisa membuat kotak meluber di layar kecil. Kombinasikan dengan `max-inline-size: 100%` bila perlu: `inline-size: max-content; max-inline-size: 100%;`.
 
+## Studi Kasus Produksi: Bilah Breadcrumb dan Gambar Ber-Caption (`<figure>`)
+
+Masalah klasik pada elemen `<figure>` adalah teks `<figcaption>` yang panjang sering melebar melebihi lebar gambar di atasnya. Dengan menggabungkan `inline-size: min-content` pada `<figure>` dan `max-inline-size: 100%`, lebar `<figcaption>` otomatis terkunci mengikuti lebar gambar:
+
+```css
+.gambar-artikel {
+  display: table;               /* fallback klasik */
+  inline-size: min-content;     /* menyusut selebar item tak terputus terlebar (gambar) */
+  max-inline-size: 100%;
+  margin-inline: auto;
+}
+
+.gambar-artikel img {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+}
+
+.gambar-artikel figcaption {
+  padding-block-start: 0.5rem;
+  font-size: 0.875rem;
+  color: oklch(45% 0.02 250);
+}
+```
+
+Karena gambar adalah objek utuh yang tidak bisa terpotong spasi, ukuran `min-content` milik `<figure>` akan sama persis dengan lebar gambar tersebut, sementara teks keterangan di bawahnya membungkus rapi tanpa meluber keluar batas gambar.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Memakai `max-content` untuk teks panjang tanpa batas.** Paragraf akan menolak membungkus dan meluber keluar layar ponsel.

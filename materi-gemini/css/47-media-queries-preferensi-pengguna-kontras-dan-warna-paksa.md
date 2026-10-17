@@ -131,6 +131,40 @@ Fitur ini hanya relevan di Safari; peramban lain mengabaikannya.
 - Windows: aktifkan **Contrast themes** (Pengaturan > Aksesibilitas > Contrast themes) dan periksa halaman Anda.
 - Pastikan setiap komponen interaktif tetap dapat dikenali, dibedakan statusnya, dan fokusnya terlihat tanpa mengandalkan warna merek.
 
+## Studi Kasus Produksi: Komponen Lencana Status dan Tombol yang Adaptif di Semua Mode Aksesibilitas
+
+Komponen antarmuka produksi sebaiknya menggabungkan adaptasi `prefers-contrast: more`, `prefers-reduced-transparency: reduce`, dan `forced-colors: active` agar tetap terbaca jelas oleh semua pengguna:
+
+```css
+.panel-kaca {
+  background-color: oklch(98% 0.01 250 / 0.78);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(85% 0.02 250);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .panel-kaca {
+    background-color: oklch(98% 0.01 250);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .panel-kaca {
+    border-width: 2px;
+    border-color: oklch(25% 0.02 250);
+  }
+}
+
+@media (forced-colors: active) {
+  .panel-kaca {
+    border: 2px solid CanvasText;
+  }
+}
+```
+
+Dengan tiga blok media query pendek ini, panel semi-transparan Anda otomatis berubah menjadi panel solid berkontras tinggi ketika pengguna mengaktifkan preferensi aksesibilitas di sistem operasinya.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Mengandalkan `box-shadow` sebagai batas atau indikator fokus.** Hilang pada mode warna paksa; tambahkan `border` atau `outline`.

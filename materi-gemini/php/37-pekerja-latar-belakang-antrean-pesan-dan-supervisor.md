@@ -3,86 +3,149 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memindahkan tugas berat (pengiriman email massal, pembuatan laporan PDF, pemrosesan video) dari siklus permintaan HTTP ke **Worker CLI** di latar belakang, menerapkan penghentian anggun (*graceful shutdown*) saat menerima sinyal `SIGTERM`/`SIGINT` dengan `pcntl_async_signals()`, serta mencegah kebocoran memori worker berumur panjang.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Proses Worker Antrean Tidak Boleh Dimatikan Paksa di Tengah Pekerjaan?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `pcntl_async_signals(true); pcntl_signal(SIGTERM, function () use (&$berhenti) { $berhenti = true; });` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Untuk menjaga waktu respons HTTP di bawah 100 milidetik, pekerjaan berat seperti membuat laporan PDF bulanan, mengirim notifikasi ke ribuan pengguna, atau memanggil webhook pihak ketiga wajib dipindahkan ke dalam **Antrean Tugas (*Job Queue*)** dan dikerjakan oleh proses **Worker CLI PHP** yang berjalan terus-menerus di latar belakang (dikelola oleh `systemd`, `Supervisor`, atau pod Kubernetes).
+
+Namun, saat Anda melakukan *deployment* versi kode baru atau saat Kubernetes menghentikan pod, sistem operasi akan mengirimkan sinyal **`SIGTERM`** ke proses worker Anda, memberi waktu tenggang (biasanya 10–30 detik) sebelum mengirimkan kapak **`SIGKILL` (`kill -9`)**. Jika worker PHP Anda tidak menangkap `SIGTERM` menggunakan **`pcntl_async_signals(true)`**, proses akan langsung mati mendadak tepat ketika sedang memproses separuh transaksi pembayaran!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Menghentikan paksa proses worker antrean dengan `kill -9` (`SIGKILL`) saat worker sedang berada di tengah transaksi pembayaran akan meninggalkan data dalam keadaan menggantung; tangkap sinyal `SIGTERM` agar worker menyelesaikan 1 tugas terakhirnya lalu keluar dengan bersih.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Perbandingan Eksekusi Siklus HTTP FPM vs Background Worker CLI
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Berbeda dengan skrip PHP-FPM yang hidup hanya 50 milidetik lalu seluruh memorinya direset, proses Worker CLI berjalan selama berjam-jam sehingga menuntut disiplin manajemen sinyal dan memori:
+
+| Aspek Operasi | Siklus Permintaan HTTP (PHP-FPM) | Background Worker CLI (`php worker.php`) |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `pcntl_async_signals(true); pcntl_signal(SIGTERM, function () use (&$berhenti) { $berhenti = true; });` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **Umur Proses** | Sangat pendek (1 permintaan lalu selesai). | Berumur panjang (*long-running daemon* di dalam perulangan `while`). |
+| **Penanganan Saat Deployment** | FPM menyelesaikan permintaan aktif (`request_terminate_timeout`). | Wajib menangkap **`SIGTERM` / `SIGINT`** dengan `pcntl_signal()` agar berhenti di antara dua tugas (*Graceful Shutdown*). |
+| **Manajemen Memori RAM** | Dibersihkan otomatis di akhir setiap permintaan HTTP. | Wajib memanggil **`gc_collect_cycles()`** dan keluar secara berkala jika mencapai **batas jumlah tugas** atau **batas memori** (agar di-restart segar oleh Supervisor/systemd). |
+| **Ketahanan Tugas Gagal** | Menampilkan pesan galat ke peramban pengguna. | Menangkap **`Throwable`** per tugas, menerapkan *retry* dengan *exponential backoff*, dan memindahkan tugas yang terus gagal ke **Dead-Letter Queue (DLQ)**. |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Implementasi Worker CLI dengan *Graceful Shutdown* (`pcntl`) dan Batas Memori
+
+Dengan mengaktifkan **`pcntl_async_signals(true)`** (tersedia sejak PHP 7.1+, jauh lebih cepat daripada `declare(ticks=1)` lama), Zend Engine secara otomatis memeriksa sinyal POSIX yang masuk tanpa mengorbankan performa. Begitu `SIGTERM` (dari Supervisor/Kubernetes/systemd) atau `SIGINT` (`Ctrl+C` di terminal) diterima, penangan sinyal mengubah bendera `$harusBerhenti = true` sehingga worker **menyelesaikan 1 tugas yang sedang dikerjakan hingga tuntas**, lalu keluar dari perulangan `while` dengan bersih:
 
 ```php
 <?php
 declare(strict_types=1);
 
-$harusBerhenti = false;
-if (function_exists('pcntl_async_signals')) {
-    pcntl_async_signals(true);
-    $penanganSinyal = static function () use (&$harusBerhenti): void {
-        $harusBerhenti = true;
-    };
-    pcntl_signal(SIGTERM, $penanganSinyal);
-    pcntl_signal(SIGINT, $penanganSinyal);
-}
+final class PekerjaAntreanTangguh
+{
+    private bool $harusBerhenti = false;
 
-while (!$harusBerhenti) {
-    $tugas = ambilTugasBerikutnyaDariAntrean();
-    if ($tugas === null) {
-        sleep(1);
-        continue;
+    public function __construct(
+        private readonly int $maksTugas = 500,
+        private readonly int $batasMemoriByte = 128 * 1024 * 1024, // 128 MB
+    ) {
+        if (function_exists('pcntl_async_signals')) {
+            pcntl_async_signals(true);
+            $penangan = function (): void {
+                $this->harusBerhenti = true;
+            };
+            pcntl_signal(SIGTERM, $penangan);
+            pcntl_signal(SIGINT, $penangan);
+        }
     }
-    prosesTugas($tugas);
-    gc_collect_cycles();
+
+    public function mintaBerhenti(): void
+    {
+        $this->harusBerhenti = true;
+    }
+
+    /**
+     * @param callable(): (array{id: string, payload: mixed}|null) $ambilTugas
+     * @param callable(array{id: string, payload: mixed}): void $prosesTugas
+     */
+    public function jalankanLoop(callable $ambilTugas, callable $prosesTugas): int
+    {
+        $jumlahDiproses = 0;
+
+        while (!$this->harusBerhenti) {
+            $tugas = $ambilTugas();
+            if ($tugas === null) {
+                // Jika antrean kosong, tidur sejenak agar CPU tidak berputar 100% (busy-waiting)
+                usleep(250_000);
+                if ($this->apakahMelebihiBatas($jumlahDiproses)) {
+                    break;
+                }
+                continue;
+            }
+
+            try {
+                $prosesTugas($tugas);
+            } catch (Throwable $e) {
+                // Catat galat ke log / pindahkan ke antrean retry tanpa mematikan proses worker!
+                fwrite(STDERR, "[GALAT TUGAS {$tugas['id']}] {$e->getMessage()}" . PHP_EOL);
+            }
+
+            $jumlahDiproses++;
+            gc_collect_cycles();
+
+            if ($this->apakahMelebihiBatas($jumlahDiproses)) {
+                break;
+            }
+        }
+
+        return $jumlahDiproses;
+    }
+
+    private function apakahMelebihiBatas(int $jumlahDiproses): bool
+    {
+        return $jumlahDiproses >= $this->maksTugas
+            || memory_get_usage(true) >= $this->batasMemoriByte;
+    }
 }
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Mengapa Tugas Antrean Wajib Bersifat *Idempoten*?
+
+Dalam sistem antrean terdistribusi, jaringan atau database bisa terputus tepat setelah worker selesai mengirim surel/memotong saldo tetapi **sebelum** worker sempat menandai tugas tersebut sebagai `"selesai"` (*At-Least-Once Delivery*). Akibatnya, tugas yang sama dapat dikirim ulang untuk kedua kalinya ke worker lain!
+
+Oleh karena itu, setiap kode pemroses tugas (`$prosesTugas`) wajib dirancang **Idempoten**: periksa status di database terlebih dahulu (misalnya `if ($pesanan->apakahSudahDikirimEmail()) return;`) agar eksekusi ulang tugas yang sama tidak menimbulkan pengiriman ganda.
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Lupa memberi `sleep()` atau `usleep()` (atau `BLPOP` Redis) saat antrean sedang kosong:** Perulangan `while (true)` yang terus-menerus mengeksekusi `SELECT * FROM jobs` tanpa jeda saat antrean kosong akan membakar 100% inti CPU server dan membanjiri database dengan ribuan kueri kosong per detik!
+2. **Tidak menangkap `Throwable` di dalam perulangan `while`:** Jika satu tugas berisi data yang memicu `TypeError` atau `InvalidArgumentException` dan tidak ditangkap di dalam loop, seluruh proses worker akan mati dan macet pada satu pesan rusak tersebut (*Poison Pill Message*).
+3. **Membiarkan koneksi PDO hidup berhari-hari tanpa menangani *MySQL server has gone away* / terputusnya soket:** Pada worker yang jarang menerima tugas di malam hari, firewall atau database dapat menutup koneksi TCP yang menganggur; pastikan worker memeriksa koneksi atau keluar berkala setiap beberapa ratus tugas/jam agar dimulai ulang dengan koneksi segar oleh `systemd`/`Supervisor`.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `pcntl_async_signals(true); pcntl_signal(SIGTERM, function () use (&$berhenti) { $berhenti = true; });` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `PekerjaAntreanTangguh.php` seperti pada contoh di atas.
+2. Tulis pengujian otomatis di PHPUnit yang menyimulasikan antrean berisi 10 tugas dengan `$maksTugas = 3`, serta skenario ketika tugas ke-2 melempar `RuntimeException`: pastikan worker menangkap eksepsi tersebut, tetap memproses tugas ke-3, dan berhenti tepat setelah 3 tugas selesai (`assertSame(3, $hasil)`).
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menghentikan paksa proses worker antrean dengan `kill -9` (`SIGKILL`) saat worker sedang berada di tengah transaksi pembayaran akan meninggalkan data dalam keadaan menggantung; tangkap sinyal `SIGTERM` agar worker menyelesaikan 1 tugas terakhirnya lalu keluar dengan bersih.*?
-- A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
-- C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
-- D. Karena hanya berlaku pada sistem operasi Windows 95
+Mengapa proses worker antrean latar belakang wajib menangkap sinyal POSIX **`SIGTERM`** (dan `SIGINT`) menggunakan `pcntl_async_signals(true)` dan `pcntl_signal()`?
+- A. Agar proses worker kebal terhadap pencabutan kabel listrik server
+- B. Agar ketika sistem orkestrasi (Supervisor, systemd, atau Kubernetes) meminta penghentian saat *deployment*, worker tidak mati mendadak di tengah transaksi, melainkan menyelesaikan 1 tugas yang sedang dikerjakan hingga tuntas lalu keluar dari perulangan dengan bersih (*Graceful Shutdown*)
+- C. Karena sinyal `SIGKILL` (`kill -9`) dapat ditangkap dan diabaikan oleh `pcntl_signal()`
+- D. Untuk menggandakan kecepatan jaringan HTTP
 
 **Jawaban Benar:** B
-**Penjelasan:** Menghentikan paksa proses worker antrean dengan `kill -9` (`SIGKILL`) saat worker sedang berada di tengah transaksi pembayaran akan meninggalkan data dalam keadaan menggantung; tangkap sinyal `SIGTERM` agar worker menyelesaikan 1 tugas terakhirnya lalu keluar dengan bersih.
+**Penjelasan:** Sinyal `SIGTERM` adalah permintaan penghentian sopan dari sistem operasi. Dengan menangkap `SIGTERM` dan menyetel bendera `$harusBerhenti = true`, worker menyelesaikan iterasi tugas saat ini secara utuh sebelum keluar. (Catatan: `SIGKILL` tidak pernah bisa ditangkap oleh proses mana pun).
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `pcntl_async_signals(true); pcntl_signal(SIGTERM, function () use (&$berhenti) { $berhenti = true; });` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `pcntl_async_signals(true); pcntl_signal(SIGTERM, function () use (&$berhenti) { $berhenti = true; });` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi "Pekerja Latar Belakang (*Background Workers*), Antrean Tugas (*Job Queue*), dan Penanganan Sinyal POSIX (pcntl)" ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Mengapa praktik terbaik pada proses worker PHP yang berjalan terus-menerus adalah membatasi jumlah maksimum tugas (misalnya berhenti otomatis setelah memproses 500 tugas atau saat penggunaan RAM mendekati batas) lalu membiarkan `Supervisor` / `systemd` menyalakannya kembali?
+- A. Karena PHP lisensinya hanya mengizinkan 500 perulangan
+- B. Untuk mencegah akumulasi kebocoran memori perlahan (*memory leak* pada cache statis atau pustaka pihak ketiga) serta menyegarkan koneksi sumber daya jangka panjang secara berkala tanpa waktu henti
+- C. Agar berkas log otomatis terhapus
+- D. Karena `while` di PHP maksimal berjalan selama 5 menit
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Banyak pustaka PHP tradisional ditulis dengan asumsi proses langsung mati setelah 1 permintaan HTTP. Me-restart proses worker secara anggun setelah $N$ tugas atau batas memori memastikan RAM kembali bersih 100%.
+
+### Soal 3
+Apa yang terjadi jika sebuah pesan rusak di dalam antrean (*Poison Pill*) melempar `TypeError` di dalam loop worker yang **tidak** membungkus pemrosesan tugasnya dengan `try { ... } catch (Throwable $e)`?
+- A. Pesan tersebut otomatis diperbaiki oleh PHP
+- B. Proses worker langsung berhenti mendadak (*crash*), lalu saat dinyalakan ulang oleh Supervisor ia akan mengambil pesan rusak yang sama lagi dan mati berulang-ulang sehingga seluruh antrean tugas di belakangnya macet total
+- C. Pesan tersebut otomatis terkirim ke pengguna sebagai email
+- D. Database otomatis menghapus seluruh tabel antrean
+
+**Jawaban Benar:** B
+**Penjelasan:** Menangkap `Throwable` (yang mencakup `Exception` maupun `Error` seperti `TypeError`) di sekitar pemrosesan tiap tugas memungkinkan worker mencatat kegagalan, menaikkan penghitung *attempt*, atau memindahkan tugas rusak ke *Dead-Letter Queue* tanpa melumpuhkan antrean.
 
 ## Sumber
 

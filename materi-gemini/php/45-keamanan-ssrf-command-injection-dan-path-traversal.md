@@ -3,21 +3,28 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Menangkal tiga kerentanan kritis di sisi server: **Server-Side Request Forgery (SSRF)** saat mengambil URL dari pengguna, **OS Command Injection** pada pemanggilan `proc_open`/`exec`, serta **Path Traversal (`../`)** menggunakan `realpath()` dan perbandingan direktori dasar.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Bagaimana Tiga Kerentanan Ini Memungkinkan Penyerang Mengambil Alih Server Anda?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `$jalurNyata = realpath($direktoriDasar . '/' . basename($namaBerkas));` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Di luar SQL Injection dan XSS, tiga kerentanan paling berbahaya pada aplikasi backend yang berinteraksi dengan jaringan luar dan sistem operasi adalah:
+1. **Server-Side Request Forgery (SSRF):** Aplikasi menerima URL dari pengguna (misalnya fitur *"Impor foto profil dari URL"* atau *"Uji pengiriman Webhook"*), lalu penyerang memasukkan `http://127.0.0.1:6379/` atau alamat layanan metadata cloud internal `http://169.254.169.254/latest/meta-data/iam/security-credentials/` untuk mencuri kunci rahasia server cloud Anda!
+2. **OS Command Injection:** Aplikasi memanggil perintah sistem seperti `exec("convert " . $namaBerkas . " out.webp")`, lalu penyerang mengirim nama berkas `"foto.png; rm -rf /; #"` sehingga shell `/bin/sh` mengeksekusi perintah jahat tersebut!
+3. **Path Traversal (`../`):** Aplikasi membaca berkas `file_get_contents("/var/unduhan/" . $_GET['file'])`, lalu penyerang mengirim `file=../../../../etc/passwd` untuk mengunduh berkas sistem rahasia!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Memanggil fungsi cURL atau `file_get_contents($urlDariPengguna)` tanpa memblokir rentang IP privat/loopback (`127.0.0.1`, `10.0.0.0/8`, `169.254.169.254` metadata cloud AWS/GCP) memungkinkan penyerang memindai jaringan internal server Anda melalui celah **SSRF**.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Perbandingan Tiga Kerentanan Sistem dan Pertahanan Standarnya di PHP
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Terapkan pertahanan berlapis berikut setiap kali kode PHP menyentuh jaringan eksternal, perintah OS, atau jalur berkas:
+
+| Jenis Kerentanan | Fungsi yang Sering Disalahgunakan | Pertahanan Utama yang Wajib Diterapkan |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `$jalurNyata = realpath($direktoriDasar . '/' . basename($namaBerkas));` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **SSRF** (*Server-Side Request Forgery*) | `curl_exec()`, `file_get_contents($url)`, `getimagesize($url)`. | Batasi skema hanya `http`/`https`, resolusi DNS lalu tolak IP privat/cadangan (`FILTER_FLAG_NO_PRIV_RANGE \| FILTER_FLAG_NO_RES_RANGE`), matikan `CURLOPT_FOLLOWLOCATION`, dan kunci IP dengan `CURLOPT_RESOLVE`. |
+| **OS Command Injection** | `exec()`, `shell_exec()`, `system()`, `passthru()`, operator backtick `` `...` ``. | Gunakan **`proc_open(['bin', $arg1, $arg2], ...)`** dengan **array argumen** (melewati shell sepenuhnya!), atau bungkus setiap argumen tunggal dengan **`escapeshellarg()`**. |
+| **Path Traversal** (`../`) | `file_get_contents()`, `readfile()`, `unlink()`, `include`. | Ambil `basename($input)`, kanonisasi dengan **`realpath()`**, dan pastikan diawali **`str_starts_with($jalurNyata, $folderDasar . DIRECTORY_SEPARATOR)`**. |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Mencegah SSRF (Termasuk Mitigasi *DNS Rebinding*) dan *Path Traversal*
+
+Perhatikan bagaimana fungsi `apakahUrlEksternalAman()` memeriksa seluruh alamat IPv4 dan IPv6 dari host tujuan terhadap rentang IP privat/loopback, serta bagaimana `ambilJalurBerkasDalamFolderAman()` menggunakan `realpath()` untuk memblokir pelarian direktori `../`:
 
 ```php
 <?php
@@ -36,7 +43,9 @@ function apakahUrlEksternalAman(string $url): bool
     // sambungkan cURL ke IP yang sudah divalidasi (CURLOPT_RESOLVE), matikan CURLOPT_FOLLOWLOCATION
     // (atau validasi ulang setiap pengalihan), dan periksa juga alamat IPv6.
     $daftarIp = gethostbynamel($host);
-    if ($daftarIp === false) return false;
+    if ($daftarIp === false || $daftarIp === []) {
+        return false;
+    }
 
     foreach ($daftarIp as $ip) {
         // Tolak IP privat (10.x, 192.168.x, 172.16-31.x) dan reserved/loopback (127.x, 169.254.x)
@@ -46,47 +55,115 @@ function apakahUrlEksternalAman(string $url): bool
     }
     return true;
 }
+
+function ambilJalurBerkasDalamFolderAman(string $direktoriDasar, string $namaBerkasMasukan): string
+{
+    $dasarNyata = realpath($direktoriDasar);
+    if ($dasarNyata === false) {
+        throw new RuntimeException('Direktori dasar tidak ditemukan.');
+    }
+
+    // basename() membuang seluruh komponen direktori di depan, dan realpath() menyelesaikan symlink/..
+    $namaBersih  = basename(str_replace('\\', '/', $namaBerkasMasukan));
+    $targetNyata = realpath($dasarNyata . DIRECTORY_SEPARATOR . $namaBersih);
+
+    if ($targetNyata === false || !str_starts_with($targetNyata, $dasarNyata . DIRECTORY_SEPARATOR)) {
+        throw new InvalidArgumentException('Akses berkas di luar direktori dasar ditolak.');
+    }
+
+    return $targetNyata;
+}
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Mencegah *OS Command Injection* dengan Array Argumen pada `proc_open()`
+
+Banyak pengembang belum tahu bahwa sejak PHP 7.4+, fungsi **`proc_open()` menerima argumen pertama berupa `array` string** (`['git', 'log', '-n', '5', $jalurRepo]`). Ketika Anda meneruskan array ke `proc_open()`, PHP mengeksekusi biner program secara langsung di tingkat sistem operasi (`execve`) **tanpa membuka shell `/bin/sh` sama sekali**! Akibatnya, karakter seperti `;`, `|`, `&&`, atau `$(...)` di dalam argumen diperlakukan murni sebagai teks biasa dan tidak mungkin mengeksekusi perintah tambahan:
+
+```php
+<?php
+declare(strict_types=1);
+
+/**
+ * Menjalankan perintah eksternal secara aman tanpa melalui shell (/bin/sh).
+ *
+ * @param non-empty-list<string> $perintahDanArgumen
+ */
+function jalankanProsesTanpaShell(array $perintahDanArgumen): string
+{
+    $pipa = [];
+    // Passing array ke proc_open melewati shell interpreter sehingga bebas dari injeksi ';' atau '$(...)'!
+    $proses = proc_open(
+        $perintahDanArgumen,
+        [
+            1 => ['pipe', 'w'], // STDOUT
+            2 => ['pipe', 'w'], // STDERR
+        ],
+        $pipa
+    );
+
+    if (!is_resource($proses)) {
+        throw new RuntimeException('Gagal memulai proses eksternal.');
+    }
+
+    $keluaran = (string) stream_get_contents($pipa[1]);
+    $galat    = (string) stream_get_contents($pipa[2]);
+    fclose($pipa[1]);
+    fclose($pipa[2]);
+
+    $kodeKeluar = proc_close($proses);
+    if ($kodeKeluar !== 0) {
+        throw new RuntimeException("Proses gagal (kode {$kodeKeluar}): " . trim($galat));
+    }
+
+    return $keluaran;
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menggunakan `str_replace('../', '', $input)` untuk mencegah *Path Traversal*:** Penyerang cukup mengirimkan string **`....//`**! Setelah `../` di tengahnya dihapus satu kali oleh `str_replace()`, sisa karakter di kiri dan kanannya menyatu kembali menjadi **`../`**! Gunakan selalu `basename()` + `realpath()` + `str_starts_with()`.
+2. **Memakai `escapeshellcmd()` pada argumen tunggal (bukannya `escapeshellarg()`):** `escapeshellcmd()` masih mengizinkan spasi untuk memecah satu string menjadi banyak argumen bendera tambahan (*argument injection*, misalnya menyuntikkan `--output=/var/www/shell.php`). Selalu gunakan `proc_open()` dengan array, atau `escapeshellarg()`.
+3. **Membiarkan `CURLOPT_FOLLOWLOCATION => true` saat mengambil URL eksternal:** Penyerang dapat memberikan URL publik yang lolos pemeriksaan IP awal (`https://situs-penyerang.com/foto.jpg`), tetapi server penyerang membalas dengan pengalihan HTTP `302 Redirect` menuju `http://127.0.0.1:6379/`! Matikan `CURLOPT_FOLLOWLOCATION`.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `$jalurNyata = realpath($direktoriDasar . '/' . basename($namaBerkas));` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `PertahananServer.php` yang memuat `apakahUrlEksternalAman()`, `ambilJalurBerkasDalamFolderAman()`, dan `jalankanProsesTanpaShell()`.
+2. Tulis pengujian PHPUnit untuk memastikan:
+   - `apakahUrlEksternalAman('http://127.0.0.1/admin')` dan `'file:///etc/passwd'` mengembalikan `false`;
+   - `ambilJalurBerkasDalamFolderAman('/tmp', '../../etc/passwd')` melempar `InvalidArgumentException`;
+   - `jalankanProsesTanpaShell([PHP_BINARY, '-r', 'echo "Aman";'])` mengembalikan `'Aman'`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Memanggil fungsi cURL atau `file_get_contents($urlDariPengguna)` tanpa memblokir rentang IP privat/loopback (`127.0.0.1`, `10.0.0.0/8`, `169.254.169.254` metadata cloud AWS/GCP) memungkinkan penyerang memindai jaringan internal server Anda melalui celah **SSRF**.*?
-- A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
-- C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
-- D. Karena hanya berlaku pada sistem operasi Windows 95
+Mengapa memanggil `str_replace('../', '', $jalurInput)` **tidak aman** untuk mencegah serangan *Path Traversal*, dan kombinasi fungsi apa yang harus digunakan sebagai gantinya?
+- A. Karena `str_replace` hanya bekerja pada huruf besar
+- B. Karena penyerang dapat mengirimkan pola bersarang seperti `....//` yang setelah dihapus satu kali oleh `str_replace` akan menyatu kembali menjadi `../`; gunakan `basename()`, kanonisasi jalur absolut sebenarnya dengan `realpath()`, lalu pastikan diawali dengan direktori dasar (`str_starts_with($targetNyata, $dasarNyata . DIRECTORY_SEPARATOR)`)
+- C. Karena `str_replace` membutuhkan ekstensi `mbstring`
+- D. Karena karakter `/` otomatis berubah menjadi `\` di Linux
 
 **Jawaban Benar:** B
-**Penjelasan:** Memanggil fungsi cURL atau `file_get_contents($urlDariPengguna)` tanpa memblokir rentang IP privat/loopback (`127.0.0.1`, `10.0.0.0/8`, `169.254.169.254` metadata cloud AWS/GCP) memungkinkan penyerang memindai jaringan internal server Anda melalui celah **SSRF**.
+**Penjelasan:** Penyaringan daftar hitam string (`str_replace('../', '')`) mudah diakali dengan penyarangan karakter. Fungsi `realpath()` menyelesaikan seluruh `..`, `.`, dan *symlink* ke jalur kanonis sistem berkas yang sesungguhnya.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `$jalurNyata = realpath($direktoriDasar . '/' . basename($namaBerkas));` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `$jalurNyata = realpath($direktoriDasar . '/' . basename($namaBerkas));` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Keamanan Backend Lanjutan` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Apa keuntungan keamanan terbesar dari meneruskan argumen pertama berupa **`array`** (misalnya `proc_open(['convert', $berkasMasuk, $berkasKeluar], ...)`) dibandingkan meneruskan satu string perintah ke `exec()` atau `shell_exec()`?
+- A. Membuat proses berjalan tanpa menggunakan memori RAM
+- B. Ketika diberi `array`, `proc_open()` mengeksekusi biner program secara langsung melalui sistem operasi tanpa memanggil penerjemah shell (`/bin/sh`), sehingga karakter meta-shell berbahaya seperti `;`, `|`, `&&`, atau `` `...` `` di dalam argumen tidak pernah dieksekusi sebagai perintah tambahan
+- C. Mengubah hasil keluaran menjadi format JSON secara otomatis
+- D. Mematikan firewall server sementara
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Akar dari *OS Command Injection* adalah keterlibatan shell (`/bin/sh -c "..."`) yang menafsirkan spasi dan karakter pemisah perintah. Meneruskan array argumen ke `proc_open()` melompati shell sepenuhnya.
+
+### Soal 3
+Mengapa pada pencegahan **SSRF (*Server-Side Request Forgery*)**, memeriksa hasil `gethostbynamel($host)` terhadap IP privat saja masih belum cukup apabila cURL kemudian melakukan resolusi DNS ulang saat mengirim permintaan atau mengikuti `302 Redirect`?
+- A. Karena cURL tidak mendukung protokol HTTPS
+- B. Karena penyerang dapat melakukan serangan **DNS Rebinding** (mengembalikan IP publik yang valid pada resolusi DNS pertama saat validasi, lalu dengan TTL 0 detik mengembalikan `127.0.0.1` pada resolusi DNS kedua saat cURL terhubung) atau mengalihkan permintaan lewat HTTP Redirect ke IP internal; oleh karena itu, kunci IP hasil validasi dengan `CURLOPT_RESOLVE` dan matikan `CURLOPT_FOLLOWLOCATION`
+- C. Karena `gethostbynamel()` hanya bekerja pada hari Minggu
+- D. Karena alamat IP selalu terdiri dari 128 karakter
+
+**Jawaban Benar:** B
+**Penjelasan:** Memisahkan langkah resolusi DNS saat validasi dan resolusi DNS saat koneksi membuka celah *Time-of-Check to Time-of-Use* (DNS Rebinding). Mengikat IP yang telah divalidasi menggunakan `CURLOPT_RESOLVE` menutup celah tersebut.
 
 ## Sumber
 

@@ -99,6 +99,39 @@ Kata kunci `revert-layer` "menggulung balik" properti ke nilai yang akan berlaku
 
 Elemen `<div class="reset">` bertinggi `100px`: `revert-layer` membuang seluruh deklarasi `height` di lapisan `dua` untuk elemen itu, sehingga nilai dari lapisan `satu` yang tampil. Kata kunci ini berguna, misalnya, untuk varian komponen yang ingin "mencabut" penyesuaian lapisan tema tanpa harus mengulang nilai aslinya.
 
+## Studi Kasus Produksi: Mengisolasi Pustaka CSS Eksternal di Aplikasi Legacy
+
+Saat memigrasikan proyek lama yang mencampur CSS bawaan dengan pustaka komponen pihak ketiga, Anda dapat mendeklarasikan urutan lapisan di baris paling atas berkas utama dan membungkus impor pustaka luar ke dalam lapisan berprioritas rendah:
+
+```css
+/* 1. Tetapkan urutan lapisan dari prioritas terendah ke tertinggi */
+@layer reset, vendor, dasar, komponen, tema, utilitas;
+
+/* 2. Masukkan pustaka pihak ketiga ke lapisan vendor agar mudah ditimpa */
+@import url("https://cdn.example.com/datepicker.min.css") layer(vendor);
+
+@layer komponen {
+  /* Menang melawan selektor .dp-calendar .dp-day.dp-selected milik vendor
+     meskipun spesifisitas kita hanya satu kelas! */
+  .tanggal-terpilih {
+    background-color: oklch(52% 0.19 255);
+    color: white;
+  }
+}
+
+@layer tema {
+  .kartu-promo {
+    background-color: oklch(95% 0.04 80);
+  }
+  /* Cabut kustomisasi tema untuk kartu arsip kembali ke lapisan komponen */
+  .kartu-promo.arsip {
+    background-color: revert-layer;
+  }
+}
+```
+
+Dengan arsitektur ini, tim tidak perlu lagi melakukan perang spesifisitas atau menambahkan `!important` hanya untuk menyesuaikan gaya komponen pihak ketiga.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menaruh `@import` setelah aturan lain.** `@import` yang muncul setelah aturan CSS biasa akan diabaikan. Letakkan di paling atas (hanya `@charset` dan pernyataan `@layer` yang boleh mendahuluinya).

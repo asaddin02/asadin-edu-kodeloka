@@ -118,6 +118,41 @@ Urutan ini **berbeda** dari `margin` (atas, kanan, bawah, kiri) dan mudah tertuk
 
 Beberapa item boleh ditempatkan di sel yang sama; urutan tumpukan mengikuti DOM atau diatur dengan `z-index`. Seperti pada Flexbox, penempatan hanya mengubah **tampilan**. Urutan fokus papan ketik dan pembacaan pembaca layar tetap mengikuti urutan DOM, jadi susun HTML dalam urutan baca yang logis dan gunakan Grid untuk penataannya.
 
+## Studi Kasus Produksi: Tata Letak Aplikasi Responsif dengan `grid-template-areas`
+
+Mendefinisikan ulang `grid-template-areas` di dalam `@media` memungkinkan Anda merombak susunan tata letak aplikasi dari tampilan satu kolom di ponsel menjadi tiga area di layar lebar tanpa mengubah satu karakter pun di HTML:
+
+```css
+.kerangka-aplikasi {
+  display: grid;
+  gap: 1rem;
+  grid-template-areas:
+    "kepala"
+    "utama"
+    "navigasi"
+    "kaki";
+}
+
+@media (min-width: 56rem) {
+  .kerangka-aplikasi {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
+    min-block-size: 100dvh;
+    grid-template-areas:
+      "kepala   kepala"
+      "navigasi utama"
+      "kaki     kaki";
+  }
+}
+
+.area-kepala   { grid-area: kepala; }
+.area-navigasi { grid-area: navigasi; }
+.area-utama    { grid-area: utama; }
+.area-kaki     { grid-area: kaki; }
+```
+
+Pastikan urutan elemen di HTML tetap menempatkan navigasi dan konten utama secara logis agar pengguna papan ketik tidak mengalami lompatan fokus saat berpindah ukuran layar.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menulis `grid-template-areas` dengan jumlah sel berbeda per baris.** Seluruh deklarasi menjadi tidak valid.

@@ -96,6 +96,33 @@ Properti `writing-mode` menentukan arah aliran baris:
 
 > **💡 Arah Dokumen RTL:** Atur arah bahasa lewat HTML (`<html lang="ar" dir="rtl">`), bukan dengan CSS `direction`, karena `dir` memiliki makna semantik yang dipahami peramban dan teknologi bantu. Dengan properti logis, tata letak Anda otomatis berbalik tanpa aturan tambahan.
 
+## Studi Kasus Produksi: Komponen Kutipan dan Lencana Multi-Bahasa (LTR & RTL)
+
+Komponen kutipan (*blockquote*) dengan garis aksen di sisi awal dan tombol berikon adalah contoh nyata yang langsung rusak pada antarmuka bahasa Arab (`dir="rtl"`) bila ditulis menggunakan properti fisik. Berikut implementasi tahan dua arah dengan properti logis:
+
+```css
+.kutipan-artikel {
+  margin-block: 1.5rem;
+  padding-block: 0.75rem;
+  padding-inline-start: 1.25rem;
+  padding-inline-end: 1rem;
+  border-inline-start: 4px solid oklch(55% 0.2 255);
+  border-start-end-radius: 0.5rem;
+  border-end-end-radius: 0.5rem;
+  background-color: oklch(97% 0.01 255);
+}
+
+.label-samping {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding-block: 0.5rem;
+  padding-inline: 0.25rem;
+  font-weight: 600;
+}
+```
+
+Ketika atribut `dir="rtl"` diaktifkan pada elemen induk atau `<html>`, garis aksen `border-inline-start` dan sudut lengkung `border-*-end-radius` otomatis berpindah ke sisi yang tepat tanpa satu baris pun aturan CSS tambahan.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Mencampur properti fisik dan logis pada elemen yang sama.** Misalnya `margin-left: 1rem` bersama `margin-inline-start: 2rem`; keduanya memetakan ke properti yang sama pada `ltr` dan hasil akhirnya ditentukan urutan penulisan. Pilih satu gaya penulisan.

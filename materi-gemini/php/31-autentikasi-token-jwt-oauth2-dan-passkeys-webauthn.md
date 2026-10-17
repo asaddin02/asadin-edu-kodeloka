@@ -3,76 +3,150 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Membandingkan kapan harus menggunakan *Stateful Session Cookie* versus *Stateless Token (JWT)*, menerapkan validasi tanda tangan dan klaim JWT (`exp`, `iss`, `aud`) secara ketat, memahami alur **OAuth 2.0 Authorization Code + PKCE**, serta pengantar autentikasi tahan phishing dengan WebAuthn / Passkeys.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Mengganti Sesi Cookie dengan JWT untuk Aplikasi Web Biasa Sering Menjadi Langkah Mundur?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `hash_equals($signatureDiharapkan, $signatureDiterima)` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Banyak pengembang baru mengira bahwa menyimpan token **JWT (*JSON Web Token*)** di `localStorage` adalah cara "modern" yang selalu lebih baik daripada sesi PHP/Redis berbasis cookie. Padahal, menyimpan token autentikasi di `localStorage` membuat token tersebut **dapat dibaca secara bebas oleh skrip JavaScript mana pun** jika terjadi satu celah XSS saja! Selain itu, JWT yang murni *stateless* **tidak dapat langsung dicabut (*revoked*)** sebelum waktu kedaluwarsanya (`exp`) habis ketika akun pengguna diretas atau keluar (*logout*).
+
+Untuk aplikasi web yang dilayani dari domain yang sama, **Session Cookie berbendera `HttpOnly`, `Secure`, dan `SameSite=Lax`** tetap menjadi pilihan paling aman dan mudah dicabut. Gunakan **Short-Lived JWT (5–15 menit)** ketika Anda membutuhkan verifikasi identitas lintas layanan mikro (*microservices*) atau klien aplikasi seluler native.
 
 > **🚫 Kerentanan & Kesalahan Umum:** Mempercayai header `alg` di dalam token JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Perbandingan Arsitektur Autentikasi: Session Cookie, JWT, OAuth 2.0 PKCE, dan Passkeys
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
-| :--- | :--- | :--- |
-| **API / Pola Utama** | `hash_equals($signatureDiharapkan, $signatureDiterima)` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+Pahami kekuatan dan aturan keamanan masing-masing mekanisme identitas berikut:
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+| Mekanisme Identitas | Penyimpanan & Sifat | Keunggulan Utama | Aturan Keamanan Wajib (RFC 8725 / OWASP) |
+| :--- | :--- | :--- | :--- |
+| **Stateful Session Cookie** | ID acak di Cookie `HttpOnly; Secure; SameSite=Lax`, data di Redis/DB. | Dapat dicabut (*revoke*) seketika di server; kebal pembacaan `document.cookie` saat XSS. | Panggil `session_regenerate_id(true)` saat login untuk mencegah *Session Fixation*. |
+| **JWT (*JSON Web Token*)** | `header.payload.signature` (Base64URL). | Verifikasi tanda tangan cepat tanpa kueri database di setiap layanan mikro. | Kunci algoritma di server (tolak `alg: none`), verifikasi `exp`, `nbf`, `iss`, `aud`, dan gunakan **`hash_equals()`**. |
+| **OAuth 2.0 + PKCE (RFC 7636)** | Pertukaran `authorization_code` + `code_verifier` rahasia. | Mencegah pencurian kode otorisasi di tengah jalan (*authorization code interception*). | Gunakan metode transformasi **`S256`** (`BASE64URL(SHA256(verifier))`), jangan `plain`. |
+| **WebAuthn / Passkeys** | Kunci privat disimpan di chip keamanan perangkat (TPM/Secure Enclave), kunci publik di server. | **100% tahan Phishing** karena kunci terikat secara kriptografis pada nama domain (`rpId`) situs! | Simpan `challenge` sekali pakai di sesi server dan periksa penghitung tanda tangan (`signCount`). |
+
+## 2. Membuat Tantangan OAuth 2.0 PKCE (`S256`) dan Memverifikasi JWT Secara Aman
+
+Berikut adalah implementasi pembuatan pasangan **PKCE (`code_verifier` dan `code_challenge` S256)** sesuai standar [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636) beserta verifikasi tanda tangan dan klaim waktu JWT HS256 yang tahan serangan waktu (*timing attack*) menggunakan **`hash_equals()`**:
 
 ```php
 <?php
 declare(strict_types=1);
 
-// Membuat pasangan Code Verifier & Code Challenge (S256) untuk OAuth 2.0 PKCE
+function base64UrlEncode(string $biner): string
+{
+    return rtrim(strtr(base64_encode($biner), '+/', '-_'), '=');
+}
+
+function base64UrlDecode(string $teks): string
+{
+    $sisa = strlen($teks) % 4;
+    if ($sisa > 0) {
+        $teks .= str_repeat('=', 4 - $sisa);
+    }
+    $hasil = base64_decode(strtr($teks, '-_', '+/'), strict: true);
+    if ($hasil === false) {
+        throw new InvalidArgumentException('Pengodean Base64URL tidak valid.');
+    }
+    return $hasil;
+}
+
+// 1. Membuat pasangan Code Verifier & Code Challenge (S256) untuk OAuth 2.0 PKCE
 function buatPasanganPkce(): array
 {
-    $verifier = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-    $hash     = hash('sha256', $verifier, binary: true);
-    $challenge = rtrim(strtr(base64_encode($hash), '+/', '-_'), '=');
+    $verifier  = base64UrlEncode(random_bytes(32));
+    $hash      = hash('sha256', $verifier, binary: true);
+    $challenge = base64UrlEncode($hash);
 
     return ['verifier' => $verifier, 'challenge' => $challenge, 'method' => 'S256'];
 }
+
+// 2. Memverifikasi JWT HS256 secara ketat sesuai RFC 8725 (Best Current Practices)
+function verifikasiJwtHs256(
+    string $jwt,
+    #[\SensitiveParameter] string $kunciRahasia,
+    string $issuerDiharapkan,
+    string $audienceDiharapkan,
+    ?int $waktuSekarang = null
+): array {
+    $bagian = explode('.', $jwt);
+    if (count($bagian) !== 3) {
+        throw new RuntimeException('Format struktur JWT harus memiliki 3 bagian.');
+    }
+    [$headerB64, $payloadB64, $sigB64] = $bagian;
+
+    $header = json_decode(base64UrlDecode($headerB64), associative: true, flags: JSON_THROW_ON_ERROR);
+    // WAJIB mengunci algoritma yang diizinkan (tolak alg: "none" atau algoritma lain!)
+    if (($header['alg'] ?? '') !== 'HS256') {
+        throw new RuntimeException('Algoritma JWT tidak diizinkan.');
+    }
+
+    $sigDiharapkan = hash_hmac('sha256', "{$headerB64}.{$payloadB64}", $kunciRahasia, binary: true);
+    $sigDiterima   = base64UrlDecode($sigB64);
+
+    if (!hash_equals($sigDiharapkan, $sigDiterima)) {
+        throw new RuntimeException('Tanda tangan JWT tidak valid.');
+    }
+
+    $payload  = json_decode(base64UrlDecode($payloadB64), associative: true, flags: JSON_THROW_ON_ERROR);
+    $sekarang = $waktuSekarang ?? time();
+
+    if (!isset($payload['exp']) || !is_int($payload['exp']) || $sekarang >= $payload['exp']) {
+        throw new RuntimeException('Token JWT telah kedaluwarsa (exp).');
+    }
+    if (isset($payload['nbf']) && is_int($payload['nbf']) && $sekarang < $payload['nbf']) {
+        throw new RuntimeException('Token JWT belum berlaku (nbf).');
+    }
+    if (($payload['iss'] ?? '') !== $issuerDiharapkan || ($payload['aud'] ?? '') !== $audienceDiharapkan) {
+        throw new RuntimeException('Klaim iss atau aud pada JWT tidak cocok.');
+    }
+
+    return $payload;
+}
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Hanya memvalidasi tanda tangan JWT tanpa memeriksa klaim `exp` (Expiration), `iss` (Issuer), dan `aud` (Audience):** Jika layanan Pembayaran dan layanan Forum berbagi penyedia SSO yang sama, tetapi layanan Pembayaran tidak memeriksa apakah `aud === "layanan-pembayaran"`, maka token yang diterbitkan hanya untuk membaca Forum dapat dipakai penyerang untuk mengakses API Pembayaran!
+2. **Membandingkan tanda tangan HMAC menggunakan `===` biasa alih-alih `hash_equals()`:** Operator `===` berhenti pada byte pertama yang tidak cocok sehingga membocorkan informasi waktu perbandingan (*timing side-channel*). Selalu gunakan **`hash_equals($diharapkan, $diterima)`**.
+3. **Menaruh data sensitif (seperti nomor telepon, alamat rumah, atau hash kata sandi) di dalam payload JWT:** Ingat, JWT standar (JWS) hanya **ditandatangani**, **BUKAN dienkripsi**! Siapa pun yang memegang JWT dapat langsung membaca seluruh isi payload-nya hanya dengan `base64_decode()`.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `hash_equals($signatureDiharapkan, $signatureDiterima)` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat class `LayananTokenJwt` yang menyediakan metode `terbitkanHs256(array $klaim, string $kunciRahasia): string` dan `verifikasiHs256(...)`.
+2. Tulis pengujian PHPUnit untuk membuktikan bahwa:
+   - token yang sah lolos verifikasi;
+   - token yang dimodifikasi header-nya menjadi `{"alg":"none","typ":"JWT"}` ditolak dengan `RuntimeException`;
+   - token yang waktu `exp`-nya sudah lewat ditolak dengan `RuntimeException`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mempercayai header `alg` di dalam token JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.*?
-- A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
-- C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
-- D. Karena hanya berlaku pada sistem operasi Windows 95
+Mengapa server penerima token JWT **wajib** mengunci daftar algoritma yang diizinkan di sisi server (misalnya memastikan `$header['alg'] === 'HS256'` atau `'RS256'` sesuai jenis kuncinya) dan tidak boleh mempercayai nilai `alg` di dalam header JWT begitu saja?
+- A. Karena header JWT selalu dienkripsi dengan AES
+- B. Karena jika server mengikuti nilai `alg` dari klien secara buta, penyerang dapat mengirim `alg: "none"` untuk melewati pemeriksaan tanda tangan sama sekali, atau mengubah `RS256` menjadi `HS256` lalu menandatangani token palsu menggunakan kunci publik RSA server sebagai kunci simetris HMAC (*key confusion attack*)
+- C. Karena `alg` hanya digunakan oleh peramban Safari
+- D. Karena nilai `alg` menentukan waktu kedaluwarsa token
 
 **Jawaban Benar:** B
-**Penjelasan:** Mempercayai header `alg` di dalam token JWT yang dikirim klien tanpa mengunci algoritma yang diizinkan di sisi server membuka celah klasik `alg: none` atau kebingungan kunci RS256 vs HS256 yang memungkinkan penyerang memalsukan token admin.
+**Penjelasan:** Sesuai RFC 8725 (JWT Best Current Practices), verifikator tidak boleh membiarkan header token mendikte algoritma atau jenis kunci yang digunakan. Kunci simetris dan asimetris harus dipisahkan secara tegas berdasarkan algoritma yang ditentukan server.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `hash_equals($signatureDiharapkan, $signatureDiterima)` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `hash_equals($signatureDiharapkan, $signatureDiterima)` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Autentikasi Modern` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Dalam alur **OAuth 2.0 Authorization Code dengan PKCE (RFC 7636)** menggunakan metode `S256`, bagaimana cara klien membentuk nilai `code_challenge` dari string acak `code_verifier`?
+- A. Membalik urutan huruf `code_verifier` dari belakang ke depan
+- B. Menghitung hash biner SHA-256 dari `code_verifier`, lalu mengodekannya dengan **Base64URL tanpa karakter padding `=`** (`rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=')`)
+- C. Mengenkripsi `code_verifier` menggunakan `md5()`
+- D. Mengirim `code_verifier` dalam bentuk teks telanjang di URL
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Spesifikasi RFC 7636 mendefinisikan transformasi `S256` sebagai `BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))` tanpa karakter padding `=`.
+
+### Soal 3
+Mengapa autentikasi berbasis **WebAuthn / Passkeys** disebut tahan terhadap serangan situs palsu (*Phishing-Resistant*), berbeda dengan kata sandi atau kode OTP 6 digit?
+- A. Karena Passkeys mengharuskan pengguna mengetik 50 karakter setiap kali masuk
+- B. Karena peramban dan sistem operasi mengikat pasangan kunci kriptografi Passkey secara ketat ke domain asli situs (**Relying Party ID / `rpId`**); jika pengguna tertipu membuka situs phishing dengan nama domain berbeda, perangkat secara otomatis menolak memberikan tanda tangan kunci tersebut
+- C. Karena Passkeys dikirim melalui SMS terenkripsi
+- D. Karena Passkeys tidak menggunakan protokol HTTPS
+
+**Jawaban Benar:** B
+**Penjelasan:** Pada kata sandi atau OTP SMS, pengguna yang tertipu halaman login palsu (`kodel0ka-login.com`) dapat mengetikkan sandi/OTP-nya kepada penyerang. Pada Passkeys/WebAuthn, pemeriksaan domain (`rpId`) dilakukan oleh peramban/OS secara kriptografis sehingga tidak dapat dikelabui oleh tampilan visual situs palsu.
 
 ## Sumber
 

@@ -71,6 +71,33 @@ Dua nilai yang sering tertukar:
 
 Gabungkan dengan `text-align: start` (bukan `justify`) bila ragu: perataan kiri-kanan pada kolom sempit menghasilkan celah antar-kata yang besar.
 
+## Studi Kasus Produksi: Kartu Artikel dan Komentar Pengguna dengan URL Panjang
+
+Komponen kartu berita di halaman beranda harus tahan terhadap judul panjang, cuplikan paragraf yang bervariasi, serta nama penulis atau tautan panjang tanpa spasi:
+
+```css
+.kartu-berita {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.kartu-berita .judul {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.kartu-berita .isi-komentar {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+```
+
+Kombinasi `-webkit-line-clamp: 2` dan `overflow-wrap: anywhere` menjamin bahwa kata tunggal atau URL yang sangat panjang di baris pertama tetap terpecah dengan aman dan tidak merusak lebar kartu.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Elipsis tidak muncul.** Biasanya karena salah satu dari `overflow: hidden`, `white-space: nowrap`, atau lebar yang terbatas hilang; pada flex item juga karena `min-inline-size: 0` belum diberikan.

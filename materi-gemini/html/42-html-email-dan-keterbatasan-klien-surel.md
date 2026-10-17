@@ -3,25 +3,28 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Memahami perbedaan besar antara mesin perender peramban modern dan klien surat elektronik (Gmail, Outlook, Apple Mail), penggunaan tabel presentasi dengan `role="presentation"`, dan gaya inline.
 
-## Mengapa Topik "Prinsip Penulisan HTML untuk Surat Elektronik (HTML Email) dan Kompatibilitas Klien" Penting di Lingkungan Produksi?
+## Mengapa Kode HTML/CSS Modern Sering Hancur Saat Dikirim Sebagai Surat Elektronik?
 
-Dalam pengembangan web profesional, menguasai **Prinsip Penulisan HTML untuk Surat Elektronik (HTML Email) dan Kompatibilitas Klien** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Menulis HTML untuk surat elektronik (*HTML Email* seperti kuitansi transaksi, verifikasi akun, atau buletin mingguan) sangat berbeda dengan menulis halaman web biasa. Di halaman web, kita hanya menghadapi tiga mesin peramban modern (Blink, Gecko, dan WebKit) yang terus diperbarui mengikuti standar WHATWG dan W3C.
 
-Pada pelajaran ini kita membedah cara kerja **`role="presentation"`** dan **`inline-style`** berdasarkan [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/tables.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/presentation_role). Perlu dicatat bahwa dukungan HTML dan CSS pada klien surel tidak diatur oleh standar web, sehingga hasilnya harus diuji pada tiap klien yang Anda targetkan.
+Sebaliknya, di dunia surat elektronik, pesan Anda dibuka di puluhan klien surel (Gmail Web, aplikasi seluler Gmail/iOS/Android, Apple Mail, Yahoo Mail, hingga berbagai versi Microsoft Outlook) yang **memotong sebagian besar tag HTML dan properti CSS demi keamanan** serta memiliki mesin perender yang tidak seragam (misalnya Outlook desktop klasik untuk Windows merender HTML menggunakan mesin pengolah kata **Microsoft Word**, bukan peramban web!).
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Perbedaan Mesin Perender Web vs Klien Surel dan Penggunaan `<table role="presentation">`
 
-Peramban modern memproses `role="presentation"` dan `inline-style` mengikuti aturan semantik dan keamanan yang ketat:
+Karena properti tata letak modern seperti CSS Grid, `position`, atau bahkan `margin` dan `max-width` pada `<div>` sering diabaikan atau rusak di sebagian klien surel, tata letak surel HTML masih mengandalkan **tabel bersarang (`<table>`)** dengan lebar maksimum sekitar **`600px`**.
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+Namun, penggunaan `<table>` untuk tata letak menimbulkan masalah aksesibilitas besar: jika Anda menulis `<table>` biasa, pembaca layar akan mengumumkan *"Tabel dengan 1 kolom dan 4 baris, Baris 1 Kolom 1..."* pada setiap paragraf surel Anda! Solusi wajibnya adalah menambahkan **`role="presentation"`** pada setiap `<table>` yang dipakai untuk tata letak:
+
+| Aspek Penulisan | Halaman Web Modern | Surat Elektronik (HTML Email) |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `role="presentation"` dan `inline-style` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| **Struktur Tata Letak** | Elemen semantik (`<main>`, `<article>`) + CSS Grid / Flexbox. | `<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0">`. |
+| **Penempatan CSS** | Berkas `.css` eksternal melalui `<link rel="stylesheet">`. | **Gaya `style="..."` sebaris (*inline styles*)** pada setiap elemen, karena banyak klien surel membuang `<link>` eksternal. |
+| **JavaScript & Interaktivitas** | Didukung penuh (`<script>`). | **Diblokir 100%** oleh seluruh klien surel demi mencegah serangan XSS/malware. |
+| **Gambar & Media** | AVIF, WebP, SVG inline. | Gunakan **PNG atau JPEG** dengan URL absolut `https://...`, dimensi `width`/`height` eksplisit, dan `alt` informatif (SVG sering diblokir di klien surel). |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Contoh Implementasi Template HTML Email Transaksional yang Aksesibel
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `role="presentation"` dan `inline-style` secara benar:
+Berikut adalah pola penulisan HTML untuk surat elektronik yang menggabungkan tabel presentasi (`role="presentation"`), gaya sebaris (*inline style*), dan tombol ajakan bertindak (*Call to Action*):
 
 ```html
 <!DOCTYPE html>
@@ -54,54 +57,56 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `role="presentation"` 
 
 > **Catatan:** Atribut presentasi seperti `width`, `cellpadding`, `cellspacing`, `border`, dan `align` pada `<table>`/`<td>` sudah usang (*obsolete*) menurut spesifikasi HTML dan tidak boleh dipakai pada halaman web biasa (lihat pelajaran 43). Atribut itu dipertahankan di sini hanya karena sebagian klien surel, terutama Outlook desktop, masih mengandalkannya.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `role="presentation"` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Aturan Penting Gambar, Tombol, dan Versi `text/plain` pada Surel
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+1. **Jangan pernah mengirim surel yang seluruh isinya hanya berupa satu gambar poster besar:** Banyak klien surel memblokir pemuatan gambar eksternal secara bawaan sampai pengguna menekan *"Tampilkan gambar"*, dan filter spam sering menandai surel berisi gambar tunggal tanpa teks sebagai spam.
+2. **Gunakan `padding` pada `<td>`, bukan `margin` pada `<p>` untuk jarak vertikal kritis:** Sebagian klien surel mengabaikan `margin` luar, tetapi selalu menghormati `padding` pada sel tabel `<td>`.
+3. **Selalu sertakan bagian `text/plain` pendamping (*multipart/alternative*):** Saat mengirim surel dari backend (lihat kelas PHP pelajaran 36), selalu kirimkan versi teks biasa bersamaan dengan versi `text/html` bagi pengguna jam tangan pintar, pembaca layar berbasis teks, atau klien surel dengan keamanan ketat.
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `role="presentation"` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `inline-style`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Lupa menambahkan `role="presentation"` pada setiap `<table>` tata letak:** Jika Anda menggunakan 3 tabel bersarang untuk mengatur posisi surel tanpa `role="presentation"`, pengguna pembaca layar akan terjebak mendengarkan pengumuman baris dan kolom tabel yang membingungkan.
+2. **Mengandalkan `<link rel="stylesheet">` atau variabel CSS `var(--warna)` di surel:** Sebagian besar klien webmail membersihkan tag `<link>` eksternal dan banyak klien belum mendukung *Custom Properties* secara konsisten. Tulis nilai warna heksadesimal lengkap (`#2563eb`) dan aturan fon secara *inline* pada atribut `style`.
+3. **Menggunakan tautan relatif `href="/verifikasi"` di dalam surel:** Karena surel dibuka di dalam aplikasi klien surel (bukan di domain situs Anda), setiap tautan `<a href>` dan gambar `<img src>` di dalam surel **wajib menggunakan URL absolut lengkap** (`https://kodeloka.asadinedu.com/...`).
 
 ## Latihan Praktik
 
-Buatlah berkas `42-html-email-dan-keterbatasan-klien-surel.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `role="presentation"` dan `inline-style` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `42-html-email-dan-keterbatasan-klien-surel.html` untuk surel kuitansi pendaftaran kelas:
+1. Buat struktur tabel luar 100% dan tabel kontainer dalam selebar `600` piksel yang keduanya memiliki atribut `role="presentation"`.
+2. Di dalam konten surel, tetap gunakan tabel data **tanpa** `role="presentation"` (lengkap dengan `<th scope="col">`) khusus untuk bagian rincian item tagihan (karena bagian itu memang benar-benar data tabular!).
+3. Tambahkan tombol tautan `<a href="https://...">` dengan gaya *inline* yang memiliki kontras tinggi, lalu periksa di panel **Accessibility Tree** DevTools bahwa tabel tata letak luar diabaikan sebagai tabel sementara tabel rincian tagihan tetap dikenali sebagai `table`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `role="presentation"` dalam konteks **Prinsip Penulisan HTML untuk Surat Elektronik (HTML Email) dan Kompatibilitas Klien** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `role="presentation"`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Mengapa setiap elemen `<table>` yang digunakan semata-mata untuk mengatur tata letak surat elektronik (HTML Email) **wajib** diberi atribut `role="presentation"`?
+- A. Agar tabel tersebut otomatis berubah menjadi elemen `<canvas>` di Gmail
+- B. Agar pembaca layar menghapus semantik tabel (`table`, `row`, `cell`) dari pohon aksesibilitas sehingga tidak mengumumkan nomor baris dan kolom yang membingungkan saat membacakan isi surel
+- C. Untuk memperkecil ukuran byte surel hingga separuhnya
+- D. Agar Outlook mengizinkan eksekusi kode JavaScript di dalam tabel
 
 **Jawaban Benar:** B
-**Penjelasan:** `role="presentation"` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** `role="presentation"` (atau `role="none"`) menghapus peran semantik tabel dari elemen `<table>`, `<tr>`, dan `<td>` miliknya di Accessibility Tree sehingga pembaca layar langsung membacakan teks di dalamnya secara mengalir.
 
 ### Soal 2
-Mengapa penerapan `inline-style` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`inline-style`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Mengapa aturan CSS pada HTML Email harus ditulis secara sebaris (*inline*) menggunakan atribut `style="..."` pada elemen-elemennya, alih-alih dimuat melalui `<link rel="stylesheet" href="...">`?
+- A. Karena protokol SMTP melarang karakter `<link>`
+- B. Karena sebagian besar klien surat elektronik membuang tag `<link rel="stylesheet">` eksternal dan menyaring selektor `<style>` tertentu demi alasan keamanan dan isolasi tampilan
+- C. Karena atribut `style="..."` membuat surel terenkripsi secara otomatis
+- D. Karena HTML5 telah menghapus elemen `<link>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Klien webmail (seperti Gmail atau Yahoo Mail) merender isi surel di dalam halaman aplikasi mereka sendiri sehingga mereka memotong stylesheet eksternal dan membatasi selektor CSS agar tidak merusak antarmuka webmail mereka.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `role="presentation"` dan `inline-style` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Apa yang harus selalu digunakan pada nilai atribut `href` di `<a>` dan `src` di `<img>` di dalam dokumen HTML Email?
+- A. Jalur relatif seperti `href="/masuk"` dan `src="../logo.png"`
+- B. URL absolut lengkap dengan skema `https://` dan nama domain (misalnya `https://kodeloka.asadinedu.com/masuk`) serta gambar raster (PNG/JPEG) dengan atribut `alt`, `width`, dan `height`
+- C. Skema `javascript:bukaHalaman()`
+- D. Berkas `.svg` eksternal tanpa atribut `alt`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Surel dibuka di lingkungan klien surel pengguna (di luar domain situs web Anda), sehingga jalur relatif tidak memiliki domain dasar yang benar dan wajib ditulis sebagai URL absolut `https://...`.
 
 ## Sumber
 - [`presentation` role — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/presentation_role)

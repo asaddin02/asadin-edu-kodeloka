@@ -3,27 +3,85 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Menyematkan *Correlation ID* / header standar W3C **`traceparent`** di setiap log dan panggilan cURL keluar agar perjalanan sebuah permintaan dapat dilacak lintas layanan, merancang endpoint `/healthz` (*liveness*) dan `/readyz` (*readiness*), serta mendiagnosis leher botol CPU dengan profiler.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Memeriksa Koneksi Database di Endpoint *Liveness Probe* (`/healthz`) Dapat Melumpuhkan Seluruh Klaster Anda?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `$idKorelasi = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Dalam orkestrasi kontainer modern (seperti Kubernetes, Docker Swarm, atau Load Balancer cloud), sistem memantau kesehatan aplikasi PHP Anda melalui dua endpoint yang tujuannya **sangat berbeda**:
+1. **Liveness Probe (`/healthz`):** Menjawab pertanyaan: *"Apakah proses PHP/web server di dalam kontainer ini masih hidup atau sudah macet (*deadlock*) sehingga kontainer harus **dibunuh dan di-restart**?"*
+2. **Readiness Probe (`/readyz`):** Menjawab pertanyaan: *"Apakah kontainer ini sedang siap menerima trafik pengguna baru, atau sedang menunggu database/Redis pulih sehingga harus **dilepas sementara dari Load Balancer tanpa di-restart**?"*
+
+Jika Anda menaruh pengecekan koneksi database atau API pihak ketiga di dalam **Liveness Probe (`/healthz`)**, maka saat database mengalami gangguan jaringan selama 5 detik saja, Kubernetes akan mengira seluruh 20 pod PHP Anda rusak lalu **membunuh dan me-restart semua pod secara serentak (*Cascading Failure*)**!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Mengecek koneksi database, Redis, dan API pihak ketiga di dalam endpoint *Liveness Probe* (`/healthz`) Kubernetes akan membuat Kubernetes me-restart container PHP Anda berulang kali ketika layanan pihak ketiga sedang mengalami gangguan sementara; pisahkan *Liveness* dari *Readiness* (`/readyz`).
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Tiga Pilar Observabilitas dan Pemisahan Probe Kesehatan
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Berikut adalah arsitektur observabilitas standar untuk aplikasi PHP produksi:
+
+| Komponen Observabilitas | Standar / Format | Fungsi Utama Saat Terjadi Insiden Produksi |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `$idKorelasi = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **W3C Trace Context (`traceparent`)** | `00-<32-hex-trace-id>-<16-hex-span-id>-<2-hex-flags>` | Menyatukan jejak satu klik pengguna saat mengalir melintasi API Gateway -> PHP -> layanan Go/Python di Grafana Tempo / Jaeger. |
+| **Structured JSON Logging (PSR-3)** | JSON 1 baris memuat `timestamp`, `level`, `message`, **`trace_id`**, `span_id`, dan `context`. | Memungkinkan pencarian seluruh log dari satu transaksi yang gagal di Loki/Elasticsearch hanya dengan 1 `trace_id`. |
+| **Liveness Probe (`GET /healthz`)** | Mengembalikan `200 OK` ringan **tanpa** memanggil DB/Redis/API luar. | Memastikan proses PHP-FPM / FrankenPHP sendiri masih sanggup merespons HTTP. |
+| **Readiness Probe (`GET /readyz`)** | Menguji `SELECT 1` ke DB dan `PING` ke Redis dengan *timeout* ketat (mis. 1 dtk); mengembalikan `200` atau `503`. | Menghentikan pengiriman trafik pengguna ke pod yang koneksinya ke DB sedang putus tanpa membunuh pod tersebut. |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Menguraikan dan Meneruskan Header W3C `traceparent` Lintas Layanan
+
+Spesifikasi rekomendasi **[W3C Trace Context](https://www.w3.org/TR/trace-context/)** menetapkan header HTTP standar bernama **`traceparent`** dengan 4 bagian yang dipisahkan tanda hubung (`versi-traceId-parentSpanId-traceFlags`), contohnya:
+`00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`
+- `00`: Versi format (1 byte hex).
+- `4bf92f3577b34da6a3ce929d0e0e4736`: **`trace-id`** (16 byte / 32 karakter hex huruf kecil, tidak boleh nol semua) yang tetap sama di seluruh layanan yang dilewati permintaan tersebut.
+- `00f067aa0ba902b7`: **`parent-id` / `span-id`** (8 byte / 16 karakter hex huruf kecil, tidak boleh nol semua) dari pemanggil sebelumnya.
+- `01`: **`trace-flags`** (`01` berarti *sampled* / direkam).
 
 ```php
 <?php
 declare(strict_types=1);
 
-function periksaKesiapanLayanan(PDO $pdo, Redis $redis): array
+/**
+ * Membaca header W3C traceparent dari permintaan masuk atau membuat konteks jejak baru jika belum ada.
+ *
+ * @return array{trace_id: string, span_id: string, parent_span_id: string|null, traceparent_keluar: string}
+ */
+function bangunKonteksTraceW3c(?string $headerTraceparentMasuk): array
+{
+    $polaW3c = '/^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/';
+    $spanIdBaru = bin2hex(random_bytes(8)); // 16 karakter hex untuk span layanan PHP ini
+
+    if (
+        $headerTraceparentMasuk !== null
+        && preg_match($polaW3c, strtolower(trim($headerTraceparentMasuk)), $cocok) === 1
+        && $cocok[1] !== str_repeat('0', 32)
+        && $cocok[2] !== str_repeat('0', 16)
+    ) {
+        $traceId      = $cocok[1];
+        $parentSpanId = $cocok[2];
+        $flags        = $cocok[3];
+    } else {
+        $traceId      = bin2hex(random_bytes(16)); // 32 karakter hex baru
+        $parentSpanId = null;
+        $flags        = '01';
+    }
+
+    return [
+        'trace_id'           => $traceId,
+        'span_id'            => $spanIdBaru,
+        'parent_span_id'     => $parentSpanId,
+        'traceparent_keluar' => "00-{$traceId}-{$spanIdBaru}-{$flags}",
+    ];
+}
+```
+
+Ketika layanan PHP Anda kemudian memanggil layanan pembayaran internal melalui cURL, teruskan `'traceparent: ' . $konteks['traceparent_keluar']` pada `CURLOPT_HTTPHEADER` dan sertakan `'trace_id' => $konteks['trace_id']` di setiap baris log JSON Anda!
+
+## 3. Implementasi Endpoint `/readyz` (*Readiness*) dan `/healthz` (*Liveness*)
+
+Berikut adalah cara memisahkan pemeriksaan kesiapan dependensi (`/readyz`) dari pemeriksaan kehidupan proses (`/healthz`):
+
+```php
+<?php
+declare(strict_types=1);
+
+function periksaKesiapanLayanan(PDO $pdo, object $redis): array
 {
     $status = ['database' => false, 'cache' => false];
     try {
@@ -35,17 +93,27 @@ function periksaKesiapanLayanan(PDO $pdo, Redis $redis): array
         $status['cache'] = ($redis->ping() !== false);
     } catch (Throwable) {}
 
-    return $status;
+    $sehatSemua = !in_array(false, $status, strict: true);
+    return [
+        'kode_http' => $sehatSemua ? 200 : 503,
+        'status'    => $sehatSemua ? 'ready' : 'degraded',
+        'komponen'  => $status,
+    ];
 }
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mengembalikan status HTTP `200 OK` pada `/readyz` padahal koneksi database gagal (`{"status": "error"}`):** Load balancer dan Kubernetes hanya melihat kode status HTTP (`200–399` dianggap sehat, `>= 400` dianggap tidak siap). Jika salah satu dependensi inti gagal di `/readyz`, Anda **wajib** mengembalikan **`http_response_code(503)`** (*Service Unavailable*).
+2. **Menampilkan rincian versi server, alamat IP database internal, dan pesan eksepsi lengkap di endpoint `/readyz` publik:** Jangan ekspos detail topologi internal ke internet publik; batasi akses `/readyz` dan `/metrics` hanya untuk jaringan internal klaster atau tampilkan status boolean sederhana saja.
+3. **Membuat ID korelasi baru di setiap layanan mikro dan membuang header `traceparent` dari pemanggil:** Jika Anda tidak membaca dan meneruskan `trace-id` yang masuk dari header `traceparent`, maka jejak di layanan A dan layanan B akan terputus menjadi dua trace terpisah yang tidak bisa dihubungkan saat melacak insiden!
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `$idKorelasi = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `ObservabilitasW3c.php` yang memuat fungsi `bangunKonteksTraceW3c()` dan `periksaKesiapanLayanan()`.
+2. Tulis pengujian PHPUnit untuk memverifikasi bahwa:
+   - jika diberi header `00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`, fungsi mempertahankan `trace_id` yang sama persis (`4bf92f3577b34da6a3ce929d0e0e4736`), menyimpan `00f067aa0ba902b7` sebagai `parent_span_id`, dan membuat `span_id` baru sepanjang 16 karakter hex;
+   - jika diberi `traceparent` tidak valid (atau `trace-id` bernilai nol semua), fungsi otomatis membangkitkan `trace_id` 32 karakter hex baru.
 
 ## Kuis Pemahaman
 
@@ -60,24 +128,24 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Mengece
 **Penjelasan:** Mengecek koneksi database, Redis, dan API pihak ketiga di dalam endpoint *Liveness Probe* (`/healthz`) Kubernetes akan membuat Kubernetes me-restart container PHP Anda berulang kali ketika layanan pihak ketiga sedang mengalami gangguan sementara; pisahkan *Liveness* dari *Readiness* (`/readyz`).
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `$idKorelasi = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `$idKorelasi = $_SERVER['HTTP_X_REQUEST_ID'] ?? bin2hex(random_bytes(16));` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Observabilitas Aplikasi PHP` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Dalam standar **W3C Trace Context**, ketika layanan PHP Anda menerima permintaan masuk dengan header `traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01` lalu memanggil layanan mikro hilir melalui cURL, bagian manakah dari `traceparent` yang **wajib dipertahankan tetap sama** dan bagian manakah yang **diperbarui**?
+- A. Seluruh string `traceparent` dihapus dan diganti dengan alamat IP pengguna
+- B. Nilai **`trace-id`** (`4bf92f3577b34da6a3ce929d0e0e4736`, 32 hex) **wajib dipertahankan tetap sama** agar seluruh layanan terhubung dalam satu jejak utuh, sedangkan bagian ketiga (**`parent-id` / `span-id`**, 16 hex) **diperbarui** dengan ID span baru milik operasi pemanggilan dari layanan PHP ini
+- C. Nilai `trace-id` diganti baru di setiap layanan, sedangkan `span-id` tidak boleh berubah
+- D. Versi `00` diubah menjadi `99`
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Dalam W3C Trace Context, `trace-id` mengidentifikasi perjalanan transaksi secara menyeluruh dari ujung ke ujung, sementara `parent-id` diperbarui di setiap lompatan (*hop*) untuk membentuk pohon hubungan induk-anak antar-*span*.
+
+### Soal 3
+Kode status HTTP berapakah yang wajib dikembalikan oleh endpoint **Readiness Probe (`/readyz`)** ketika koneksi ke database utama sedang terputus agar Load Balancer berhenti mengalirkan trafik pengguna ke pod tersebut?
+- A. `200 OK`
+- B. `302 Found`
+- C. `503 Service Unavailable` (atau kode `5xx` lainnya)
+- D. `100 Continue`
+
+**Jawaban Benar:** C
+**Penjelasan:** Probe HTTP Kubernetes menganggap kode status `200` hingga `399` sebagai sehat/siap, dan kode `>= 400` (standarnya `503 Service Unavailable`) sebagai tidak siap sehingga pod langsung dikeluarkan sementara dari daftar endpoint Service.
 
 ## Sumber
 

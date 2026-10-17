@@ -95,6 +95,36 @@ Secara bawaan, gambar diposisikan di tengah (`object-position: 50% 50%`). Saat m
 
 > **⚠️ Catatan Aksesibilitas dan Konten:** `object-fit: cover` memotong gambar, jadi jangan pakai pada gambar yang seluruh isinya penting, seperti diagram, grafik, tangkapan layar berisi teks, atau logo. Gunakan `contain` untuk gambar semacam itu. Semua gambar bermakna tetap memerlukan atribut `alt`; CSS tidak menggantikannya.
 
+## Studi Kasus Produksi: Kartu Produk E-Commerce dan Banner Video Responsif
+
+Pada halaman katalog e-commerce, foto produk dari penjual memiliki orientasi yang beragam (potret, lanskap, maupun persegi). Menggabungkan `aspect-ratio`, `object-fit`, dan `object-position` menjaga tinggi seluruh kartu tetap sejajar tanpa menimbulkan pergeseran tata letak (*Cumulative Layout Shift*):
+
+```css
+.bingkai-produk {
+  aspect-ratio: 4 / 5;
+  inline-size: 100%;
+  background-color: oklch(96% 0.01 250);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.bingkai-produk img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  /* Fokuskan pemotongan sedikit ke bagian atas untuk foto model pakaian */
+  object-position: 50% 20%;
+}
+
+.logo-mitra {
+  aspect-ratio: 3 / 1;
+  inline-size: 8rem;
+  object-fit: contain; /* Logo tidak boleh terpotong */
+}
+```
+
+Selalu sertakan atribut `width` dan `height` asli pada tag `<img>` di HTML agar peramban dapat memesan rasio ruang sebelum lembar gaya CSS selesai diunduh.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menetapkan `width` dan `height` tetap sekaligus pada gambar tanpa `object-fit`.** Gambar menjadi gepeng karena nilai bawaan `fill`. Tambahkan `object-fit: cover` atau `contain`.

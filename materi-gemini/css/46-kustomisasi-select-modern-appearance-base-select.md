@@ -139,6 +139,42 @@ HTML-nya dapat memuat konten kaya di dalam opsi, dan tombol kotak dapat menampil
 - Opsi harus tetap berisi teks yang bermakna; gambar dekoratif diberi `alt=""`. Jangan menaruh kontrol interaktif (tautan, tombol) di dalam `<option>`.
 - Pertahankan kontras dan indikator fokus yang jelas pada opsi.
 
+## Studi Kasus Produksi: Pemilih Status Tugas dengan Animasi Popover dan Peningkatan Progresif
+
+Karena `::picker(select)` pada mode `appearance: base-select` berperilaku sebagai elemen *popover* di *top layer*, Anda dapat memadukannya dengan `@starting-style` dan `selectedcontent` untuk menyembunyikan deskripsi panjang saat menu tertutup:
+
+```css
+@supports (appearance: base-select) {
+  .pilih-status,
+  .pilih-status::picker(select) {
+    appearance: base-select;
+  }
+
+  /* Sembunyikan teks keterangan tambahan di dalam tombol tertutup,
+     tetapi tetap tampilkan di daftar pilihan saat dibuka */
+  .pilih-status selectedcontent .keterangan-opsi {
+    display: none;
+  }
+
+  .pilih-status::picker(select) {
+    opacity: 0;
+    transition: opacity 160ms ease, display 160ms allow-discrete, overlay 160ms allow-discrete;
+  }
+
+  .pilih-status:open::picker(select) {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .pilih-status:open::picker(select) {
+      opacity: 0;
+    }
+  }
+}
+```
+
+Menurut dokumentasi MDN *Customizable select elements*, peramban yang belum mendukung fitur ini akan mengabaikan struktur `<button><selectedcontent></selectedcontent></button>` dan melucuti tag non-teks di dalam `<option>` sehingga menyisakan simpul teksnya saja, sementara nilai JavaScript `select.value` (bila atribut `value` tidak ditulis eksplisit) diambil dari `option.textContent.trim()`.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menggabungkan `::-webkit-progress-value` dan `::-moz-progress-bar` dalam satu aturan.** Peramban yang tidak mengenali salah satunya membuang seluruh aturan; tulis terpisah.

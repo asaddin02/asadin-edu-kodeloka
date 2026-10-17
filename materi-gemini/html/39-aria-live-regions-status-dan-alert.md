@@ -3,25 +3,29 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memastikan perubahan konten dinamis (seperti hasil pencarian langsung, penghitung waktu, dan pesan galat formulir) terdengar jelas oleh pengguna pembaca layar melalui penggunaan *ARIA Live Regions* yang tepat.
 
-## Mengapa Topik "Pengumuman Dinamis bagi Pembaca Layar: `aria-live`, `<output>`, `role="status"`, dan `role="alert"`" Penting di Lingkungan Produksi?
+## Mengapa Perubahan DOM via JavaScript Sering Tidak Terdengar oleh Pembaca Layar?
 
-Dalam pengembangan web profesional, menguasai **Pengumuman Dinamis bagi Pembaca Layar: `aria-live`, `<output>`, `role="status"`, dan `role="alert"`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Pengguna pembaca layar (*screen reader* seperti NVDA, JAWS, VoiceOver, dan TalkBack) menelusuri halaman melalui satu titik kursor fokus pada satu waktu. Apabila pengguna sedang mengetik di dalam `<input type="search">`, lalu JavaScript memperbarui teks `"3 hasil ditemukan"` pada sebuah `<p>` di bawahnya **tanpa memindahkan fokus**, pembaca layar tidak akan memberi tahu pengguna bahwa teks di bawahnya telah berubah!
 
-Pada pelajaran ini kita membedah cara kerja **`polite`** dan **`assertive`** berdasarkan spesifikasi [WAI-ARIA 1.2](https://www.w3.org/TR/wai-aria-1.2/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Guides/Live_regions).
+Untuk mengumumkan perubahan konten dinamis tanpa perlu merampas fokus papan ketik pengguna, WAI-ARIA menyediakan mekanisme **ARIA Live Regions** melalui atribut `aria-live`, elemen semantik `<output>`, serta peran `role="status"` dan `role="alert"`.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Memilih Tingkat Kesopanan Pengumuman: `polite` vs `assertive`
 
-Peramban modern memproses `polite` dan `assertive` mengikuti aturan semantik dan keamanan yang ketat:
+Tidak semua perubahan layar memiliki tingkat kedaruratan yang sama. Menginterupsi kalimat pembaca layar setiap detik akan sangat mengganggu pengguna tunanetra. Oleh sebab itu, pilihlah peran atau atribut *live region* sesuai urgensinya:
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
-|---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `polite` dan `assertive` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| Atribut / Peran / Elemen | Tingkat `aria-live` Bawaan | Perilaku Pembaca Layar | Kasus Penggunaan yang Tepat |
+|---|---|---|---|
+| `role="status"` atau `<output>` | `aria-live="polite"` dan `aria-atomic="true"` | **Menunggu dengan sopan** sampai pembaca layar selesai membacakan kalimat saat ini sebelum mengumumkan teks baru. | Jumlah hasil pencarian, notifikasi *"Perubahan disimpan"*, jumlah item di keranjang belanja, atau hasil kalkulator. |
+| `role="alert"` | `aria-live="assertive"` dan `aria-atomic="true"` | **Langsung memotong** ucapan pembaca layar saat itu juga untuk mengumumkan pesan darurat. | Pesan kesalahan validasi formulir yang gagal dikirim, peringatan sesi akan berakhir, atau terputusnya koneksi jaringan. |
+| `aria-live="off"` (Bawaan seluruh elemen biasa) | Tidak aktif | Perubahan teks di dalamnya tidak diumumkan kecuali pengguna memindahkan kursor ke elemen tersebut. | Konten statis atau penghitung waktu yang berubah setiap milidetik. |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Aturan Emas Live Region: Wadah Harus Sudah Ada di DOM Sejak Awal
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `polite` dan `assertive` secara benar:
+Kesalahan paling sering saat menggunakan `aria-live`, `role="status"`, atau `role="alert"` adalah baru membuat elemen `<div role="status">Berhasil!</div>` lewat JavaScript pada saat pesan muncul. Banyak kombinasi peramban dan pembaca layar **hanya memantau perubahan teks di dalam wadah *live region* yang sudah terdaftar di DOM sebelumnya**!
+
+Pola yang paling andal lintas pembaca layar adalah:
+1. Sediakan wadah `<p id="status-hasil" role="status"></p>` dan `<p id="galat-pencarian" role="alert"></p>` dalam keadaan **kosong** di HTML sejak halaman pertama kali dimuat.
+2. Saat peristiwa terjadi, ubah isi teksnya menggunakan `element.textContent = "..."`:
 
 ```html
 <!DOCTYPE html>
@@ -64,54 +68,70 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `polite` dan `assertiv
 </html>
 ```
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `polite` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Mengendalikan Pembacaan Utuh dengan `aria-atomic`, `aria-busy`, dan *Debounce*
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Ketika Anda menggunakan `aria-live="polite"` secara manual pada sebuah `<div>` yang berisi beberapa `<span>` (misalnya `<span>Total Tagihan:</span> <span id="nominal">Rp 150.000</span>`), secara bawaan (`aria-atomic="false"`) pembaca layar hanya membacakan bagian yang berubah saja (`"Rp 150.000"`), sehingga pengguna kehilangan konteks `"Total Tagihan:"`.
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `polite` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `assertive`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+Dengan menambahkan **`aria-atomic="true"`** (yang sudah aktif secara bawaan pada `<output>`, `role="status"`, dan `role="alert"`), pembaca layar akan membacakan **seluruh isi wadah dari awal hingga akhir** setiap kali ada bagian di dalamnya yang berubah:
+
+```html
+<!-- Elemen <output> secara bawaan memiliki role="status" (aria-live="polite" + aria-atomic="true") -->
+<form id="form-diskon" oninput="hasilAkhir.value = 'Rp ' + (Number(harga.value) * 0.9).toLocaleString('id-ID')">
+  <label for="harga">Harga Awal (Rp)</label>
+  <input type="number" id="harga" name="harga" value="100000" step="10000">
+
+  <p> Harga Setelah Diskon 10%:
+    <output id="hasilAkhir" name="hasilAkhir" for="harga">Rp 90.000</output>
+  </p>
+</form>
+```
+
+> **💡 Tips Penting (Gunakan *Debounce* pada Pencarian Langsung):** Jika Anda memperbarui teks `role="status"` pada setiap ketikan huruf di kotak pencarian, tunda pembaruan teks selama **300–500 milidetik** menggunakan teknik *debounce* agar pembaca layar hanya mengumumkan hasil akhir setelah pengguna selesai mengetik kata kuncinya.
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menggunakan `role="alert"` atau `aria-live="assertive"` untuk semua pemberitahuan biasa:** Karena `assertive` langsung memotong pembacaan layar, memakainya untuk pesan biasa seperti *"Disimpan sebagai draf"* akan merusak konsentrasi pengguna pembaca layar. Gunakan `role="status"` untuk hampir semua pembaruan informasi, dan cadangkan `role="alert"` hanya untuk kesalahan atau peringatan mendesak.
+2. **Menyembunyikan wadah *live region* dengan `display: none` atau `hidden` lalu langsung mengisinya di frame yang sama:** Jika wadah baru diubah dari `hidden = true` menjadi `hidden = false` bersamaan dengan pengisian `textContent`, sebagian pembaca layar melewatkan pengumuman tersebut. Biarkan wadah *live region* tetap aktif di DOM dalam keadaan kosong (`""`).
+3. **Memasang `aria-live` pada elemen pembungkus besar seperti `<main>` atau `<body>`:** Setiap perubahan kecil di dalam halaman akan memicu pengumuman berulang yang melumpuhkan pembaca layar.
 
 ## Latihan Praktik
 
-Buatlah berkas `39-aria-live-regions-status-dan-alert.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `polite` dan `assertive` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `39-aria-live-regions-status-dan-alert.html` untuk fitur penyaringan modul kursus:
+1. Buat `<input type="search" id="cari-modul">` beserta daftar `<ul>` berisi 5 judul modul HTML.
+2. Sediakan wadah `<p id="info-filter" role="status"></p>` dan `<p id="peringatan-filter" role="alert"></p>` yang sudah ada di DOM sejak awal.
+3. Gunakan fungsi *debounce* 300 ms pada event `input`: jika kata kunci ditemukan, perbarui `#info-filter` dengan jumlah modul yang cocok; jika 0 modul cocok, tampilkan pesan di `#peringatan-filter`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `polite` dalam konteks **Pengumuman Dinamis bagi Pembaca Layar: `aria-live`, `<output>`, `role="status"`, dan `role="alert"`** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `polite`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Manakah perbedaan perilaku yang tepat antara `role="status"` dan `role="alert"` ketika teks di dalamnya diperbarui melalui JavaScript?
+- A. `role="status"` memiliki sifat `aria-live="polite"` yang menunggu pembaca layar menyelesaikan kalimat saat ini sebelum mengumumkan pembaruan, sedangkan `role="alert"` bersifat `aria-live="assertive"` yang langsung menginterupsi pembaca layar untuk pesan darurat/galat
+- B. `role="status"` membuka kotak dialog pop-up `window.alert()`, sedangkan `role="alert"` menulis pesan ke konsol
+- C. `role="alert"` hanya bekerja di peramban seluler, sedangkan `role="status"` hanya di desktop
+- D. `role="status"` otomatis memindahkan fokus papan ketik ke elemen tersebut, sedangkan `role="alert"` tidak
 
-**Jawaban Benar:** B
-**Penjelasan:** `polite` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Jawaban Benar:** A
+**Penjelasan:** `role="status"` memiliki nilai implisit `aria-live="polite"` (sopan, tidak memotong pembicaraan), sedangkan `role="alert"` memiliki nilai implisit `aria-live="assertive"` (mendesak, segera memotong pembicaraan saat itu juga).
 
 ### Soal 2
-Mengapa penerapan `assertive` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`assertive`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Mengapa wadah elemen *live region* (seperti `<p id="status" role="status"></p>`) sangat disarankan sudah berada di dalam pohon DOM dalam keadaan kosong sebelum teks pengumuman dimasukkan ke dalamnya?
+- A. Agar ukuran berkas HTML menjadi genap
+- B. Karena pembaca layar mendaftarkan dan memantau wadah *live region* yang sudah ada di DOM; jika elemen *live region* dan teksnya baru disuntikkan bersamaan, banyak pembaca layar tidak mendeteksinya sebagai perubahan isi
+- C. Karena peramban menolak atribut `role="status"` yang dibuat dengan `document.createElement`
+- D. Agar CSS Grid dapat menghitung jumlah kolom secara otomatis
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Pembaca layar melacak *mutation* (perubahan teks) di dalam node *live region* yang sudah terdaftar. Mengubah `textContent` pada wadah *live region* yang sudah ada di DOM jauh lebih andal diumumkan lintas pembaca layar.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `polite` dan `assertive` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Elemen HTML5 semantik manakah yang secara bawaan sudah memiliki peran implisit `role="status"` (`aria-live="polite"` dan `aria-atomic="true"`) untuk menampilkan hasil perhitungan atau aksi formulir?
+- A. `<samp>`
+- B. `<var>`
+- C. `<output>`
+- D. `<datalist>`
 
-**Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Jawaban Benar:** C
+**Penjelasan:** Elemen `<output>` dipetakan ke `role="status"` dalam spesifikasi HTML-AAM, sehingga perubahan nilai di dalamnya otomatis diumumkan secara sopan (*polite*) oleh pembaca layar.
 
 ## Sumber
 - [ARIA live regions — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Guides/Live_regions)

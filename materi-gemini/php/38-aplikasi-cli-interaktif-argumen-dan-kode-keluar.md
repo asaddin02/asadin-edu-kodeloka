@@ -3,46 +3,125 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Merancang perkakas CLI administrasi dan skrip otomasi menggunakan konstanta `PHP_SAPI === 'cli'`, penguraian opsi argumen `getopt()`, pemisahan keluaran standar (`STDOUT`) dari pesan galat (`STDERR`), pewarnaan ANSI terminal, serta pengembalian kode status keluar POSIX (`0` untuk sukses, `1+` untuk gagal).
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Skrip CLI yang Mencetak Galat ke `echo` dan Keluar dengan `exit(0)` Merusak Pipa CI/CD?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `fwrite(STDERR, "[GALAT] Konfigurasi tidak ditemukan.\n"); exit(1);` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Saat Anda menjalankan perintah di terminal Linux, cronjob, atau pipa GitHub Actions / GitLab CI seperti:
+`php bin/migrasi-db.php --env=prod && php bin/bersihkan-cache.php`
+
+Operator `&&` di shell hanya memeriksa **satu hal** untuk memutuskan apakah langkah pertama berhasil dan langkah kedua boleh dijalankan: **Kode Status Keluar (*Exit Code*)** dari proses pertama!
+- Kode keluar **`0`** berarti **Sukses**.
+- Kode keluar **`1` hingga `255`** berarti **Gagal**.
+
+Jika skrip `migrasi-db.php` gagal terhubung ke database, lalu Anda hanya mencetak `echo "Gagal migrasi!"; exit;` (di mana `exit` tanpa argumen sama dengan `exit(0)`!), maka pipa CI/CD akan menganggap migrasi berhasil 100% dan lanjut menjalankan langkah berikutnya di atas database yang rusak!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Mencetak pesan kesalahan ke `echo` (`STDOUT`) dan keluar dengan `exit(0)` saat skrip CLI gagal akan menipu pipa CI/CD atau cronjob sehingga menganggap pekerjaan berhasil dijalankan.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Tiga Aliran Standar POSIX (`STDIN`, `STDOUT`, `STDERR`) dan Sintaks `getopt()`
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Setiap proses CLI di sistem operasi modern memiliki tiga aliran I/O standar yang sudah terbuka secara otomatis di PHP CLI:
+
+| Konstanta Stream / Fungsi | File Descriptor POSIX | Kegunaan yang Benar di Skrip CLI |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `fwrite(STDERR, "[GALAT] Konfigurasi tidak ditemukan.\n"); exit(1);` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **`STDIN`** | `fd 0` (Masukan Standar) | Membaca data yang dialirkan melalui pipa (`cat data.csv \| php impor.php`) menggunakan `fgets(STDIN)` atau `stream_get_contents(STDIN)`. |
+| **`STDOUT`** (atau `echo`) | `fd 1` (Keluaran Standar) | **Hanya untuk hasil data utama** (misalnya keluaran JSON, CSV, atau laporan hasil) agar tetap bersih saat diarahkan ke berkas dengan `> hasil.json`! |
+| **`STDERR`** | `fd 2` (Galat Standar) | Untuk seluruh **pesan kesalahan, peringatan, dan log progres**, ditulis dengan `fwrite(STDERR, "...")` agar tidak mengotori pipa `STDOUT`. |
+| **`getopt($pendek, $panjang)`** | Pengurai Argumen CLI | Mengurai opsi pendek (`-u nilai`) dan panjang (`--user=nilai`, `--dry-run`): tanpa titik dua = bendera boolean; `:` = wajib bernilai; `::` = nilai opsional. |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Penguraian Argumen `getopt()`, Pemisahan `STDOUT`/`STDERR`, dan Kode Keluar POSIX
+
+Berikut adalah kerangka skrip CLI standar produksi yang menolak akses dari web server (`PHP_SAPI !== 'cli'`), mengurai opsi dengan `getopt()`, memisahkan `STDOUT` dari `STDERR`, dan mengembalikan kode keluar POSIX yang akurat:
 
 ```php
 <?php
 declare(strict_types=1);
 
+// 1. Pastikan skrip hanya bisa dieksekusi dari CLI, bukan dari peramban web!
 if (PHP_SAPI !== 'cli') {
     http_response_code(403);
     exit('Skrip ini hanya boleh dijalankan melalui CLI.');
 }
 
-$opsi = getopt('u:p::', ['user:', 'dry-run']);
-$adalahSimulasi = array_key_exists('dry-run', $opsi);
+/**
+ * Mengurai argumen baris perintah dan mengembalikan konfigurasi eksekusi.
+ * Contoh: php sinkron.php -u rina --batas=50 --dry-run
+ *
+ * @param array<string, string|false|list<string>> $opsi
+ * @return array{pengguna: string, batas: int, adalahSimulasi: bool}
+ */
+function uraiOpsiCli(array $opsi): array
+{
+    $pengguna = (string) ($opsi['u'] ?? $opsi['user'] ?? '');
+    if ($pengguna === '') {
+        throw new InvalidArgumentException('Opsi wajib -u atau --user=<nama> belum diisi.');
+    }
 
-fwrite(STDOUT, "Memulai sinkronisasi data..." . PHP_EOL);
-// Jika terjadi kegagalan, tulis ke STDERR dan keluar dengan kode non-nol:
-// fwrite(STDERR, "Gagal terhubung ke database." . PHP_EOL); exit(1);
+    $batas = isset($opsi['batas']) ? (int) $opsi['batas'] : 100;
+    if ($batas < 1 || $batas > 10000) {
+        throw new InvalidArgumentException('Opsi --batas harus bernilai antara 1 hingga 10000.');
+    }
+
+    // Pada getopt(), bendera tanpa nilai (seperti --dry-run) bernilai boolean false saat hadir di array!
+    $adalahSimulasi = array_key_exists('dry-run', $opsi);
+
+    return [
+        'pengguna'       => $pengguna,
+        'batas'          => $batas,
+        'adalahSimulasi' => $adalahSimulasi,
+    ];
+}
+
+// Hanya jalankan blok utama jika berkas dieksekusi langsung dari CLI
+if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
+    try {
+        $opsiMentah = getopt('u:', ['user:', 'batas::', 'dry-run']) ?: [];
+        $konfig     = uraiOpsiCli($opsiMentah);
+
+        fwrite(STDERR, "[INFO] Memulai sinkronisasi untuk {$konfig['pengguna']}..." . PHP_EOL);
+        // Hasil data murni dicetak ke STDOUT agar aman di-pipe ke jq: php sinkron.php -u rina | jq .
+        fwrite(STDOUT, json_encode(['status' => 'sukses', 'konfig' => $konfig], JSON_THROW_ON_ERROR) . PHP_EOL);
+        exit(0);
+    } catch (InvalidArgumentException $e) {
+        fwrite(STDERR, "[GALAT ARGUMEN] {$e->getMessage()}" . PHP_EOL);
+        exit(2); // Kode 2 lazim dipakai POSIX untuk kesalahan penggunaan argumen CLI
+    } catch (Throwable $e) {
+        fwrite(STDERR, "[GALAT KRITIS] {$e->getMessage()}" . PHP_EOL);
+        exit(1); // Kode 1 untuk kegagalan runtime umum
+    }
+}
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Memeriksa `stream_isatty(STDOUT)` Sebelum Mencetak Kode Warna ANSI
+
+Saat mencetak teks berwarna ke terminal menggunakan kode escape ANSI (seperti `"\033[32mSukses\033[0m"`), apa yang terjadi jika pengguna mengarahkan keluaran skrip Anda ke berkas log (`php skrip.php > laporan.txt`) atau di dalam sistem CI tanpa warna? Berkas `laporan.txt` akan dipenuhi karakter sampah `^[[32m`!
+
+Gunakan fungsi bawaan **`stream_isatty(STDOUT)`** (dan periksa variabel lingkungan standar [`NO_COLOR`](https://no-color.org/)) untuk memastikan kode warna ANSI hanya dicetak jika keluaran benar-benar terhubung ke layar terminal interaktif:
+
+```php
+<?php
+declare(strict_types=1);
+
+function formatHijauTerminal(string $teks, $stream = STDOUT): string
+{
+    $tanpaWarna = getenv('NO_COLOR') !== false && getenv('NO_COLOR') !== '';
+    if (!$tanpaWarna && is_resource($stream) && stream_isatty($stream)) {
+        return "\033[32m{$teks}\033[0m";
+    }
+    return $teks;
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Memeriksa keberadaan bendera `--dry-run` dari `getopt()` menggunakan `if (!empty($opsi['dry-run']))`:** Ini jebakan paling terkenal di PHP CLI! Karena alasan historis, untuk opsi tanpa nilai (seperti `--dry-run`), `getopt()` menyetel `$opsi['dry-run'] = false` ketika opsi tersebut **diberikan** oleh pengguna! Akibatnya, `!empty($opsi['dry-run'])` selalu bernilai `false`! **Selalu gunakan `array_key_exists('dry-run', $opsi)` atau `isset($opsi['dry-run'])`**.
+2. **Mencampur log progres (`"Memproses baris 1..."`) dengan keluaran JSON di `STDOUT`:** Jika pengguna menjalankan `php ekspor.php > data.json`, pesan `"Memproses baris 1..."` yang dicetak ke `echo`/`STDOUT` akan ikut masuk ke dalam `data.json` dan merusak sintaks JSON-nya. Cetak log progres ke **`STDERR`** dan cetak hasil JSON murni ke **`STDOUT`**.
+3. **Menaruh skrip CLI di dalam folder `public/` yang dapat diakses lewat HTTP:** Tempatkan skrip CLI di folder `bin/` di luar *document root* web server, dan selalu tambahkan penjaga `if (PHP_SAPI !== 'cli')` di bagian atas.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `fwrite(STDERR, "[GALAT] Konfigurasi tidak ditemukan.\n"); exit(1);` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `CliParser.php` yang memuat fungsi `uraiOpsiCli(array $opsi)` dan `formatHijauTerminal()`.
+2. Tulis pengujian PHPUnit untuk memverifikasi bahwa:
+   - `uraiOpsiCli(['user' => 'budi', 'dry-run' => false])` mengembalikan `'adalahSimulasi' => true`;
+   - `uraiOpsiCli([])` tanpa `user` melempar `InvalidArgumentException`.
 
 ## Kuis Pemahaman
 
@@ -57,24 +136,24 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menceta
 **Penjelasan:** Mencetak pesan kesalahan ke `echo` (`STDOUT`) dan keluar dengan `exit(0)` saat skrip CLI gagal akan menipu pipa CI/CD atau cronjob sehingga menganggap pekerjaan berhasil dijalankan.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `fwrite(STDERR, "[GALAT] Konfigurasi tidak ditemukan.\n"); exit(1);` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `fwrite(STDERR, "[GALAT] Konfigurasi tidak ditemukan.\n"); exit(1);` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Membangun Aplikasi Baris Perintah (CLI) di PHP` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Pada fungsi `getopt('u:', ['user:', 'dry-run'])`, ketika pengguna menjalankan skrip dengan bendera `--dry-run`, apakah nilai dari `$opsi['dry-run']` di dalam array yang dikembalikan oleh `getopt()`, dan bagaimana cara yang benar untuk memeriksa apakah bendera tersebut diaktifkan?
+- A. Bernilai `true`; diperiksa dengan `if ($opsi['dry-run'] === true)`
+- B. Bernilai boolean **`false`**; oleh karena itu keberadaannya wajib diperiksa menggunakan **`array_key_exists('dry-run', $opsi)`** atau **`isset($opsi['dry-run'])`** (bukan `if ($opsi['dry-run'])` atau `!empty()`)
+- C. Bernilai angka `1`
+- D. Bernilai `null`
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Dalam dokumentasi resmi PHP `getopt()`, opsi yang tidak menerima nilai argumen tetap dimasukkan ke dalam array hasil tetapi diberi nilai boolean `false`. Menggunakan `isset($opsi['dry-run'])` atau `array_key_exists('dry-run', $opsi)` adalah cara yang benar untuk mendeteksinya.
+
+### Soal 3
+Mengapa pesan log progres dan pesan kesalahan pada perkakas CLI harus ditulis ke **`STDERR`** (`fwrite(STDERR, ...)`) sementara hasil data utama (seperti JSON atau CSV) ditulis ke **`STDOUT`**?
+- A. Karena `STDOUT` hanya menerima angka bulat
+- B. Agar ketika pengguna mengalirkan keluaran skrip ke perkakas lain atau berkas (seperti `php ekspor.php > hasil.json` atau `php ekspor.php | jq .`), berkas `hasil.json` hanya berisi data JSON murni dari `STDOUT` tanpa tercemar oleh teks log progres atau pesan kesalahan dari `STDERR`
+- C. Karena `STDERR` otomatis mengirim email ke administrator
+- D. Karena `STDOUT` tidak tampil di layar terminal
+
+**Jawaban Benar:** B
+**Penjelasan:** Operator pengalihan standar `>` dan pipa `|` di shell secara bawaan hanya menangkap aliran `STDOUT` (`fd 1`), sedangkan `STDERR` (`fd 2`) tetap tampil di layar atau dapat diarahkan ke berkas log terpisah (`2> error.log`).
 
 ## Sumber
 

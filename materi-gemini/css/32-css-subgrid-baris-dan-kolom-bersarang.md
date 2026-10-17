@@ -104,6 +104,31 @@ Komponen di dalam halaman dapat menyelaraskan isinya dengan kisi utama halaman, 
 
 Dengan cara ini, seksi dapat memiliki latar belakang selebar layar sementara teksnya tetap sejajar dengan kolom utama di seluruh halaman.
 
+## Studi Kasus Produksi: Grid Kartu Produk dengan Baris Judul, Deskripsi, dan Harga Sejajar
+
+Dengan `grid-template-rows: subgrid`, setiap kartu produk meminjam empat jalur baris dari grid induk sehingga judul, ringkasan, lencana stok, dan harga selalu rata horizontal antar-kartu:
+
+```css
+.katalog-produk {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  grid-auto-rows: auto;
+  gap: 1.5rem;
+}
+
+.kartu-item {
+  grid-row: span 4; /* Gambar, Judul, Deskripsi, Baris Harga */
+  display: grid;
+  grid-template-rows: subgrid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid oklch(86% 0.02 250);
+  border-radius: 0.75rem;
+}
+```
+
+Jika satu kartu memiliki judul tiga baris sedangkan kartu di sebelahnya hanya satu baris, baris pertama tempat judul berada akan menyesuaikan tingginya untuk seluruh kartu di baris tersebut.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Lupa menambahkan `display: grid` pada elemen subgrid.** Tanpa itu, `subgrid` tidak berlaku.

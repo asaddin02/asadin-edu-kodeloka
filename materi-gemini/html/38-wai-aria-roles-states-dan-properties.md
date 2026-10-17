@@ -3,25 +3,31 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memahami kapan dan bagaimana menggunakan atribut ARIA secara akurat: perbedaan `aria-label` vs `aria-labelledby`, `aria-describedby` vs `aria-errormessage`, `aria-expanded`, `aria-controls`, dan `aria-current`.
 
-## Mengapa Topik "Mendalami WAI-ARIA: Peran (*Roles*), Status (*States*), dan Properti (*Properties*)" Penting di Lingkungan Produksi?
+## Mengapa Aturan Pertama WAI-ARIA Adalah "Jangan Gunakan ARIA Jika Ada Elemen HTML Asli"?
 
-Dalam pengembangan web profesional, menguasai **Mendalami WAI-ARIA: Peran (*Roles*), Status (*States*), dan Properti (*Properties*)** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Spesifikasi [WAI-ARIA (*Accessible Rich Internet Applications*) 1.2](https://www.w3.org/TR/wai-aria-1.2/) menyediakan atribut untuk melengkapi informasi semantik di dalam **Accessibility Tree** peramban bagi pembaca layar. Namun, atribut ARIA **hanya mengubah apa yang diumumkan pembaca layar**; ARIA **tidak pernah menambahkan perilaku papan ketik atau fokus secara otomatis**. Sebagai contoh, menulis `<div role="button">` tidak membuat `<div>` tersebut dapat difokuskan dengan `Tab` atau ditekan dengan tombol `Space`/`Enter` seperti `<button>` asli!
 
-Pada pelajaran ini kita membedah cara kerja **`aria-labelledby`** dan **`aria-expanded`** berdasarkan spesifikasi [WAI-ARIA 1.2](https://www.w3.org/TR/wai-aria-1.2/) dari W3C serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA).
+Itulah sebabnya [W3C ARIA in HTML](https://www.w3.org/TR/html-aria/) menetapkan **Lima Aturan Penggunaan ARIA**:
+1. **Aturan 1:** Jika Anda dapat menggunakan elemen atau atribut HTML asli yang sudah memiliki semantik dan perilaku yang Anda butuhkan (seperti `<button>`, `<label>`, `<dialog>`, `<details>`, `<nav>`), **gunakan elemen HTML asli tersebut**, bukan ARIA.
+2. **Aturan 2:** Jangan mengubah semantik elemen HTML asli kecuali benar-benar terpaksa (jangan tulis `<h2 role="button">`).
+3. **Aturan 3:** Semua kontrol ARIA yang interaktif wajib dapat dioperasikan dengan papan ketik.
+4. **Aturan 4:** Jangan gunakan `role="presentation"` atau `aria-hidden="true"` pada elemen yang dapat menerima fokus (`focusable`).
+5. **Aturan 5:** Semua elemen interaktif wajib memiliki **nama aksesibel (*accessible name*)**.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Penamaan dan Deskripsi Aksesibel: `aria-labelledby`, `aria-label`, `aria-describedby`, dan `aria-errormessage`
 
-Peramban modern memproses `aria-labelledby` dan `aria-expanded` mengikuti aturan semantik dan keamanan yang ketat:
+Ketika sebuah elemen membutuhkan nama atau penjelasan tambahan di pohon aksesibilitas, pilihlah atribut yang tepat berdasarkan urutan prioritas berikut:
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+| Atribut ARIA | Cara Kerja | Kapan Harus Dipilih? |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `aria-labelledby` dan `aria-expanded` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| `aria-labelledby="id1 id2"` | Mengambil teks dari satu atau beberapa elemen lain yang sudah tampil di layar sebagai **nama aksesibel** (menimpa teks internal elemen). | **Pilihan utama** bila label visual sudah ada di halaman (misalnya mengaitkan `<section>` atau `<dialog>` ke `<h2>` judulnya). |
+| `aria-label="Teks nama"` | Memberikan string nama aksesibel secara langsung (menimpa teks di dalam elemen). | Hanya jika **tidak ada teks yang terlihat di layar**, seperti tombol yang hanya berisi ikon `<svg>` (`aria-label="Tutup jendela"`). |
+| `aria-describedby="id-petunjuk"` | Menambahkan **deskripsi penjelas** yang dibacakan pembaca layar sesaat *setelah* nama dan peran elemen. | Untuk petunjuk format input (misalnya *"Minimal 12 karakter"* di bawah kolom kata sandi). |
+| `aria-errormessage="id-galat"` | Menunjuk elemen yang memuat pesan kesalahan validasi (digunakan bersama **`aria-invalid="true"`**). | Ketika nilai input tidak valid dan pesan galat spesifik sedang ditampilkan. |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Mengelola Status Komponen Interaktif (`aria-expanded`, `aria-controls`, dan `aria-current`)
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `aria-labelledby` dan `aria-expanded` secara benar:
+Pada komponen kustom yang dikendalikan JavaScript (seperti tombol pembuka panel menu, akordeon kustom, atau navigasi halaman), Anda wajib menyinkronkan atribut status ARIA setiap kali tampilan berubah:
 
 ```html
 <!DOCTYPE html>
@@ -60,54 +66,68 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `aria-labelledby` dan 
 </html>
 ```
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `aria-labelledby` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+Selain itu, untuk formulir yang mengalami kesalahan validasi, padukan `aria-invalid="true"` dengan `aria-describedby` atau `aria-errormessage`:
+
+```html
+<div class="kelompok-input">
+  <label for="kode-akses">Kode Akses Server</label>
+  <input
+    type="text"
+    id="kode-akses"
+    name="kode_akses"
+    aria-describedby="petunjuk-kode"
+    aria-invalid="true"
+    aria-errormessage="galat-kode"
+  >
+  <p id="petunjuk-kode">Masukkan 8 karakter alfanumerik huruf besar.</p>
+  <p id="galat-kode" role="alert">Kode akses harus tepat 8 karakter.</p>
+</div>
+```
 
 ## 3. Kesalahan Umum dan Cara Menghindarinya
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `aria-labelledby` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `aria-expanded`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+1. **Memasang `aria-hidden="true"` pada elemen yang masih bisa difokuskan dengan tombol `Tab`:** Menulis `<button aria-hidden="true">Simpan</button>` melanggar Aturan ke-4 ARIA: pengguna papan ketik yang memakai pembaca layar akan berpindah ke tombol tersebut saat menekan `Tab`, tetapi pembaca layar membisu karena elemennya disembunyikan dari pohon aksesibilitas!
+2. **Menimpa teks tombol yang penting dengan `aria-label` yang berbeda:** Jika tombol bertuliskan `"Beli Kelas Pro — Rp 150.000"` tetapi Anda memberinya `aria-label="Tombol beli"`, maka informasi harga `"Rp 150.000"` hilang sama sekali bagi pengguna pembaca layar dan melanggar kriteria **WCAG 2.5.3 (Label in Name)** bagi pengguna perintah suara.
+3. **Menaruh `aria-expanded` pada panel yang dibuka, bukan pada tombol pemicunya:** Atribut `aria-expanded="true|false"` wajib diletakkan pada **tombol pengendalinya** (`<button>`), bukan pada `<div>` panel yang disembunyikan dengan `hidden`.
 
 ## Latihan Praktik
 
-Buatlah berkas `38-wai-aria-roles-states-dan-properties.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `aria-labelledby` dan `aria-expanded` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `38-wai-aria-roles-states-dan-properties.html` untuk komponen bilah samping pengumuman dan formulir:
+1. Buat sebuah tombol hanya-ikon `<button type="button" aria-label="Buka Pengaturan Notifikasi" aria-expanded="false" aria-controls="panel-notif">` yang di dalamnya memuat `<svg aria-hidden="true">`.
+2. Buat `<section id="panel-notif" aria-labelledby="judul-notif" hidden>` dan tulis skrip untuk mengubah `aria-expanded` antara `"false"` dan `"true"` saat tombol diklik.
+3. Buat satu kolom `<input>` yang dikaitkan ke teks petunjuk dengan `aria-describedby`, lalu periksa hasil *Computed Properties* (`Name`, `Description`, `Expanded`) di panel **Accessibility** DevTools.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `aria-labelledby` dalam konteks **Mendalami WAI-ARIA: Peran (*Roles*), Status (*States*), dan Properti (*Properties*)** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `aria-labelledby`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Apa perbedaan utama antara `aria-labelledby` dan `aria-describedby` dalam perhitungan pohon aksesibilitas peramban?
+- A. `aria-labelledby` hanya berlaku untuk gambar, sedangkan `aria-describedby` hanya untuk tabel
+- B. `aria-labelledby` menetapkan **nama aksesibel utama** elemen dengan merujuk `id` elemen teks yang terlihat di halaman, sedangkan `aria-describedby` memberikan **keterangan tambahan** yang dibacakan setelah nama dan peran elemen
+- C. `aria-describedby` menghapus nama elemen, sedangkan `aria-labelledby` menyembunyikan elemen dari layar
+- D. Keduanya menghasilkan properti yang sama persis di Accessibility Tree
 
 **Jawaban Benar:** B
-**Penjelasan:** `aria-labelledby` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Dalam spesifikasi Accessible Name and Description Computation, `aria-labelledby` memiliki prioritas tertinggi untuk menentukan *Accessible Name*, sementara `aria-describedby` mengisi *Accessible Description* sebagai informasi pelengkap.
 
 ### Soal 2
-Mengapa penerapan `aria-expanded` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`aria-expanded`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Pada pola tombol pembuka panel (seperti menu dropdown atau FAQ kustom), di elemen manakah atribut `aria-expanded="false"` seharusnya diletakkan?
+- A. Pada elemen `<div>` panel yang sedang disembunyikan dengan atribut `hidden`
+- B. Pada elemen `<button>` interaktif yang memicu pembukaan dan penutupan panel tersebut
+- C. Pada elemen `<body>` dokumen
+- D. Pada elemen `<head>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Pengguna pembaca layar berinteraksi dengan tombol pemicu (`<button>`). Menempatkan `aria-expanded` pada tombol tersebut memberi tahu pengguna apakah panel yang dikendalikannya saat ini sedang terlipat (`"false"`) atau terbentang (`"true"`).
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `aria-labelledby` dan `aria-expanded` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Mengapa penulisan `<button aria-hidden="true">Kirim</button>` dilarang keras dalam aturan keempat spesifikasi WAI-ARIA?
+- A. Karena atribut `aria-hidden` otomatis mengubah warna tombol menjadi transparan
+- B. Karena tombol tersebut tetap dapat menerima fokus saat pengguna menekan tombol `Tab`, tetapi pembaca layar tidak akan mengumumkan apa pun sehingga pengguna tunanetra terjebak pada kontrol "hantu" yang bisu
+- C. Karena `aria-hidden` hanya boleh bernilai `"yes"` atau `"no"`
+- D. Karena `<button>` tidak boleh berada di dalam `<main>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** `aria-hidden="true"` menghapus elemen dari Accessibility Tree tetapi tidak menghapusnya dari urutan fokus papan ketik. Elemen yang dapat menerima fokus tidak boleh diberi `aria-hidden="true"` kecuali sekaligus dinonaktifkan (`disabled` atau `inert`).
 
 ## Sumber
 - [ARIA — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA)

@@ -92,6 +92,38 @@ Hal yang perlu diperhatikan:
 - Lebar kontainer harus ditentukan oleh konteks, misalnya elemen blok yang membentang penuh di induknya, atau ditetapkan secara eksplisit. Bila tidak, ia akan runtuh.
 - Hindari `container-type: size` kecuali Anda memang menetapkan tinggi kontainer.
 
+## Studi Kasus Produksi: Widget Cuaca Adaptif di Sidebar maupun Kolom Utama
+
+Sebuah widget yang sama dapat ditaruh di bilah samping yang sempit (`16rem`) maupun di area utama yang lebar (`45rem`). Dengan `@container`, widget menyesuaikan tata letaknya sendiri berdasarkan ukuran wadah pembungkusnya:
+
+```css
+.wadah-widget {
+  container: panel-cuaca / inline-size;
+}
+
+.kartu-cuaca {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(0.75rem, 3cqi, 1.5rem);
+}
+
+@container panel-cuaca (min-width: 26rem) {
+  .kartu-cuaca {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+}
+
+@container style(--varian: peringatan) {
+  .kartu-cuaca {
+    border-inline-start: 4px solid oklch(55% 0.22 30);
+    background-color: oklch(96% 0.04 30);
+  }
+}
+```
+
+Pendekatan ini membuat komponen benar-benar mandiri dan dapat dipakai ulang di halaman mana pun tanpa bergantung pada lebar viewport peramban.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Mengharapkan kontainer menata dirinya sendiri.** Aturan `@container` hanya berlaku untuk keturunan; pasang `container-type` pada pembungkus dan ubah gaya anaknya.

@@ -103,6 +103,29 @@ Untuk menyingkap elemen secara dinamis, kombinasikan dengan `animation` dan `@ke
 }
 ```
 
+## Studi Kasus Produksi: Bilah Tab Geser Horizontal dengan Petunjuk Pudar di Tepi
+
+Ketika daftar tab navigasi melebihi lebar layar ponsel, memudarkan tepi kanan dengan `mask-image` memberi isyarat visual kepada pengguna bahwa daftar tersebut masih dapat digulir ke samping:
+
+```css
+.wadah-tab-geser {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-inline: 1rem;
+  /* Pudar halus 1.5rem di tepi kiri dan kanan */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 1.5rem,
+    black calc(100% - 1.5rem),
+    transparent
+  );
+}
+```
+
+Karena `mask-image` menggunakan saluran alfa dari gradien tanpa bergantung pada warna latar halaman, bilah tab ini dapat ditaruh di atas latar terang, gelap, maupun gambar tanpa perlu menyesuaikan warna pudar.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menganimasikan poligon dengan jumlah titik berbeda.** Tidak ada interpolasi; perubahan terjadi seketika.

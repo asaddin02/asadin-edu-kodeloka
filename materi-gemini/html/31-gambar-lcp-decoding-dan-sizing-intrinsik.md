@@ -3,25 +3,38 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Menganalisis dampak atribut `fetchpriority="high"`, `loading="lazy"`, `decoding="async"`, serta dimensi `width`/`height` terhadap metrik Core Web Vitals (LCP dan CLS) pada halaman produksi.
 
-## Mengapa Topik "Optimasi Elemen `<img>` untuk LCP & CLS: `fetchpriority`, `decoding="async"`, dan Ukuran Intrinsik" Penting di Lingkungan Produksi?
+## Mengapa Markup `<img>` Berdampak Langsung pada Skor Core Web Vitals?
 
-Dalam pengembangan web profesional, menguasai **Optimasi Elemen `<img>` untuk LCP & CLS: `fetchpriority`, `decoding="async"`, dan Ukuran Intrinsik** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Pada lebih dari 70% halaman web di internet, elemen terbesar yang pertama kali terlihat oleh pengguna di layar atas (*above the fold*) adalah sebuah gambar—entah itu foto sampul artikel, spanduk produk unggulan, atau ilustrasi utama. Kecepatan tampilnya gambar utama ini menentukan metrik **Largest Contentful Paint (LCP)** (target baik: **≤ 2,5 detik**), sedangkan ketiadaan dimensi gambar menentukan metrik **Cumulative Layout Shift (CLS)** (target baik: **≤ 0,1**).
 
-Pada pelajaran ini kita membedah cara kerja **`fetchpriority`** dan **`decoding`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/embedded-content.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img).
+Melalui kombinasi atribut HTML `width`, `height`, `fetchpriority`, `loading`, dan `decoding`, Anda dapat menginstruksikan pemindai prapemuat (*preload scanner*) peramban untuk mengunduh gambar terpenting secepat mungkin tanpa menggeser tata letak halaman.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Mencegah Pergeseran Tata Letak (CLS) dengan Ukuran Intrinsik (`width` & `height`)
 
-Peramban modern memproses `fetchpriority` dan `decoding` mengikuti aturan semantik dan keamanan yang ketat:
+Sebelum berkas gambar selesai diunduh dari jaringan, peramban belum mengetahui berapa piksel lebar dan tinggi gambar tersebut. Jika tag `<img>` hanya memiliki `src` dan `alt`, peramban awalnya merender kotak setinggi `0px`. Begitu gambar selesai diunduh 500 milidetik kemudian, gambar mendadak mendorong seluruh paragraf di bawahnya turun ke bawah—menciptakan **Layout Shift** yang sangat mengganggu pembaca.
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+Dengan selalu menyertakan atribut **`width`** dan **`height`** berupa bilangan bulat piksel asli gambar (misalnya `width="1200" height="630"`), mesin peramban langsung menghitung rasio aspek internal (`aspect-ratio: auto 1200 / 630`) sejak milidetik pertama HTML diurai. Ketika dipadukan dengan aturan CSS responsif:
+
+```css
+img {
+  max-width: 100%;
+  height: auto;
+}
+```
+
+Peramban akan langsung memesan ruang kosong dengan proporsi tinggi yang tepat di segala ukuran layar ponsel maupun desktop sebelum satu byte gambar pun tiba!
+
+## 2. Mengatur Prioritas Unduhan dan Pemuatan: `fetchpriority`, `loading`, dan `decoding`
+
+Secara bawaan, saat peramban mengurai HTML di awal pemuatan halaman, ia belum tahu apakah sebuah `<img>` berada di layar atas (terlihat langsung) atau jauh di bagian kaki halaman. Akibatnya, peramban sering memulai pengunduhan gambar utama dengan prioritas *Low* atau *Medium*, dan baru menaikkannya ke *High* setelah tata letak selesai dihitung.
+
+| Atribut & Nilai | Efek pada Jaringan & Perenderan | Kapan Harus Digunakan? |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `fetchpriority` dan `decoding` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
-
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
-
-Berikut adalah pola penulisan HTML modern yang menerapkan `fetchpriority` dan `decoding` secara benar:
+| `fetchpriority="high"` | Menaikkan prioritas unduhan jaringan gambar sejak ditemukan oleh *preload scanner* HTML. | **Hanya untuk 1 gambar LCP utama** yang langsung terlihat di layar pertama (*above the fold*). |
+| `fetchpriority="low"` | Menurunkan prioritas unduhan agar tidak berebut pita lebar dengan aset kritis. | Gambar slide ke-2 dst. pada *carousel* di bagian atas halaman, atau gambar yang kurang penting. |
+| `loading="lazy"` | Menunda pengunduhan gambar sampai posisi gulir pengguna mendekati gambar tersebut. | Seluruh gambar yang berada **di bawah lipatan layar pertama (*below the fold*)**. |
+| `loading="eager"` (bawaan) | Mengunduh gambar seketika tanpa menunggu pengguliran layar. | Gambar yang berada di layar pertama (*above the fold*). |
+| `decoding="async"` | Mengizinkan peramban mendekode bitmap gambar di luar alur kritis agar tidak menahan perenderan teks di sekitarnya. | Gambar konten, ilustrasi artikel, dan galeri. |
 
 ```html
 <!DOCTYPE html>
@@ -66,54 +79,70 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `fetchpriority` dan `d
 
 > **Status dukungan (Oktober 2026):** `loading="lazy"` berstatus *Baseline Widely Available*, sedangkan `fetchpriority` berstatus *Baseline Newly Available* sejak Oktober 2024 (Chrome/Edge 103+, Safari 17.2+, Firefox 132+). Peramban yang belum mendukung `fetchpriority` cukup mengabaikannya.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `fetchpriority` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Memadukan `fetchpriority="high"` dengan Gambar Responsif `srcset`
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Apabila gambar LCP Anda menggunakan `srcset` dan `sizes`, Anda tetap cukup menambahkan `fetchpriority="high"` langsung pada elemen `<img>` tersebut tanpa perlu membuat `<link rel="preload">` terpisah di `<head>`, selama tag `<img>` sudah tertulis langsung di dalam HTML awal dari server:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `fetchpriority` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `decoding`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+```html
+<img
+  src="/assets/hero-800.avif"
+  srcset="
+    /assets/hero-400.avif 400w,
+    /assets/hero-800.avif 800w,
+    /assets/hero-1200.avif 1200w
+  "
+  sizes="(max-width: 768px) 100vw, 800px"
+  width="1200"
+  height="675"
+  fetchpriority="high"
+  alt="Tampilan ruang belajar interaktif Kodeloka"
+>
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Memasang `loading="lazy"` pada gambar LCP di layar pertama (*anti-pattern* paling fatal):** Menambahkan `loading="lazy"` pada gambar sampul utama membuat peramban menunda pengunduhan gambar tersebut sampai tata letak selesai dihitung dan *IntersectionObserver* internal memastikan gambar masuk ke viewport—memperlambat skor LCP ratusan milidetik!
+2. **Memberikan `fetchpriority="high"` ke 10 gambar sekaligus:** Jika semua gambar diberi prioritas tinggi, maka tidak ada lagi yang benar-benar menjadi prioritas; seluruh gambar akan kembali berebut pita lebar jaringan. Gunakan `fetchpriority="high"` hanya untuk **satu** elemen LCP.
+3. **Menulis satuan `px` atau `%` di dalam atribut HTML `width` dan `height`:** Pada HTML5, atribut `width="800"` dan `height="450"` hanya boleh berisi bilangan bulat non-negatif (tanpa akhiran `px` atau `%`). Pengaturan lebar persentase (`max-width: 100%`) dilakukan di CSS.
 
 ## Latihan Praktik
 
-Buatlah berkas `31-gambar-lcp-decoding-dan-sizing-intrinsik.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `fetchpriority` dan `decoding` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `31-gambar-lcp-decoding-dan-sizing-intrinsik.html` yang menyimulasikan halaman artikel teknis:
+1. Buat satu gambar sampul utama di bagian atas `<main>` dengan `width="1200"`, `height="630"`, `fetchpriority="high"`, tanpa `loading="lazy"`.
+2. Buat tiga gambar diagram teknis di bawah beberapa paragraf teks dengan `width="800"`, `height="450"`, `loading="lazy"`, dan `decoding="async"`.
+3. Buka panel **Network** di Browser DevTools (centang kolom **Priority**), muat ulang halaman, dan amati perbedaan nilai kolom *Priority* antara gambar sampul utama dan gambar diagram di bawahnya.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `fetchpriority` dalam konteks **Optimasi Elemen `<img>` untuk LCP & CLS: `fetchpriority`, `decoding="async"`, dan Ukuran Intrinsik** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `fetchpriority`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Mengapa memasang atribut `loading="lazy"` pada gambar spanduk utama (*hero image*) yang berada di bagian paling atas halaman merupakan praktik yang buruk bagi performa?
+- A. Karena `loading="lazy"` membuat gambar berubah menjadi hitam-putih
+- B. Karena peramban akan menunda pengunduhan gambar utama tersebut hingga perhitungan tata letak selesai, sehingga memperburuk metrik *Largest Contentful Paint* (LCP)
+- C. Karena `loading="lazy"` tidak dapat digunakan bersama atribut `alt`
+- D. Karena `loading="lazy"` menghapus rasio aspek dari atribut `width` dan `height`
 
 **Jawaban Benar:** B
-**Penjelasan:** `fetchpriority` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Gambar yang langsung terlihat di layar pertama (*above the fold*) harus diunduh secepat mungkin. Memasang `loading="lazy"` pada elemen LCP menghalangi *preload scanner* mengunduhnya lebih awal dan memperburuk waktu LCP.
 
 ### Soal 2
-Mengapa penerapan `decoding` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`decoding`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Kombinasi atribut manakah yang paling tepat untuk diterapkan pada **satu gambar utama (LCP)** di layar atas halaman agar diunduh dengan prioritas tinggi dan tidak memicu pergeseran tata letak (CLS)?
+- A. `width="1200" height="630" fetchpriority="high"` (tanpa `loading="lazy"`, disertai `max-width: 100%; height: auto` di CSS)
+- B. `loading="lazy" fetchpriority="low" width="100%"`
+- C. `decoding="sync" loading="lazy"` tanpa `width` dan `height`
+- D. `fetchpriority="high"` pada seluruh 20 gambar di halaman
 
-**Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Jawaban Benar:** A
+**Penjelasan:** `width` dan `height` menjaga rasio aspek untuk mencegah CLS, sedangkan `fetchpriority="high"` tanpa `loading="lazy"` memastikan gambar LCP segera diunduh dengan prioritas tertinggi.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `fetchpriority` dan `decoding` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Bagaimana cara menulis nilai atribut `width` dan `height` yang valid menurut spesifikasi HTML5 pada elemen `<img>`?
+- A. `width="800px" height="450px"`
+- B. `width="100%" height="auto"`
+- C. `width="800" height="450"` (bilangan bulat tanpa satuan)
+- D. `width="50rem" height="28rem"`
 
-**Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Jawaban Benar:** C
+**Penjelasan:** Dalam spesifikasi HTML, atribut dimensi `width` dan `height` pada `<img>` hanya menerima bilangan bulat non-negatif yang merepresentasikan piksel CSS intrinsik tanpa satuan `px`, `%`, atau `rem`.
 
 ## Sumber
 - [Optimize Largest Contentful Paint — web.dev](https://web.dev/articles/optimize-lcp)

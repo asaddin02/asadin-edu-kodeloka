@@ -112,6 +112,28 @@ h2:has(+ .subjudul) { margin-block-end: 0.25rem; }
 - `:has()` memaksa peramban memeriksa keturunan atau saudara, sehingga selektor yang sangat luas (mis. `:has(*)` atau `*:has(...)` pada seluruh dokumen) pada halaman besar dapat memperlambat penghitungan gaya. Persempit subjeknya dengan kelas atau elemen tertentu dan pakai kombinator anak (`>`) bila memungkinkan.
 - Pada peramban lama yang belum mendukung, seluruh aturan yang memuat `:has()` diabaikan; sediakan gaya dasar yang tetap berfungsi.
 
+## Studi Kasus Produksi: Baris Tabel yang Disorot Saat Kotak Centang Dipilih
+
+Pada dasbor administrasi, menyorot seluruh baris `<tr>` dan mengaktifkan bilah aksi massal ketika setidaknya satu kotak centang dicentang kini dapat ditulis murni dengan CSS menggunakan `:has()`:
+
+```css
+/* Sorot baris tabel yang kotak centangnya sedang terpilih */
+tbody tr:has(input[type="checkbox"]:checked) {
+  background-color: oklch(94% 0.04 255);
+}
+
+/* Tampilkan bilah aksi massal hanya jika ada minimal satu baris yang dicentang */
+.bilah-aksi-massal {
+  display: none;
+}
+
+.wadah-tabel:has(tbody input[type="checkbox"]:checked) .bilah-aksi-massal {
+  display: flex;
+}
+```
+
+Membatasi selektor pada `.wadah-tabel:has(...)` menjaga cakupan pengecekan tetap sempit dan cepat dibandingkan memasang `:has()` pada elemen `body`.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Memakai `:invalid` untuk umpan balik.** Formulir kosong langsung tampak salah; gunakan `:user-invalid`.

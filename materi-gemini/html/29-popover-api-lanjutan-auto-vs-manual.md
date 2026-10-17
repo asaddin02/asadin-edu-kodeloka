@@ -3,25 +3,28 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Membedakan perilaku *light dismiss* dan penutupan otomatis antar-popover pada `popover="auto"` dengan popover independen `popover="manual"` (seperti *toast notification*), serta mendengarkan event `beforetoggle` dan `toggle`.
 
-## Mengapa Topik "Popover API Mendalam: `popover="auto"` vs `popover="manual"`, Event `toggle`, dan Pemicu Deklaratif" Penting di Lingkungan Produksi?
+## Mengapa Popover API Menjadi Standar Baru untuk Menu Sembul dan Notifikasi?
 
-Dalam pengembangan web profesional, menguasai **Popover API Mendalam: `popover="auto"` vs `popover="manual"`, Event `toggle`, dan Pemicu Deklaratif** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Sebelum hadirnya **Popover API**, membuat menu profil, panel filter, atau notifikasi *toast* mengharuskan pengembang berurusan dengan tumpukan `z-index` yang sering tertutup oleh kontainer induk yang memiliki `overflow: hidden`, serta menulis pendengar klik dokumen (`document.addEventListener("click", ...)`) untuk menutup menu saat pengguna mengeklik di luar.
 
-Pada pelajaran ini kita membedah cara kerja **`auto`** dan **`manual`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/popover.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API).
+Dengan atribut global `popover` di [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/popover.html), elemen apa pun yang dibuka sebagai popover akan langsung dipromosikan ke **Top Layer** peramban—bebas dari potongan `overflow` maupun perang `z-index`—tanpa mengunci halaman di belakangnya seperti `<dialog>` modal.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Perbedaan Perilaku `popover="auto"` vs `popover="manual"`
 
-Peramban modern memproses `auto` dan `manual` mengikuti aturan semantik dan keamanan yang ketat:
+Popover API menyediakan dua mode utama melalui nilai atribut `popover`:
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+| Karakteristik | `popover="auto"` (atau `popover` tanpa nilai) | `popover="manual"` |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `auto` dan `manual` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| **Klik di luar panel (*Light Dismiss*)** | **Ya**, mengeklik di luar area popover otomatis menutupnya. | **Tidak**, klik di luar tidak menutup popover. |
+| **Tombol `Esc` (*Close Request*)** | **Ya**, menekan `Esc` menutup popover yang sedang aktif. | **Tidak**, tombol `Esc` tidak menutup popover. |
+| **Eksklusivitas antar-popover** | Membuka satu `popover="auto"` akan **menutup `popover="auto"` lain** yang sedang terbuka (kecuali jika bersarang di dalamnya). | **Independen**: beberapa `popover="manual"` dapat tampil bersamaan di layar tanpa saling menutup. |
+| **Cara menutup** | Otomatis lewat klik-luar, `Esc`, tombol `popovertarget`, atau `hidePopover()`. | Hanya melalui tombol pemicu eksplisit (`popovertargetaction="hide"`/`"toggle"`) atau pemanggilan JS `hidePopover()`. |
+| **Kasus penggunaan ideal** | Menu dropdown navigasi, pemilih warna, panel notifikasi lonceng, keterangan alat. | Notifikasi *toast* ("Perubahan tersimpan"), bilah status mengambang, atau panel debug. |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
-
-Berikut adalah pola penulisan HTML modern yang menerapkan `auto` dan `manual` secara benar:
+Selain menggunakan `popovertarget="id-popover"`, Anda dapat mengendalikan aksi tombol secara spesifik menggunakan atribut **`popovertargetaction`**:
+- `popovertargetaction="toggle"` (bawaan): Membuka jika tertutup, menutup jika terbuka.
+- `popovertargetaction="show"`: Hanya membuka popover.
+- `popovertargetaction="hide"`: Hanya menutup popover.
 
 ```html
 <!DOCTYPE html>
@@ -60,54 +63,82 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `auto` dan `manual` se
 
 > **Status dukungan (Oktober 2026):** Popover API berstatus *Baseline Newly Available* sejak Januari 2025, yaitu tersedia di Chrome, Edge, Firefox, dan Safari (desktop maupun iOS).
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `auto` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 2. Siklus Event `beforetoggle` vs `toggle` dan Metode DOM Popover
+
+Ketika sebuah popover dibuka atau ditutup—baik melalui tombol HTML maupun metode JavaScript `element.showPopover()`, `element.hidePopover()`, dan `element.togglePopover()`—peramban memancarkan dua event bertipe `ToggleEvent` yang memiliki properti **`e.oldState`** dan **`e.newState`** (`"closed"` atau `"open"`):
+
+1. **`beforetoggle`:** Dipicu **sebelum** perubahan status terjadi. Saat popover akan dibuka (`e.newState === "open"`), event ini dapat dibatalkan dengan `e.preventDefault()`, tetapi saat popover akan ditutup (`e.newState === "closed"`), event ini tidak dapat dibatalkan.
+2. **`toggle`:** Dipicu **setelah** popover berubah status dan tidak dapat dibatalkan. Sangat cocok untuk memuat data secara malas (*lazy load*), mencatat analitik, atau mengatur pengatur waktu penutupan otomatis pada *toast* `popover="manual"`:
+
+```html
+<button type="button" id="tombol-salin">Salin Tautan Kelas</button>
+<div id="toast-salin" popover="manual" role="status">
+  Tautan berhasil disalin ke papan klip!
+</div>
+
+<script>
+  const tombolSalin = document.getElementById("tombol-salin");
+  const toastSalin = document.getElementById("toast-salin");
+  let idTimer;
+
+  tombolSalin.addEventListener("click", () => {
+    toastSalin.showPopover();
+  });
+
+  toastSalin.addEventListener("toggle", (e) => {
+    if (e.newState === "open") {
+      clearTimeout(idTimer);
+      // Tutup toast manual secara otomatis setelah 3 detik
+      idTimer = setTimeout(() => toastSalin.hidePopover(), 3000);
+    }
+  });
+</script>
+```
 
 ## 3. Kesalahan Umum dan Cara Menghindarinya
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `auto` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `manual`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+1. **Menggunakan `popover` ketika seharusnya memakai `<dialog>` modal:** Popover **tidak** membuat halaman di belakangnya menjadi `inert`. Jika pengguna wajib menyelesaikan aksi sebelum berinteraksi dengan halaman utama (seperti konfirmasi penghapusan akun), gunakan `<dialog>` dengan `showModal()`, bukan `popover`.
+2. **Menimpa `display` secara global pada elemen `[popover]`:** Elemen `[popover]` disembunyikan oleh stylesheet bawaan peramban menggunakan `display: none` saat tertutup, dan baru terlihat ketika memiliki pseudo-class **`:popover-open`**. Jika Anda menulis `#menu-profil { display: flex; }` tanpa `:popover-open`, popover tersebut akan selalu tampak di layar meskipun sedang berstatus tertutup! Selalu tulis `#menu-profil:popover-open { display: flex; }`.
+3. **Memakai `popover="auto"` untuk notifikasi *toast*:** Karena `popover="auto"` memiliki perilaku *light dismiss*, begitu pengguna mengeklik bagian mana pun di halaman atau membuka menu dropdown lain, notifikasi *toast* akan langsung hilang sebelum sempat terbaca. Gunakan `popover="manual"` untuk *toast*.
 
 ## Latihan Praktik
 
-Buatlah berkas `29-popover-api-lanjutan-auto-vs-manual.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `auto` dan `manual` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `29-popover-api-lanjutan-auto-vs-manual.html` yang mendemonstrasikan kedua jenis popover:
+1. Buat dua menu dropdown berdampingan ("Pilih Bahasa" dan "Pilih Tema") yang keduanya menggunakan `popover="auto"` dan dipicu dengan `popovertarget`. Uji bahwa membuka menu kedua otomatis menutup menu pertama.
+2. Buat sebuah panel notifikasi `<div id="toast-unduh" popover="manual" role="status">` yang dibuka oleh tombol `<button type="button" popovertarget="toast-unduh" popovertargetaction="show">Unduh Materi</button>` dan memiliki tombol tutup di dalamnya (`popovertargetaction="hide"`).
+3. Tambahkan aturan CSS `:popover-open` untuk menata bingkai dan bayangan panel hanya ketika popover sedang terbuka.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `auto` dalam konteks **Popover API Mendalam: `popover="auto"` vs `popover="manual"`, Event `toggle`, dan Pemicu Deklaratif** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `auto`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Apa yang terjadi apabila sebuah elemen `<div id="menu-a" popover="auto">` sedang terbuka, lalu pengguna mengeklik tombol yang membuka `<div id="menu-b" popover="auto">` (yang tidak bersarang di dalam `menu-a`)?
+- A. Peramban menolak membuka `menu-b` sampai pengguna menutup `menu-a` secara manual
+- B. Peramban secara otomatis menutup `menu-a` terlebih dahulu lalu menampilkan `menu-b` di *top layer*
+- C. Kedua popover tampil bertumpuk dan mengunci seluruh halaman di belakangnya menjadi `inert`
+- D. Halaman otomatis bergulir ke bagian paling bawah dokumen
 
 **Jawaban Benar:** B
-**Penjelasan:** `auto` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Popover dengan mode `popover="auto"` saling eksklusif untuk elemen yang tidak bersarang: membuka satu popover `auto` baru akan otomatis menutup popover `auto` lain yang sedang aktif.
 
 ### Soal 2
-Mengapa penerapan `manual` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`manual`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Mengapa penulisan CSS `.panel-popover { display: grid; }` menyebabkan elemen `<div class="panel-popover" popover="auto">` tetap terlihat di layar meskipun belum dibuka?
+- A. Karena CSS Grid tidak kompatibel dengan Popover API
+- B. Karena aturan `display: grid` menimpa aturan bawaan peramban `[popover]:not(:popover-open) { display: none; }`; seharusnya gaya tata letak ditulis pada selektor `.panel-popover:popover-open`
+- C. Karena atribut `popover` hanya bekerja pada elemen `<dialog>`
+- D. Karena `display: grid` mengubah nilai `popover="auto"` menjadi `popover="manual"`
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Peramban menyembunyikan popover yang belum aktif dengan `display: none`. Menetapkan `display: grid` atau `display: flex` tanpa membatasinya pada pseudo-class `:popover-open` akan menimpa penyembunyian bawaan tersebut.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `auto` dan `manual` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Pada objek event `ToggleEvent` yang diterima oleh pendengar `element.addEventListener("toggle", (e) => { ... })`, pasangan properti manakah yang menunjukkan status sebelum dan sesudah perubahan?
+- A. `e.prev` dan `e.next` (bernilai `true` atau `false`)
+- B. `e.oldState` dan `e.newState` (bernilai `"open"` atau `"closed"`)
+- C. `e.from` dan `e.to` (bernilai `0` atau `1`)
+- D. `e.statusLama` dan `e.statusBaru`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Antarmuka `ToggleEvent` menyediakan properti `oldState` dan `newState` yang berisi string `"open"` atau `"closed"`.
 
 ## Sumber
 - [Popover API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/Popover_API)

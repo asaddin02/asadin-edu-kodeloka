@@ -63,6 +63,27 @@ Pada contoh sebelumnya, `C` kini menempati baris 1 kolom 3, mengisi celah, dan g
 
 Item yang diberi koordinat eksplisit (`grid-column: 1 / -1`, `grid-row: 2`) ditempatkan lebih dahulu. Item lainnya mengisi sel yang tersisa. Karena itu, spanduk lebar yang diberi `grid-column: 1 / -1` mungkin muncul **lebih awal secara visual** daripada posisinya di HTML, dengan implikasi aksesibilitas yang sama seperti di atas.
 
+## Studi Kasus Produksi: Dinding Galeri Dokumentasi Visual yang Responsif
+
+Untuk membuat galeri foto kegiatan yang responsif di segala ukuran layar sekaligus meminimalkan celah kosong, kombinasikan `repeat(auto-fill, minmax(...))` dengan `grid-auto-flow: row dense`:
+
+```css
+.dinding-foto {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  grid-auto-rows: 11rem;
+  grid-auto-flow: row dense;
+  gap: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .dinding-foto .panorama { grid-column: span 2; }
+  .dinding-foto .potret   { grid-row: span 2; }
+}
+```
+
+Membatasi `span 2` hanya di dalam `@media (min-width: 40rem)` mencegah item `.panorama` memaksa munculnya kolom implisit kedua ketika layar ponsel hanya muat satu kolom.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menyangka celah kosong adalah bug.** Itu perilaku algoritma bawaan yang tidak memundurkan kursor; gunakan `dense` bila urutan tidak penting.

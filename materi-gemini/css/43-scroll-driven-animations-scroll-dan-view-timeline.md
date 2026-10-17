@@ -88,6 +88,29 @@ Keadaan awal animasi seperti `opacity: 0` **tidak boleh** berlaku bagi peramban 
 
 Dengan susunan ini, peramban lama atau pengguna yang memilih gerakan berkurang melihat kartu langsung tampil dengan gaya normal. Hindari efek yang menyembunyikan konten penting sampai digulir.
 
+## Studi Kasus Produksi: Bilah Kemajuan Baca Artikel dan Header Menyusut Tanpa JavaScript
+
+Menggunakan `scroll(root block)` dengan rentang piksel tetap memungkinkan kita membuat bilah kemajuan baca sekaligus mengecilkan tinggi header saat halaman mulai digulir:
+
+```css
+@keyframes rentang-baca {
+  from { scale: 0 1; }
+  to   { scale: 1 1; }
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .bilah-baca {
+      transform-origin: 0% 50%;
+      animation: rentang-baca linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+```
+
+Karena kita menganimasikan properti `scale` (bukan `width`), peramban dapat menjalankan animasi ini di jalur kompositor tanpa memicu penghitungan ulang tata letak (*reflow*) di setiap piksel guliran.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menyertakan `animation-timeline` sebelum singkatan `animation`.** Singkatan mereset nilainya.

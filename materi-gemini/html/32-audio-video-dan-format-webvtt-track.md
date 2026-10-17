@@ -3,25 +3,32 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menyusun struktur berkas teks WebVTT (`.vtt`) untuk `kind="captions"`, `subtitles`, `chapters`, dan `descriptions` pada elemen `<track>` agar konten video ramah bagi seluruh pengguna.
 
-## Mengapa Topik "Media `<audio>`, `<video>`, dan Penulisan Takarir WebVTT (`<track>`) untuk Aksesibilitas" Penting di Lingkungan Produksi?
+## Mengapa Format WebVTT Menjadi Tulang Punggung Aksesibilitas Video Web?
 
-Dalam pengembangan web profesional, menguasai **Media `<audio>`, `<video>`, dan Penulisan Takarir WebVTT (`<track>`) untuk Aksesibilitas** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Menyediakan elemen `<video>` saja belum cukup untuk memenuhi standar aksesibilitas web. Pengguna Tuli membutuhkan transkripsi dialog dan penanda efek suara (`captions`), penonton internasional membutuhkan terjemahan (`subtitles`), dan pelajar yang menonton video tutorial berdurasi 30 menit membutuhkan daftar bab (`chapters`) agar dapat melompat langsung ke topik tertentu.
 
-Pada pelajaran ini kita membedah cara kerja **`track`** dan **`captions`** berdasarkan spesifikasi [WebVTT](https://www.w3.org/TR/webvtt1/) dan [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/media.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API).
+Seluruh kebutuhan tersebut dipenuhi oleh satu format berkas teks standar W3C: **WebVTT (*Web Video Text Tracks*, berekstensi `.vtt`)** yang dihubungkan ke elemen `<video>` melalui tag `<track>`.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Struktur Sintaks Berkas WebVTT (`.vtt`) yang Valid
 
-Peramban modern memproses `track` dan `captions` mengikuti aturan semantik dan keamanan yang ketat:
+Sebuah berkas WebVTT adalah berkas teks ber-pengodean **UTF-8** yang wajib mematuhi aturan sintaks ketat agar tidak ditolak oleh parser peramban:
+1. **Baris pertama wajib bertuliskan `WEBVTT`** (peka huruf besar), diikuti oleh minimal satu baris kosong (`
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+`).
+2. Setiap potongan teks (*cue*) memiliki rentang waktu dengan format **`JJ:MM:DD.mmm --> JJ:MM:DD.mmm`** (atau `MM:DD.mmm` jika di bawah 1 jam). Perhatikan bahwa pemisah milidetik wajib menggunakan **tanda titik (`.`)**, bukan tanda koma (`,`) seperti pada format `.srt` lama!
+3. Di atas baris waktu, Anda boleh menambahkan pengenal *cue* opsional (misalnya angka `1`, `2`, atau nama bab).
+4. Komentar yang tidak akan ditampilkan di layar diawali dengan kata kunci **`NOTE`** yang diikuti spasi atau baris baru, lalu ditutup dengan baris kosong.
+
+| Komponen Sintaks WebVTT | Contoh Penulisan Valid | Kesalahan yang Sering Terjadi |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `track` dan `captions` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| **Header Berkas** | `WEBVTT` di baris ke-1 | Menambahkan spasi di depan `WEBVTT` atau lupa baris kosong setelahnya. |
+| **Rentang Waktu (*Cue Timings*)** | `00:00:01.000 --> 00:00:04.500` | Memakai koma `00:00:01,000` (gaya SRT) atau menulis `->` (kurang satu strip). |
+| **Tag Pembicara (*Voice Span*)** | `<v Budi>Selamat pagi semuanya!` | Menutup tag `<v>` dengan nama pembicara (seharusnya cukup `</v>` atau di akhir baris). |
+| **Pengaturan Posisi Cue** | `00:00:01.000 --> 00:00:04.000 line:0 align:center` | Menaruh pengaturan posisi di baris teks (seharusnya di sebelah kanan waktu selesai). |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Menghubungkan `<track>` ke `<video>` dan Menulis Berkas `.vtt`
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `track` dan `captions` secara benar:
+Berikut adalah implementasi elemen `<video>` yang merujuk ke berkas WebVTT beserta isi berkas `.vtt`-nya:
 
 ```html
 <!DOCTYPE html>
@@ -51,10 +58,15 @@ Berkas `demo.id.vtt` yang dirujuk oleh `<track>` di atas harus diawali baris `WE
 ```text
 WEBVTT
 
-00:00:01.000 --> 00:00:04.000
-Selamat datang di Kodeloka.
+NOTE
+Berkas takarir Bahasa Indonesia untuk video pengantar Kodeloka.
 
-00:00:04.500 --> 00:00:08.000
+intro
+00:00:01.000 --> 00:00:04.000
+<v Instruktur>Selamat datang di Kodeloka.</v>
+
+materi-awal
+00:00:04.500 --> 00:00:08.000 line:85% align:center
 [suara papan ketik]
 Mari mulai dengan struktur dokumen HTML.
 ```
@@ -63,54 +75,86 @@ Berkas `.vtt` sebaiknya dilayani dengan `Content-Type: text/vtt` (sebagian peram
 
 > **Status dukungan (Oktober 2026):** `<track>` dan WebVTT berstatus *Baseline Widely Available*. Ingat bahwa `<audio>` tidak menampilkan teks `<track>` secara visual (lihat pelajaran 25); takarir hanya tampil pada `<video>`.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `track` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Menulis WebVTT untuk Navigasi Bab (`kind="chapters"`) dan Menata dengan `::cue`
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Selain `captions` dan `subtitles`, Anda dapat menyediakan berkas WebVTT khusus daftar bab (`<track kind="chapters" src="bab.vtt" srclang="id">`) agar pengguna atau skrip pemutar dapat menampilkan daftar isi video:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `track` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `captions`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+```text
+WEBVTT
+
+bab-1
+00:00:00.000 --> 00:02:15.000
+1. Pengenalan Protokol HTTP dan DNS
+
+bab-2
+00:02:15.000 --> 00:06:40.000
+2. Anatomi Dokumen HTML5 Modern
+
+bab-3
+00:06:40.000 --> 00:10:00.000
+3. Pemeriksaan Pohon Aksesibilitas di DevTools
+```
+
+Di sisi CSS, Anda juga dapat menyesuaikan tampilan visual takarir di atas video menggunakan pseudo-element **`::cue`** supaya memiliki kontras tinggi dan mudah dibaca di atas latar video yang terang:
+
+```css
+/* Menata seluruh teks takarir di dalam video */
+video::cue {
+  background-color: rgba(15, 23, 42, 0.85);
+  color: #f8fafc;
+  font-family: system-ui, sans-serif;
+}
+
+/* Menata khusus suara pembicara <v Instruktur> */
+video::cue(v[voice="Instruktur"]) {
+  color: #93c5fd;
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Mengganti ekstensi berkas `.srt` menjadi `.vtt` tanpa mengubah formatnya:** Berkas SubRip (`.srt`) tidak memiliki header `WEBVTT` dan menggunakan tanda koma untuk milidetik (`00:00:01,500`). Jika langsung dipasang ke `<track>`, seluruh cue tersebut akan diabaikan oleh peramban!
+2. **Lupa menyertakan atribut `srclang` saat `kind="subtitles"`:** Spesifikasi HTML **mewajibkan** atribut `srclang` (kode bahasa BCP 47 yang valid seperti `"id"` atau `"en"`) apabila nilai `kind` adalah `"subtitles"`.
+3. **Memuat `.vtt` dari domain CDN berbeda tanpa `crossorigin` pada `<video>`:** Berbeda dengan gambar atau video yang bisa dimuat lintas-origin secara bawaan, berkas `<track>` wajib mematuhi aturan *Same-Origin Policy*. Jika `.vtt` disimpan di CDN, tambahkan `crossorigin="anonymous"` pada `<video>` dan pastikan CDN mengirim header `Access-Control-Allow-Origin`.
 
 ## Latihan Praktik
 
-Buatlah berkas `32-audio-video-dan-format-webvtt-track.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `track` dan `captions` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `32-audio-video-dan-format-webvtt-track.html` beserta dua berkas `.vtt` pendamping:
+1. Buat berkas `takarir.id.vtt` yang diawali `WEBVTT`, memuat satu blok komentar `NOTE`, dan berisi 3 cue percakapan dengan tag `<v>` serta deskripsi efek suara `[...]`.
+2. Buat berkas `bab.id.vtt` yang berisi 3 rentang waktu bab materi.
+3. Hubungkan kedua berkas tersebut ke dalam elemen `<video controls width="640" height="360">` menggunakan `<track kind="captions" default>` dan `<track kind="chapters">`, lalu tambahkan aturan CSS `video::cue` untuk mengatur warna latar takarir.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `track` dalam konteks **Media `<audio>`, `<video>`, dan Penulisan Takarir WebVTT (`<track>`) untuk Aksesibilitas** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `track`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Mengapa potongan waktu `00:01:12,500 --> 00:01:15,000` di dalam berkas `.vtt` gagal ditampilkan oleh elemen `<track>` di peramban?
+- A. Karena tanda panah di WebVTT seharusnya ditulis `==>`
+- B. Karena spesifikasi WebVTT mewajibkan tanda titik (`.`) sebagai pemisah milidetik (`00:01:12.500`), bukan tanda koma (`,`) seperti pada format SRT
+- C. Karena durasi satu cue tidak boleh lebih dari 2 detik
+- D. Karena WebVTT tidak mengizinkan angka jam `00:`
 
 **Jawaban Benar:** B
-**Penjelasan:** `track` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Dalam spesifikasi W3C WebVTT, pemisah antara detik dan pecahan milidetik wajib berupa tanda titik (`.`), misalnya `00:01:12.500 --> 00:01:15.000`.
 
 ### Soal 2
-Mengapa penerapan `captions` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`captions`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Atribut apakah yang **wajib** disertakan pada elemen `<track>` apabila atribut `kind` bernilai `"subtitles"` menurut spesifikasi WHATWG HTML?
+- A. `autoplay`
+- B. `srclang` (misalnya `srclang="id"` atau `srclang="en"`)
+- C. `controls`
+- D. `poster`
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Spesifikasi HTML mewajibkan keberadaan atribut `srclang` dengan tag bahasa BCP 47 yang valid setiap kali `<track>` menggunakan `kind="subtitles"` agar peramban mengetahui bahasa terjemahan tersebut.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `track` dan `captions` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Apa yang harus dilakukan jika berkas takarir `https://cdn.contoh.id/sub.vtt` dimuat oleh elemen `<video>` yang berada di halaman `https://kodeloka.asadinedu.com`?
+- A. Mengubah ekstensi berkas `.vtt` menjadi `.js`
+- B. Menambahkan atribut `crossorigin="anonymous"` pada elemen `<video>` dan memastikan server CDN mengirimkan header HTTP `Access-Control-Allow-Origin` yang sesuai
+- C. Menempatkan tag `<track>` di dalam `<head>` dokumen
+- D. Menghapus baris `WEBVTT` dari berkas takarir
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Pemuatan berkas `<track>` tunduk pada kebijakan CORS. Untuk memuat `.vtt` lintas-origin, elemen media induknya (`<video>`) harus memiliki atribut `crossorigin` dan server penyedia berkas harus mengizinkan origin peminta melalui header CORS.
 
 ## Sumber
 - [WebVTT API — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API)

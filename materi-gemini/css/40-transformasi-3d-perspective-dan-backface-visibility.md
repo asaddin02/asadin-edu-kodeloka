@@ -124,6 +124,34 @@ Cara kerja: kartu `.dalam` diputar 180 derajat saat `hover` atau fokus. Sisi `.b
 - **Hormati `prefers-reduced-motion`**: ganti putaran dengan pergantian seketika atau pudar sederhana.
 - **Uji pada konten panjang.** Sisi belakang yang berisi banyak teks tidak boleh terpotong; atur tinggi kartu mengikuti isi terpanjang.
 
+## Studi Kasus Produksi: Kartu Kilas (*Flashcard*) Kosakata dengan Dukungan `prefers-reduced-motion`
+
+Pada aplikasi belajar bahasa, kartu kilas perlu berputar di layar standar tetapi harus beralih tanpa rotasi 3D bagi pengguna yang sensitif terhadap gerakan vestibular:
+
+```css
+.kartu-kilas {
+  perspective: 1000px;
+}
+
+.kartu-kilas-dalam {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.kartu-kilas.terbalik .kartu-kilas-dalam {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kartu-kilas-dalam {
+    transition: none;
+  }
+}
+```
+
+Pastikan sisi yang sedang membelakangi pengguna diberi atribut `inert` melalui JavaScript agar tombol atau tautan di sisi belakang tidak dapat menerima fokus papan ketik saat tidak terlihat.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Lupa `perspective`.** Rotasi 3D tampak datar; tambahkan `perspective` pada induk atau fungsi `perspective()`.

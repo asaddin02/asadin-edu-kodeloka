@@ -3,25 +3,31 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Merancang alur navigasi papan ketik yang logis, menggunakan `tabindex="-1"` untuk pemindahan fokus terprogram pada pesan galat/modal, serta menonaktifkan elemen latar belakang dengan atribut global `inert`.
 
-## Mengapa Topik "Manajemen Fokus Papan Ketik, Urutan `Tab`, `autofocus`, dan Penguncian Latar dengan `inert`" Penting di Lingkungan Produksi?
+## Mengapa Urutan Fokus Papan Ketik Adalah Jantung Aksesibilitas Interaktif?
 
-Dalam pengembangan web profesional, menguasai **Manajemen Fokus Papan Ketik, Urutan `Tab`, `autofocus`, dan Penguncian Latar dengan `inert`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Bagi pengguna yang mengalami gangguan motorik, pengguna pembaca layar, maupun pengembang yang bekerja cepat menggunakan papan ketik, tombol **`Tab`** dan **`Shift + Tab`** adalah satu-satunya cara untuk berpindah antar-elemen interaktif (`<a>`, `<button>`, `<input>`, `<select>`, `<textarea>`, `<summary>`).
 
-Pada pelajaran ini kita membedah cara kerja **`inert`** dan **`tabindex`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interaction.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert).
+Jika urutan elemen di dalam HTML berantakan, atau ketika sebuah panel samping (*drawer*) terbuka tetapi fokus papan ketik masih bisa "bocor" ke puluhan tautan di halaman belakangnya, pengguna papan ketik akan tersesat. Spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/interaction.html) menyediakan atribut **`tabindex`**, **`autofocus`**, dan **`inert`** untuk mengendalikan siklus fokus ini secara presisi.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Memahami Tiga Nilai Atribut `tabindex`: `0`, `-1`, dan Mengapa `> 0` Harus Dihindari
 
-Peramban modern memproses `inert` dan `tabindex` mengikuti aturan semantik dan keamanan yang ketat:
+Atribut global `tabindex` menerima bilangan bulat yang menentukan apakah dan bagaimana sebuah elemen berpartisipasi dalam navigasi fokus berurutan (*sequential focus navigation*):
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
-|---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `inert` dan `tabindex` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
+| Nilai `tabindex` | Dapat Difokuskan dengan Tombol `Tab`? | Dapat Difokuskan via JavaScript (`el.focus()`)? | Aturan Penggunaan di Produksi |
+|---|---|---|---|
+| **Tanpa `tabindex`** pada `<button>`, `<a href>`, `<input>` | **Ya**, mengikuti urutan alami pohon DOM. | **Ya** | **Standar terbaik:** biarkan elemen interaktif asli mengikuti urutan penulisan HTML. |
+| **`tabindex="0"`** | **Ya**, masuk ke urutan `Tab` alami sesuai posisi elemen di DOM. | **Ya** | Gunakan hanya untuk komponen interaktif kustom (misalnya `<div role="tabpanel" tabindex="0">`) atau item aktif dalam pola *roving tabindex*. |
+| **`tabindex="-1"`** | **Tidak**, dilewati saat pengguna menekan tombol `Tab`. | **Ya**, dapat menerima fokus lewat `elemen.focus()` atau klik. | Sangat berguna untuk **memindahkan fokus secara terprogram** ke judul modal, ringkasan galat formulir, atau target *skip link* (`<main id="utama" tabindex="-1">`). |
+| **`tabindex="1"`, `"2"`, dst. (`> 0`)** | **Ya**, tetapi **melompati semua elemen lain** dan dieksekusi paling awal sebelum seluruh elemen `tabindex="0"`. | **Ya** | **🚫 Anti-pola (Jangan pernah digunakan):** Merusak urutan fokus alami halaman dan menyulitkan pemeliharaan. Susunlah urutan elemen langsung di HTML! |
 
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
+## 2. Mengunci Elemen Latar Belakang dengan Atribut Global `inert`
 
-Berikut adalah pola penulisan HTML modern yang menerapkan `inert` dan `tabindex` secara benar:
+Ketika Anda menampilkan panel samping (*off-canvas drawer*) atau penampung kustom yang menuntut perhatian pengguna, Anda harus memastikan pengguna tidak dapat mengeklik, memfokuskan dengan `Tab`, atau membaca elemen di belakangnya menggunakan pembaca layar.
+
+Dahulu, pengembang harus memasang `tabindex="-1"` dan `aria-hidden="true"` pada ratusan elemen latar satu per satu. Kini, cukup tambahkan satu atribut boolean **`inert`** pada elemen pembungkus latar belakang (`halaman.inert = true`):
+1. Seluruh tautan, tombol, dan input di dalam pohon elemen yang `inert` **dikeluarkan dari urutan fokus `Tab`**.
+2. Klik tetikus maupun ketukan sentuh di dalam area `inert` **diabaikan sepenuhnya** (seperti `pointer-events: none`).
+3. Seluruh isi elemen `inert` **disembunyikan dari Accessibility Tree** pembaca layar dan pencarian teks di halaman.
 
 ```html
 <!DOCTYPE html>
@@ -73,54 +79,64 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `inert` dan `tabindex`
 
 > **Status dukungan (Oktober 2026):** `inert` berstatus *Baseline Widely Available* sejak Oktober 2025. Jika panel Anda berupa dialog modal, lebih sederhana memakai `<dialog>` dengan `showModal()` yang sudah membuat halaman di belakangnya inert.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `inert` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 3. Memindahkan Fokus ke Ringkasan Galat Formulir dengan `tabindex="-1"`
 
-## 3. Kesalahan Umum dan Cara Menghindarinya
+Saat pengguna mengirim formulir yang panjang lalu terdapat 3 kolom yang salah diisi, menampilkan kotak ringkasan galat di bagian atas formulir dan memanggil `ringkasanGalat.focus()` membantu pengguna langsung mengetahui letak kesalahannya. Agar elemen `<div id="ringkasan-galat">` dapat menerima `.focus()` tanpa ikut masuk ke urutan `Tab` biasa, beri atribut **`tabindex="-1"`**:
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `inert` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `tabindex`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+```html
+<div id="ringkasan-galat" role="alert" tabindex="-1" hidden>
+  <h2>Terdapat 2 kesalahan pada isian Anda:</h2>
+  <ul>
+    <li><a href="#input-surel">Alamat surel wajib diisi.</a></li>
+    <li><a href="#input-sandi">Kata sandi minimal 12 karakter.</a></li>
+  </ul>
+</div>
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menempatkan panel modal di *dalam* `<div id="halaman" inert>`:** Sifat `inert` diwariskan secara mutlak ke seluruh elemen turunannya dan **tidak dapat dibatalkan** oleh elemen anak. Oleh karena itu, panel yang tetap harus aktif wajib diletakkan sebagai saudara (*sibling*) di luar elemen yang diberi `inert` (atau gunakan `<dialog>` dengan `showModal()`).
+2. **Menambahkan `tabindex="0"` pada paragraf `<p>` atau judul `<h2>` biasa:** Pembaca layar sudah memiliki pintasan sendiri untuk membaca judul dan paragraf. Menambahkan `tabindex="0"` pada teks non-interaktif membuat pengguna papan ketik harus menekan `Tab` puluhan kali untuk melewati paragraf teks yang tidak bisa diklik!
+3. **Lupa mengembalikan fokus ke tombol pemicu setelah panel ditutup:** Jika panel ditutup (`panel.hidden = true`) sementara fokus masih berada di dalam panel tersebut, fokus akan terlempar kembali ke awal `<body>` sehingga pengguna harus menekan `Tab` dari awal halaman lagi.
 
 ## Latihan Praktik
 
-Buatlah berkas `40-manajemen-fokus-tabindex-dan-inert.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `inert` dan `tabindex` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `40-manajemen-fokus-tabindex-dan-inert.html`:
+1. Buat struktur halaman dengan tautan *skip link* `<a href="#utama">Lompat ke konten utama</a>` di paling atas, `<header>` berisi 3 tautan navigasi, dan `<main id="utama" tabindex="-1">`.
+2. Buat sebuah tombol "Buka Keranjang" di dalam `<main>` yang ketika diklik membuka panel samping `<aside>` (di luar pembungkus halaman), mengaktifkan `halaman.inert = true`, dan memindahkan fokus ke tombol "Tutup Keranjang" di dalam panel.
+3. Pastikan saat tombol "Tutup Keranjang" atau tombol `Esc` ditekan, `halaman.inert` dikembalikan menjadi `false`, panel disembunyikan, dan fokus kembali tepat ke tombol "Buka Keranjang".
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `inert` dalam konteks **Manajemen Fokus Papan Ketik, Urutan `Tab`, `autofocus`, dan Penguncian Latar dengan `inert`** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `inert`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Nilai `tabindex` manakah yang memungkinkan sebuah elemen `<div>` atau `<h2>` menerima fokus melalui pemanggilan JavaScript `elemen.focus()`, tetapi **tidak** dimasukkan ke dalam urutan tekan tombol `Tab` normal?
+- A. `tabindex="0"`
+- B. `tabindex="1"`
+- C. `tabindex="-1"`
+- D. `tabindex="auto"`
 
-**Jawaban Benar:** B
-**Penjelasan:** `inert` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Jawaban Benar:** C
+**Penjelasan:** `tabindex="-1"` mengeluarkan elemen dari urutan navigasi `Tab` berurutan, namun mengizinkan elemen tersebut difokuskan secara terprogram dengan metode `.focus()` (misalnya untuk memindahkan fokus ke ringkasan galat atau judul dialog).
 
 ### Soal 2
-Mengapa penerapan `tabindex` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`tabindex`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Apa saja dampak dari penambahan atribut boolean `inert` pada sebuah elemen kontainer `<div id="latar" inert>`?
+- A. Hanya mengubah warna teks di dalam `#latar` menjadi abu-abu
+- B. Menonaktifkan seluruh interaksi di dalam sub-pohon `#latar`: elemen di dalamnya tidak dapat difokuskan dengan `Tab`, tidak merespons klik/sentuhan, dan disembunyikan dari pohon aksesibilitas pembaca layar
+- C. Menghapus elemen `#latar` secara permanen dari pohon DOM
+- D. Memindahkan `#latar` ke dalam `<iframe>` terpisah
 
 **Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Penjelasan:** Atribut global `inert` membuat seluruh elemen dan turunannya menjadi tidak interaktif bagi papan ketik, penunjuk tetikus/sentuh, maupun teknologi bantu pembaca layar.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `inert` dan `tabindex` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Mengapa penggunaan nilai `tabindex` positif (seperti `tabindex="1"`, `tabindex="2"`, `tabindex="3"`) dianggap sebagai anti-pola yang harus dihindari?
+- A. Karena peramban modern menolak merender halaman yang memiliki `tabindex="1"`
+- B. Karena elemen dengan `tabindex > 0` akan melompati seluruh elemen interaktif standar di halaman dan menciptakan urutan fokus yang tidak selaras dengan urutan visual DOM
+- C. Karena `tabindex` positif mematikan fungsi tombol `Enter`
+- D. Karena `tabindex` positif hanya berlaku pada elemen `<table>`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** Spesifikasi HTML memproses seluruh elemen dengan `tabindex > 0` terlebih dahulu sebelum elemen dengan `tabindex="0"` atau kontrol bawaan, sehingga merusak urutan navigasi alami halaman dan membingungkan pengguna papan ketik.
 
 ## Sumber
 - [`inert` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert)

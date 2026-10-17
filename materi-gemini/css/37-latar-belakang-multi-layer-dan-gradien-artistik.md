@@ -103,6 +103,22 @@ Hal yang perlu diperhatikan:
 }
 ```
 
+## Studi Kasus Produksi: Kartu Sorotan dengan Bingkai Gradien Halus (*Gradient Border*)
+
+Membuat bingkai bergradien dengan sudut melengkung (`border-radius`) sering sulit dilakukan dengan `border-image`. Anda dapat menyelesaikannya menggunakan dua lapisan `background` dengan `background-clip` yang berbeda (`padding-box` dan `border-box`):
+
+```css
+.kartu-sorotan {
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background:
+    linear-gradient(oklch(99% 0.005 250), oklch(99% 0.005 250)) padding-box,
+    linear-gradient(135deg, oklch(60% 0.22 255), oklch(65% 0.2 320)) border-box;
+}
+```
+
+Lapisan pertama mengisi area dalam kartu (`padding-box`) dengan warna latar solid, sedangkan lapisan kedua mengisi hingga ke area bingkai (`border-box`) sehingga hanya tampak pada ketebalan `border: 2px solid transparent` dengan sudut melengkung yang rapi.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menaruh warna latar di lapisan pertama singkatan `background`.** Warna hanya sah pada lapisan terakhir; deklarasi menjadi tidak valid.

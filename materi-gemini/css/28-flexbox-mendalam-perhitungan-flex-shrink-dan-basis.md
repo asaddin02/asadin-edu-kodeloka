@@ -83,6 +83,34 @@ Setelah rumus di atas, peramban memeriksa batas `min-width`/`max-width`. Pada fl
 
 Alternatif: `overflow: hidden` (atau nilai `overflow` selain `visible`) pada flex item membuat batas minimum otomatisnya menjadi `0`.
 
+## Studi Kasus Produksi: Bilah Alat Aplikasi dengan Judul Terpotong dan Tombol Tetap
+
+Dalam bilah atas aplikasi (*app bar*), kita sering menginginkan ikon kiri dan tombol aksi kanan tidak pernah menyusut, sementara judul dokumen di tengah mengambil sisa ruang dan menampilkan elipsis saat layar menyempit:
+
+```css
+.bilah-aplikasi {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.bilah-aplikasi .ikon-kiri,
+.bilah-aplikasi .aksi-kanan {
+  flex: 0 0 auto; /* Tidak tumbuh dan tidak menyusut */
+}
+
+.bilah-aplikasi .judul-dokumen {
+  flex: 1 1 0%;
+  min-inline-size: 0; /* Wajib agar boleh menyusut di bawah panjang teks */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+```
+
+Tanpa `min-inline-size: 0` pada `.judul-dokumen`, batas minimum otomatis (`min-width: auto`) akan memaksa judul mempertahankan lebar seluruh kalimatnya dan mendorong `.aksi-kanan` keluar layar.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menyangka `flex-shrink` menyusutkan item sama rata.** Penyusutan dibobot dengan ukuran dasar, jadi item yang besar menyusut lebih banyak piksel.

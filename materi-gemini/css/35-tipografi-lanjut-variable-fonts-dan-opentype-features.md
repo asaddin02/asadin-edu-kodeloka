@@ -95,6 +95,26 @@ body {
 
 Untuk mengurangi lompatan akibat perbedaan metrik fon cadangan, Anda juga bisa mendefinisikan fon cadangan "palsu" dengan deskriptor `@font-face` `size-adjust`, `ascent-override`, `descent-override`, dan `line-gap-override` agar dimensinya menyerupai fon web.
 
+## Studi Kasus Produksi: Tabel Laporan Keuangan dan Indikator Waktu Nyata
+
+Dalam aplikasi perbankan atau dasbor pemantauan waktu nyata, angka yang berubah setiap detik akan membuat teks di sebelahnya bergoyang jika hurufnya memakai lebar proporsional. Mengaktifkan `tabular-nums` dan `slashed-zero` menyelesaikan masalah tersebut:
+
+```css
+.angka-finansial,
+.pencatat-waktu {
+  font-variant-numeric: tabular-nums lining-nums slashed-zero;
+  font-feature-settings: "tnum" 1, "zero" 1; /* Cadangan eksplisit bila diperlukan */
+}
+
+.artikel-ilmiah {
+  font-variant-numeric: oldstyle-nums;
+  font-variant-ligatures: common-ligatures contextual;
+  font-size-adjust: ex-height 0.52;
+}
+```
+
+Dengan `tabular-nums`, setiap digit `0` hingga `9` menempati kotak horizontal yang sama lebarnya, sehingga kolom nominal rupiah dan penghitung mundur tetap stabil.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Memuat tiga atau empat berkas bobot statis padahal tersedia variable font.** Gunakan satu berkas variabel dan rentang `font-weight: 200 800`.

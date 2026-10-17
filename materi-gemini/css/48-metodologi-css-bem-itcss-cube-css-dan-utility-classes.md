@@ -126,6 +126,34 @@ Lapisan `utilities` yang paling akhir akan menang atas komponen tanpa `!importan
 
 > **💡 Memilih:** Mulailah dari kebutuhan. Proyek kecil sering cukup dengan BEM atau lapisan sederhana. Sistem desain besar diuntungkan oleh lapisan (ITCSS/CUBE) dan token. Pilih satu konvensi, dokumentasikan, dan tegakkan lewat tinjauan kode dan linter; konsistensi lebih penting daripada metodologi mana yang dipilih.
 
+## Studi Kasus Produksi: Menggabungkan CUBE CSS, BEM, dan `@layer` dalam Satu Proyek
+
+Dalam proyek tim modern, Anda tidak harus memilih satu metodologi secara kaku. Menggabungkan urutan lapisan ITCSS (`@layer`), komposisi tata letak CUBE CSS, dan penamaan komponen BEM menghasilkan arsitektur yang sangat rapi:
+
+```css
+@layer reset, token, komposisi, komponen, utilitas;
+
+@layer komposisi {
+  .tumpuk > * + * {
+    margin-block-start: var(--jarak-tumpuk, 1rem);
+  }
+}
+
+@layer komponen {
+  .kartu-profil {
+    padding: 1.25rem;
+    border: 1px solid var(--warna-batas);
+    border-radius: 0.75rem;
+  }
+  /* Variasi status menggunakan atribut data ala CUBE exception */
+  .kartu-profil[data-status="terverifikasi"] {
+    border-color: var(--warna-aksen);
+  }
+}
+```
+
+Karena lapisan `utilitas` dideklarasikan paling akhir, kelas utilitas tunggal seperti `.mt-0` akan selalu menang melawan gaya `.kartu-profil` tanpa membutuhkan `!important`.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Mencampur banyak konvensi tanpa aturan.** Tentukan peran masing-masing (mis. BEM untuk komponen, utilitas untuk penyesuaian kecil).

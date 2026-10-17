@@ -3,31 +3,41 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Mengelola perubahan tabel basis data secara terukur menggunakan sistem migrasi berversi, mencegah kondisi balapan saldo ganda (*race condition*) dengan `SELECT ... FOR UPDATE` (*Pessimistic Locking*) atau kolom `versi` (*Optimistic Locking*), serta mendeteksi dan memperbaiki masalah **N+1 Query**.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Bagaimana Penyerang Dapat Menarik SaldoRp 1.000.000 Berkali-kali Hanya dari Saldo Rp 100.000?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `$pdo->prepare('UPDATE dompet SET saldo = saldo - :nominal, versi = versi + 1 WHERE id = :id AND versi = :versiLama');` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Bayangkan pengguna memiliki saldo dompet **Rp 100.000**. Jika kode PHP Anda menjalankan pola *Baca-Periksa-Tulis* biasa tanpa penguncian:
+1. Baris 1: `SELECT saldo FROM dompet WHERE id = 1` (mendapat `100000`).
+2. Baris 2: `if ($saldo >= 100000)` (lolos!).
+3. Baris 3: `UPDATE dompet SET saldo = saldo - 100000 WHERE id = 1`.
+
+Ketika penyerang mengirimkan **10 permintaan HTTP `POST /tarik-saldo` secara serentak di milidetik yang sama**, kesepuluh proses worker PHP akan mengeksekusi Baris 1 secara bersamaan sebelum satu pun sempat mencapai Baris 3! Akibatnya, kesepuluh worker sama-sama melihat saldo masih `100000`, kesepuluhnya meloloskan `if`, dan penyerang berhasil mencairkan uang 10 kali lipat (**Race Condition / Time-of-Check to Time-of-Use — TOCTOU**)!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Membaca saldo pengguna dengan `SELECT saldo FROM dompet`, mengeceknya di PHP (`if ($saldo >= $tarik)`), lalu melakukan `UPDATE dompet SET saldo = ...` tanpa mengunci baris di dalam transaksi memungkinkan penyerang mengirim 10 permintaan paralel untuk menarik uang berkali-kali melebihi saldonya!
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Perbandingan Strategi Penguncian Konkurensi: Pessimistic vs Optimistic Locking
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
-| :--- | :--- | :--- |
-| **API / Pola Utama** | `$pdo->prepare('UPDATE dompet SET saldo = saldo - :nominal, versi = versi + 1 WHERE id = :id AND versi = :versiLama');` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+Untuk mencegah kondisi balapan pada modifikasi data konkuren di PDO, pilih strategi penguncian yang tepat:
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+| Strategi Penguncian | Mekanisme SQL & PDO | Keunggulan & Karakteristik | Kapan Harus Dipilih? |
+| :--- | :--- | :--- | :--- |
+| **Pessimistic Locking** (`SELECT ... FOR UPDATE`) | Di dalam `$pdo->beginTransaction()`, `SELECT ... FOR UPDATE` mengunci baris target hingga `commit()` atau `rollBack()`. | Transaksi paralel lain yang meminta baris yang sama dipaksa **mengantre tunggu** secara berurutan. | **Mutasi finansial kritis** dengan potensi tabrakan tinggi (penarikan saldo dompet, pemotongan kuota kursi/voucher kilat). |
+| **Optimistic Locking** (Kolom `versi`) | Tanpa mengunci saat `SELECT`; saat `UPDATE` tambahkan syarat `WHERE id = :id AND versi = :versiLama` lalu periksa **`$stmt->rowCount() === 1`**. | Tidak menahan kunci transaksi selama pengguna berpikir/mengisi form; jika `$rowCount === 0`, berarti sudah diubah orang lain. | Penyuntingan dokumen kolaboratif, pembaruan stok katalog reguler, atau formulir pengaturan admin. |
+| **Atomic Conditional Update** | Satu kueri langsung: `UPDATE dompet SET saldo = saldo - :tarik WHERE id = :id AND saldo >= :tarik`. | Paling cepat (hanya 1 perjalanan bolak-balik ke DB); database mengunci baris secara atomik selama `UPDATE`. | Pengurangan saldo/kuota sederhana yang tidak membutuhkan perhitungan bercabang di PHP sebelum `UPDATE`. |
+
+## 2. Implementasi *Pessimistic Locking* (`FOR UPDATE`) dan *Optimistic Locking* (`versi`) di PDO
+
+Berikut adalah implementasi kedua teknik penguncian tersebut menggunakan PDO dengan `declare(strict_types=1)`:
 
 ```php
 <?php
 declare(strict_types=1);
 
-function tarikSaldoAman(PDO $pdo, int $idDompet, int $nominalTarikan): void
+// 1. PESSIMISTIC LOCKING: Mengunci baris dengan SELECT ... FOR UPDATE di dalam transaksi
+function tarikSaldoPessimistic(PDO $pdo, int $idDompet, int $nominalTarikan): void
 {
     $pdo->beginTransaction();
     try {
-        // Kunci baris dompet hingga transaksi selesai (Pessimistic Locking)
+        // Kunci baris dompet hingga transaksi selesai; proses lain pada idDompet ini wajib mengantre!
         $stmt = $pdo->prepare('SELECT saldo FROM dompet WHERE id = :id FOR UPDATE');
         $stmt->execute([':id' => $idDompet]);
         $baris = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -40,51 +50,118 @@ function tarikSaldoAman(PDO $pdo, int $idDompet, int $nominalTarikan): void
         $ubah->execute([':nominal' => $nominalTarikan, ':id' => $idDompet]);
         $pdo->commit();
     } catch (Throwable $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         throw $e;
+    }
+}
+
+// 2. OPTIMISTIC LOCKING: Memeriksa nomor versi baris saat UPDATE tanpa menahan kunci
+function perbaruiHargaProdukOptimistic(PDO $pdo, int $idProduk, int $hargaBaru, int $versiSaatDibaca): void
+{
+    $stmt = $pdo->prepare(
+        'UPDATE produk
+         SET harga = :harga, versi = versi + 1
+         WHERE id = :id AND versi = :versi_lama'
+    );
+    $stmt->execute([
+        ':harga'      => $hargaBaru,
+        ':id'         => $idProduk,
+        ':versi_lama' => $versiSaatDibaca,
+    ]);
+
+    if ($stmt->rowCount() === 0) {
+        throw new RuntimeException('Konflik perubahan: produk ini baru saja diubah oleh pengguna lain. Silakan muat ulang.');
     }
 }
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Memahami dan Menyembuhkan Masalah *N+1 Query*
+
+Masalah performa database paling umum di aplikasi backend adalah **N+1 Query**: Anda menjalankan **1 kueri** untuk mengambil 50 artikel terbaru (`SELECT * FROM artikel LIMIT 50`), lalu di dalam perulangan `foreach ($daftarArtikel as $artikel)`, Anda menjalankan **50 kueri tambahan** (`SELECT nama FROM penulis WHERE id = :id_penulis`) satu per satu! Totalnya menjadi **51 perjalanan jaringan bolak-balik** ke server database.
+
+Solusinya adalah mengambil data relasi sekaligus hanya dalam **1 kueri tambahan (total 2 kueri)** menggunakan klausa `WHERE id IN (...)` atau menggabungkannya dengan `JOIN`:
+
+```php
+<?php
+declare(strict_types=1);
+
+/**
+ * Memuat penulis untuk seluruh artikel hanya dengan 1 kueri tambahan (Mencegah N+1 Query).
+ *
+ * @param list<array{id: int, judul: string, penulis_id: int}> $daftarArtikel
+ * @return list<array{id: int, judul: string, nama_penulis: string}>
+ */
+function lengkapiNamaPenulisTanpaNPlus1(PDO $pdo, array $daftarArtikel): array
+{
+    if ($daftarArtikel === []) {
+        return [];
+    }
+
+    // 1. Kumpulkan seluruh ID penulis unik
+    $idPenulisUnik = array_values(array_unique(array_column($daftarArtikel, 'penulis_id')));
+    $placeholder   = implode(',', array_fill(0, count($idPenulisUnik), '?'));
+
+    // 2. Ambil semua penulis yang dibutuhkan dalam 1 kueri tunggal!
+    $stmt = $pdo->prepare("SELECT id, nama FROM penulis WHERE id IN ({$placeholder})");
+    $stmt->execute($idPenulisUnik);
+    $petaPenulis = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Menghasilkan [id => nama]
+
+    // 3. Pasangkan di memori PHP
+    return array_map(
+        static fn (array $art): array => [
+            'id'           => $art['id'],
+            'judul'        => $art['judul'],
+            'nama_penulis' => (string) ($petaPenulis[$art['penulis_id']] ?? 'Anonim'),
+        ],
+        $daftarArtikel
+    );
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menjalankan `SELECT ... FOR UPDATE` di luar `$pdo->beginTransaction()`:** Dalam mode *autocommit* bawaan, setiap pernyataan SQL adalah transaksinya sendiri yang langsung berakhir begitu baris `SELECT` selesai! Akibatnya, kunci `FOR UPDATE` langsung terlepas seketika sebelum baris kode `UPDATE` dijalankan. **`SELECT ... FOR UPDATE` wajib selalu berada di dalam blok `$pdo->beginTransaction()` ... `$pdo->commit()`**.
+2. **Mengunci beberapa baris dengan urutan ID yang tidak konsisten (*Deadlock*):** Jika Transaksi A mengunci Dompet `2` lalu Dompet `1`, sementara Transaksi B pada saat yang sama mengunci Dompet `1` lalu Dompet `2`, keduanya akan saling menunggu selamanya (*Deadlock*). Saat mentransfer saldo antar dua dompet, **selalu urutkan ID dompet dari yang terkecil ke terbesar** sebelum melakukan `SELECT ... FOR UPDATE`!
+3. **Menjalankan perintah DDL (`CREATE TABLE` / `ALTER TABLE`) di MySQL/MariaDB di dalam transaksi dan mengira bisa di-`rollBack()`:** Berbeda dengan PostgreSQL dan SQLite yang mendukung *Transactional DDL*, MySQL melakukan *implicit commit* setiap kali melihat `ALTER TABLE` atau `CREATE TABLE`.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `$pdo->prepare('UPDATE dompet SET saldo = saldo - :nominal, versi = versi + 1 WHERE id = :id AND versi = :versiLama');` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat skrip pengujian PHPUnit dengan database SQLite atau PostgreSQL yang menguji fungsi `perbaruiHargaProdukOptimistic()` dan `lengkapiNamaPenulisTanpaNPlus1()`.
+2. Verifikasi bahwa pemanggilan kedua `perbaruiHargaProdukOptimistic()` yang masih membawa nomor `$versiSaatDibaca` lama langsung melempar `RuntimeException` karena `$stmt->rowCount() === 0`.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Membaca saldo pengguna dengan `SELECT saldo FROM dompet`, mengeceknya di PHP (`if ($saldo >= $tarik)`), lalu melakukan `UPDATE dompet SET saldo = ...` tanpa mengunci baris di dalam transaksi memungkinkan penyerang mengirim 10 permintaan paralel untuk menarik uang berkali-kali melebihi saldonya!*?
-- A. Karena hanya memengaruhi warna tampilan teks di terminal
-- B. Karena membuka celah keamanan serius, merusak integritas data/finansial, atau menyebabkan kehabisan memori (*Out of Memory*) di server produksi
-- C. Karena PHP 8.5 tidak lagi mendukung penulisan fungsi
-- D. Karena hanya berlaku pada sistem operasi Windows 95
+Mengapa pola membaca saldo di PHP (`SELECT saldo FROM dompet WHERE id = :id`), memeriksanya dengan `if ($saldo >= $tarik)`, lalu menjalankan `UPDATE dompet SET saldo = ...` tanpa penguncian baris di dalam transaksi sangat berbahaya?
+- A. Karena perintah `SELECT` tidak dapat membaca angka bulat
+- B. Karena membuka celah kondisi balapan (*Race Condition / TOCTOU*): beberapa permintaan paralel yang masuk bersamaan akan sama-sama membaca nilai saldo awal yang belum terpotong dan meloloskan seluruh penarikan melebihi saldo sebenarnya
+- C. Karena PDO hanya mengizinkan satu perintah `prepare()` per berkas PHP
+- D. Karena `UPDATE` otomatis menghapus baris jika tidak ada `FOR UPDATE`
 
 **Jawaban Benar:** B
-**Penjelasan:** Membaca saldo pengguna dengan `SELECT saldo FROM dompet`, mengeceknya di PHP (`if ($saldo >= $tarik)`), lalu melakukan `UPDATE dompet SET saldo = ...` tanpa mengunci baris di dalam transaksi memungkinkan penyerang mengirim 10 permintaan paralel untuk menarik uang berkali-kali melebihi saldonya!
+**Penjelasan:** Tanpa penguncian baris (`SELECT ... FOR UPDATE` di dalam transaksi) atau pembaruan atomik bersyarat (`WHERE saldo >= :tarik`), pembacaan paralel akan melihat *snapshot* saldo lama sebelum salah satu transaksi sempat menulis saldo baru.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `$pdo->prepare('UPDATE dompet SET saldo = saldo - :nominal, versi = versi + 1 WHERE id = :id AND versi = :versiLama');` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `$pdo->prepare('UPDATE dompet SET saldo = saldo - :nominal, versi = versi + 1 WHERE id = :id AND versi = :versiLama');` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `PDO Lanjutan` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Pada penerapan **Optimistic Locking** menggunakan kolom `versi` (`UPDATE produk SET harga = :harga, versi = versi + 1 WHERE id = :id AND versi = :versi_lama`), bagaimana kode PHP Anda mendeteksi bahwa baris tersebut baru saja diubah oleh pengguna lain di sela-sela waktu baca dan simpan?
+- A. PDO akan otomatis menghapus tabel `produk`
+- B. Memeriksa apakah **`$stmt->rowCount() === 0`**: jika 0 baris yang terpengaruh (padahal ID produk ada), berarti nilai `versi` di database sudah bertambah lebih dulu oleh transaksi lain sehingga perubahan harus ditolak
+- C. Memeriksa nilai `$pdo->lastInsertId()`
+- D. Menunggu selama 60 detik
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Ketika transaksi lain sudah lebih dulu memperbarui baris tersebut dan menaikkan `versi` menjadi `versi + 1`, klausa `WHERE id = :id AND versi = :versi_lama` tidak lagi cocok dengan baris mana pun sehingga `$stmt->rowCount()` mengembalikan `0`.
+
+### Soal 3
+Apa yang dimaksud dengan masalah **N+1 Query** pada akses basis data dan bagaimana cara mengatasinya?
+- A. Menambahkan angka `1` pada setiap hasil kueri matematika
+- B. Menjalankan 1 kueri utama untuk mengambil $N$ baris induk (misalnya 50 artikel), lalu menjalankan $N$ kueri tambahan satu per satu di dalam perulangan `foreach` untuk mengambil data relasinya; diatasi dengan mengambil seluruh data relasi sekaligus dalam 1 kueri menggunakan `WHERE id IN (...)` atau `JOIN`
+- C. Menggunakan lebih dari satu kolom *primary key* pada tabel
+- D. Menjalankan kueri `INSERT` tanpa transaksi
+
+**Jawaban Benar:** B
+**Penjelasan:** Menjalankan kueri SQL di dalam perulangan `foreach` memicu ratusan *round-trip* jaringan ke database. Mengumpulkan daftar ID ke dalam satu kueri `WHERE id IN (...)` (atau `JOIN`) memangkas $N+1$ kueri menjadi hanya 1 atau 2 kueri.
 
 ## Sumber
 

@@ -92,6 +92,37 @@ Pada `Tautan A`, ada dua aturan yang cocok (`.tema-terang a` dan `.tema-gelap a`
 - **Tidak menggantikan Shadow DOM.** Gaya dari luar masih bisa memengaruhi elemen di dalam lingkup jika selektor luar cocok dengannya.
 - **Tidak menaikkan spesifisitas.** Itu sebabnya selektor di dalam `@scope` mudah ditimpa; atur prioritas antarkomponen dengan `@layer`, bukan dengan memperberat selektor.
 
+## Studi Kasus Produksi: Komponen Tab dan Kartu Bersarang Tanpa Kebocoran Gaya
+
+Pada komponen antarmuka yang dapat memuat komponen lain di dalam slot kontennya (seperti panel tab yang di dalamnya berisi kartu artikel), *donut scoping* memastikan gaya judul panel tidak merembes ke judul kartu di dalam slot:
+
+```css
+@scope (.panel-tab) to (.slot-isi) {
+  :scope {
+    border: 1px solid oklch(85% 0.02 250);
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  /* Hanya menata h2 milik header panel-tab, berhenti sebelum .slot-isi */
+  h2 {
+    font-size: 1.125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: oklch(40% 0.04 250);
+  }
+}
+
+@scope (.kartu-artikel) {
+  h2 {
+    font-size: 1.5rem;
+    color: oklch(25% 0.02 250);
+  }
+}
+```
+
+Berkat batas bawah `to (.slot-isi)` dan aturan kedekatan lingkup (*scoping proximity*), elemen `<h2>` di dalam `.kartu-artikel` tidak akan mewarisi huruf kapital kecil milik `.panel-tab`.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Menyangka akar lingkup menambah bobot spesifisitas.** `@scope (#hero) { img { } }` setara dengan `:where(#hero) img`, yaitu `(0, 0, 1)`. Aturan ini bisa dikalahkan selektor kelas biasa di luar `@scope`.

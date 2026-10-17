@@ -3,46 +3,112 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memodernisasi kode PHP warisan (skrip prosedural bercampur HTML tanpa pengujian) menuju PHP 8.4/8.5 secara bertahap tanpa menghentikan bisnis menggunakan pola **Strangler Fig**, pengenalan Composer & PSR-4, pembuatan *Characterization Tests*, serta otomasi pembaruan sintaks dengan **Rector**.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Proyek "Tulis Ulang Total dari Nol (*Big-Bang Rewrite*)" Hampir Selalu Berakhir Bencana?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `// Arahkan rute baru ke Front Controller modern, teruskan rute lama ke skrip warisan` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Saat diwarisi aplikasi PHP berumur 10 tahun yang berisi ribuan baris SQL mentah bercampur HTML (`include 'header.php'`), godaan terbesar tim rekayasa adalah berkata: *"Mari kita bekukan aplikasi lama dan tulis ulang semuanya dari nol selama 6 bulan!"*
+
+Dalam praktik industri, *Big-Bang Rewrite* hampir selalu gagal karena tiga alasan:
+1. Aplikasi lama menyimpan ratusan aturan bisnis tepi (*edge cases*) tak terdokumentasi yang baru disadari ketika sistem baru sudah diluncurkan dan merugikan pelanggan;
+2. Bisnis tidak mungkin berhenti menambah fitur selama 6–12 bulan, sehingga tim terpaksa mengejar sasaran yang terus bergerak (*moving target*);
+3. Risiko peluncuran hari-H (*cutover*) sangat ekstrem.
+
+Pendekatan rekayasa yang terbukti berhasil adalah pola **Strangler Fig** (dipopulerkan oleh Martin Fowler): pasang satu **Front Controller / Router Jembatan** di bagian depan, arahkan rute yang baru dimodernisasi (misalnya `/api/v2/*` atau `/masuk`) ke kode PHP 8.5 modern yang bersih, sementara rute sisanya tetap diteruskan ke aplikasi warisan sampai satu per satu seluruh modul lama selesai digantikan!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Menghentikan pengembangan fitur selama 6 bulan untuk menulis ulang (*big-bang rewrite*) seluruh aplikasi PHP warisan dari nol hampir selalu berakhir gagal atau meleset jauh dari jadwal; gunakan pola *Strangler Fig* untuk mengganti modul demi modul secara bertahap.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Lima Tahap Peta Jalan Modernisasi Aplikasi PHP Warisan
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Ikuti urutan langkah aman berikut saat memodernisasi kode warisan menuju PHP 8.4/8.5:
+
+| Tahap Modernisasi | Langkah Teknis Konkret | Risiko yang Dimigasi |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `// Arahkan rute baru ke Front Controller modern, teruskan rute lama ke skrip warisan` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **1. Pasang Jaring Pengaman (*Characterization Tests*)** | Tulis pengujian *Golden Master* / integrasi yang merekam keluaran kode lama apa adanya sebelum Anda mengubah 1 baris pun! | Mencegah perubahan perilaku bisnis tanpa sengaja saat kode dipecah. |
+| **2. Perkenalkan Composer & PSR-4 (`src/`)** | Tambahkan `composer.json` dan muat `vendor/autoload.php` di titik masuk tunggal tanpa merusak `include` lama. | Memungkinkan kode baru ditulis sebagai class bersih ber-namespace dengan `declare(strict_types=1)`. |
+| **3. Terapkan Front Controller (*Strangler Fig*)** | Tangkap semua permintaan di satu pintu; arahkan rute yang sudah dimigrasi ke modul modern, sisanya ke router lama. | Memungkinkan rilis ke produksi setiap minggu (iris demi iris) tanpa waktu henti. |
+| **4. Bungkus Database & Sesi Warisan (*Adapter*)** | Ekstrak koneksi database lama ke dalam `PdoAdapter` ber-parameter dan samakan pembacaan sesi antara kode lama dan baru. | Menutup celah SQL Injection sambil menjaga pengguna tidak perlu login dua kali saat berpindah halaman lama/baru. |
+| **5. Otomasi Pembaruan Sintaks dengan Rector** | Jalankan perkakas analisis AST **Rector (`vendor/bin/rector process`)** untuk menaikkan sintaks ke standar PHP 8.4/8.5 secara otomatis. | Menghemat ratusan jam kerja manual saat mengganti sintaks usang di ribuan berkas. |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Implementasi *Front Controller* Jembatan (*Strangler Fig Pattern*)
+
+Berikut adalah arsitektur perute jembatan (*Strangler Fig*) yang dapat diuji secara terisolasi untuk memutuskan apakah suatu URI ditangani oleh kernel modern atau diteruskan ke skrip warisan:
 
 ```php
 <?php
 declare(strict_types=1);
 
-// Front Controller Jembatan (Strangler Fig Pattern)
-$jalurUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+final readonly class RouterStranglerFig
+{
+    /**
+     * @param list<string> $awalanRuteModern
+     * @param list<string> $jalurPersisModern
+     */
+    public function __construct(
+        private array $awalanRuteModern = ['/api/v2/', '/pembayaran/'],
+        private array $jalurPersisModern = ['/masuk', '/daftar', '/kesehatan'],
+    ) {}
 
-if (str_starts_with($jalurUri, '/api/v2/') || $jalurUri === '/masuk') {
-    // Ditangani oleh arsitektur modern (PSR-15 + DI + PDO)
-    require __DIR__ . '/../src/bootstrap_modern.php';
-    exit;
+    public function tentukanTargetPenangan(string $requestUri): string
+    {
+        $jalurUri = parse_url($requestUri, PHP_URL_PATH);
+        $jalur    = is_string($jalurUri) && $jalurUri !== '' ? $jalurUri : '/';
+
+        // Normalisasi garis miring ganda (mis. //masuk -> /masuk) agar tidak melewati pencocokan rute!
+        $jalurBersih = '/' . ltrim((string) preg_replace('#/+#', '/', $jalur), '/');
+
+        if (in_array($jalurBersih, $this->jalurPersisModern, strict: true)) {
+            return 'modern';
+        }
+
+        foreach ($this->awalanRuteModern as $awalan) {
+            if (str_starts_with($jalurBersih, $awalan)) {
+                return 'modern';
+            }
+        }
+
+        return 'warisan';
+    }
 }
-
-// Rute lama yang belum dimigrasi tetap dilayani dengan aman
-require __DIR__ . '/../legacy_app/router_lama.php';
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Menulis *Characterization Test* (*Golden Master*) Sebelum Menyentuh Kode Warisan
+
+Ketika Anda menghadapi fungsi perhitungan komisi berumur 8 tahun sepanjang 300 baris `if/else` bersarang yang tidak seorang pun berani menyentuhnya, jangan langsung menulisnya ulang! Tulis terlebih dahulu **Characterization Test** yang menguji 20 kombinasi masukan dan mengunci hasil keluarannya saat ini sebagai patokan kebenaran (*Golden Master*). Setelah pengujian tersebut lulus 100%, barulah Anda merapikan (*refactor*) kode di dalamnya sambil memastikan pengujian tetap hijau:
+
+```php
+<?php
+declare(strict_types=1);
+
+// Fungsi baru yang bersih, terukur, dan diuji menghasilkan keluaran identik dengan fungsi warisan
+function hitungKomisiMitraModern(int $nominalTransaksiRp, string $tingkatMitra, bool $adalah AkhirPekan): int
+{
+    if ($nominalTransaksiRp <= 0) {
+        return 0;
+    }
+    $persenDasar = match (strtolower(trim($tingkatMitra))) {
+        'emas'  => 10,
+        'perak' => 7,
+        default => 5,
+    };
+    if ($adalahAkhirPekan && $nominalTransaksiRp >= 500_000) {
+        $persenDasar += 2;
+    }
+    return intdiv($nominalTransaksiRp * $persenDasar, 100);
+}
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Lupa menormalkan garis miring ganda (`//api/v2/produk`) pada Router Jembatan:** Jika pemeriksaan Anda hanya menulis `str_starts_with($_SERVER['REQUEST_URI'], '/api/v2/')` tanpa menormalkan `//` menjadi `/`, permintaan ke `//api/v2/produk` dapat meleset ke router warisan atau dieksploitasi untuk melewati middleware baru!
+2. **Menambahkan `declare(strict_types=1)` secara massal dengan *Find & Replace* ke ribuan berkas warisan tanpa pengujian dan PHPStan:** Di kode warisan yang sering mengirim `"123"` (string dari database/GET) ke parameter `int`, mengaktifkan `strict_types=1` secara buta tanpa memperbaiki pemanggilnya akan langsung memicu `TypeError` di produksi. Gunakan **Rector** + **PHPStan** untuk menambahkan tipe dan konversi secara bertahap per modul.
+3. **Membuat database baru yang terpisah untuk kode modern sejak hari pertama tanpa mekanisme sinkronisasi:** Biarkan modul modern dan modul warisan berbagi skema database yang sama pada tahap awal transisi (melalui lapisan Repository yang bersih), dan baru pisahkan skema setelah kode warisan pada domain tersebut benar-benar dipensiunkan.
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `// Arahkan rute baru ke Front Controller modern, teruskan rute lama ke skrip warisan` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `RouterStranglerFig.php` yang memuat class `RouterStranglerFig` dan fungsi `hitungKomisiMitraModern()`.
+2. Tulis pengujian PHPUnit untuk memverifikasi bahwa:
+   - `tentukanTargetPenangan('/api/v2/kursus?hal=1')`, `'/masuk'`, dan `'//masuk'` semuanya diarahkan ke `'modern'`;
+   - `tentukanTargetPenangan('/laporan_lama.php')` diarahkan ke `'warisan'`;
+   - `hitungKomisiMitraModern()` menghitung komisi untuk tingkat `'emas'`, `'perak'`, dan bonus akhir pekan secara akurat.
 
 ## Kuis Pemahaman
 
@@ -57,24 +123,24 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menghen
 **Penjelasan:** Menghentikan pengembangan fitur selama 6 bulan untuk menulis ulang (*big-bang rewrite*) seluruh aplikasi PHP warisan dari nol hampir selalu berakhir gagal atau meleset jauh dari jadwal; gunakan pola *Strangler Fig* untuk mengganti modul demi modul secara bertahap.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `// Arahkan rute baru ke Front Controller modern, teruskan rute lama ke skrip warisan` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `// Arahkan rute baru ke Front Controller modern, teruskan rute lama ke skrip warisan` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi `Strategi Modernisasi Aplikasi PHP Legacy` ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Apa tujuan dari menulis **Characterization Test (*Golden Master Test*)** sebelum Anda mulai melakukan *refactoring* pada fungsi PHP warisan yang rumit dan tidak memiliki dokumentasi?
+- A. Untuk menghapus seluruh tabel database lama
+- B. Untuk merekam dan mengunci perilaku keluaran aktual dari kode warisan saat ini terhadap berbagai kombinasi masukan sebagai jaring pengaman, sehingga apabila proses *refactoring* tidak sengaja mengubah hasil perhitungan tepi (*edge case*), pengujian langsung mendeteksinya
+- C. Untuk mengubah kode PHP menjadi JavaScript secara otomatis
+- D. Untuk mematikan pelaporan galat di server
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** *Characterization Test* mendokumentasikan perilaku sistem yang sedang berjalan saat ini secara otomatis, memastikan bahwa kode hasil modernisasi tetap 100% kompatibel dengan aturan bisnis yang sudah berjalan.
+
+### Soal 3
+Perkakas ekosistem PHP manakah yang bekerja dengan cara memproses *Abstract Syntax Tree* (AST) kode sumber Anda untuk mengotomatiskan pembaruan sintaks dan tipe dari PHP versi lama menuju standar PHP 8.4 / 8.5?
+- A. `phpinfo()`
+- B. **Rector** (`rector/rector`)
+- C. `mysqldump`
+- D. `ZipArchive`
+
+**Jawaban Benar:** B
+**Penjelasan:** Rector adalah perkakas rekonstruksi dan pembaruan kode otomatis berbasis AST untuk PHP yang dapat menerapkan ratusan aturan modernisasi sintaks (seperti `readonly` properties, `match` expression, dan deklarasi tipe) secara konsisten dan aman.
 
 ## Sumber
 

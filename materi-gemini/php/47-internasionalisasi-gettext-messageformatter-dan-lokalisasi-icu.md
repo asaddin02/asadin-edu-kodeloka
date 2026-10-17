@@ -3,40 +3,90 @@
 - **Tingkat:** Menengah
 - **Ringkasan:** Menyusun pesan multibahasa yang mendukung aturan jamak (*pluralization*), gender, dan pemilihan format secara deklaratif menggunakan **`MessageFormatter` (ICU)** dari ekstensi `intl`, serta mendeteksi serangan pemalsuan domain/nama pengguna lintas aksara (*homograph attack*) menggunakan kelas **`Spoofchecker`**.
 
-## Mengapa Topik Ini Penting di Produksi?
+## Mengapa Menggabungkan Potongan String Terjemahan dengan Titik (`.`) Selalu Gagal di Banyak Bahasa?
 
-Dalam pengembangan backend modern dengan PHP 8.2 hingga PHP 8.5, penguasaan `MessageFormatter::formatMessage('id_ID', '{jumlah, plural, =0{Kosong} other{# barang}}', ['jumlah' => 5]);` sangat krusial untuk menjamin keamanan data, keakuratan perhitungan, ketahanan terhadap lonjakan trafik, dan kemudahan pemeliharaan jangka panjang.
+Pengembang sering menulis kode pesan antarmuka seperti ini:
+`$pesan = "Anda memiliki " . $jumlah . " " . ($jumlah === 1 ? "berkas" : "berkas-berkas") . " dari " . $nama;`
+
+Begitu aplikasi harus diterjemahkan ke bahasa Inggris, Arab, Jepang, atau Rusia, pola penggabungan string tersebut langsung menemui jalan buntu:
+1. **Urutan Kata Berbeda Antar-Bahasa:** Dalam bahasa Jepang atau Turki, nama pengirim (`$nama`) harus berada di awal kalimat sebelum jumlah berkas, tetapi urutan variabel di kode PHP Anda sudah terkunci mati!
+2. **Aturan Jamak (*Plural Rules*) Lebih dari Sekadar `=== 1`:** Bahasa Inggris memiliki 2 bentuk (`1 file` vs `0/5 files`), bahasa Prancis mengelompokkan `0` dan `1` bersama-sama, sedangkan bahasa Arab dan Polandia memiliki hingga 4–6 bentuk kata benda berbeda untuk angka `0`, `1`, `2`, `3..10`, dan `11..99`!
+
+Ekstensi **`intl`** bawaan PHP menyediakan kelas **`MessageFormatter`** berbasis standar industri **ICU MessageFormat** yang memisahkan seluruh logika jamak, urutan parameter bernama `{nama}`, serta pemformatan angka/tanggal langsung ke dalam satu string pola kamus terjemahan!
 
 > **🚫 Kerentanan & Kesalahan Umum:** Menyusun kalimat terjemahan dengan menggabungkan potongan string `'Anda memiliki ' . $jumlah . ' pesan'` rusak ketika aplikasi diterjemahkan ke bahasa yang urutan kata atau bentuk kata bendanya berubah tergantung jumlah angka.
 
-## Konsep Inti dan Perbandingan Praktik Terbaik
+## 1. Perbandingan Sintaks Pola ICU `MessageFormatter` dan Keamanan `Spoofchecker`
 
-| Aspek Rekayasa | Standar PHP Modern (PHP 8.2–8.5) | Praktik Warisan yang Berbahaya |
+Berikut adalah fitur utama yang disediakan oleh `MessageFormatter` dan `Spoofchecker` di dalam ekstensi `intl`:
+
+| Fitur / Kelas `ext-intl` | Sintaks / Metode Utama | Masalah yang Diselesaikan |
 | :--- | :--- | :--- |
-| **API / Pola Utama** | `MessageFormatter::formatMessage('id_ID', '{jumlah, plural, =0{Kosong} other{# barang}}', ['jumlah' => 5]);` | Mengandalkan fungsi usang tanpa validasi tipe/batas |
-| **Keamanan & Memori** | `declare(strict_types=1)`, batas memori ketat, dan pemeriksaan eksplisit | Mengabaikan kode kembalian galat atau menumpuk seluruh data di RAM |
-| **Kesiapan Produksi** | Teruji otomatis dengan PHPUnit dan analisis statis | Menguji secara manual di server produksi |
+| **Parameter Bernama** | `'Halo {nama}, selamat datang di {kota}!'` | Penerjemah bebas mengubah urutan `{kota}` dan `{nama}` di kamus bahasa tanpa mengubah satu baris kode PHP pun! |
+| **Aturan Jamak (`plural`)** | `'{n, plural, =0{Kosong} =1{1 item} other{# item}}'` | Menangani bentuk jamak untuk bahasa apa pun sesuai standar Unicode CLDR (`#` otomatis diganti dengan angka `$n` terformat lokal). |
+| **Pemilihan Konteks (`select`)** | `'{peran, select, admin{Administrator} penulis{Penulis} other{ Anggota}}'` | Memilih variasi kalimat berdasarkan kata kunci string (seperti peran atau kata ganti sapaan). |
+| **Angka & Urutan (`number` / `selectordinal`)** | `'{harga, number, currency}'` / `'{peringkat, selectordinal, one{#st} two{#nd} few{#rd} other{#th}}'` | Memformat mata uang dan bilangan bertingkat (`1st`, `2nd`, `3rd`, `4th`) langsung di dalam pesan. |
+| **`Spoofchecker`** | `$cek->areConfusable('paypal', 'pаypal')` / `$cek->isSuspicious($nama)` | Mendeteksi serangan **IDN Homograph / Pemalsuan Nama Pengguna** yang mencampur huruf Latin `'a'` (`U+0061`) dengan huruf Sirilik `'а'` (`U+0430`) yang terlihat kembar identik di layar! |
 
-## Implementasi Kode PHP Modern (`strict_types=1`)
+## 2. Menggunakan `MessageFormatter::formatMessage()` untuk Jamak dan Pilihan Konteks
+
+Perhatikan bagaimana satu fungsi `formatPesanProgres()` di bawah ini dapat melayani bahasa Indonesia dan bahasa Inggris dengan tata bahasa yang 100% alami hanya dengan mengganti string pola kamusnya:
 
 ```php
 <?php
 declare(strict_types=1);
 
-$polaPesan = '{jumlah, plural, =0{Tidak ada modul selesai} =1{1 modul selesai} other{# modul selesai}} untuk {nama}.';
-echo MessageFormatter::formatMessage('id_ID', $polaPesan, [
+$polaIndonesia = '{jumlah, plural, =0{Tidak ada modul selesai} =1{1 modul selesai} other{# modul selesai}} untuk {nama}.';
+echo MessageFormatter::formatMessage('id_ID', $polaIndonesia, [
     'jumlah' => 12,
     'nama'   => 'Rina',
-]); // "12 modul selesai untuk Rina." 
+]) . PHP_EOL; // "12 modul selesai untuk Rina."
+
+$polaInggris = '{nama} has completed {jumlah, plural, =0{no modules} one{# module} other{# modules}}.';
+echo MessageFormatter::formatMessage('en_US', $polaInggris, [
+    'jumlah' => 1,
+    'nama'   => 'Rina',
+]) . PHP_EOL; // "Rina has completed 1 module."
 ```
 
-> **💡 Tips Produksi:** Pastikan seluruh berkas PHP di proyek Anda selalu diawali dengan `declare(strict_types=1);` dan diverifikasi secara otomatis pada pipa CI menggunakan `composer audit`, analisis statis, serta pengujian PHPUnit.
+## 3. Menangkal Serangan Pemalsuan Identitas Lintas Aksara (*Homograph Attack*) dengan `Spoofchecker`
+
+Bayangkan seorang penyerang mendaftarkan nama pengguna **`"аdmin"`** di forum Anda, di mana huruf pertama **`"а"`** bukanlah huruf Latin `a` (`U+0061`), melainkan huruf kecil Sirilik `а` (`U+0430`)! Di mata pengguna lain, nama tersebut tampak **100% identik dengan `"admin"` asli**, tetapi di database dianggap berbeda karena kode byte UTF-8-nya berbeda!
+
+Gunakan kelas **`Spoofchecker`** dari ekstensi `intl` pada validasi pendaftaran *username* dan domain untuk mendeteksi pencampuran aksara mencurigakan atau kemiripan visual (*confusables*):
+
+```php
+<?php
+declare(strict_types=1);
+
+function apakahUsernameMencurigakanAtauMiripAdmin(string $usernameInput): bool
+{
+    $pemeriksa = new Spoofchecker();
+    // 1. Cek apakah string mencampur aksara berbeda yang membingungkan (mis. Latin + Sirilik)
+    if ($pemeriksa->isSuspicious($usernameInput)) {
+        return true;
+    }
+    // 2. Cek apakah secara visual tampak mirip dengan kata penting seperti "admin" atau "kodeloka"
+    if ($pemeriksa->areConfusable($usernameInput, 'admin') || $pemeriksa->areConfusable($usernameInput, 'kodeloka')) {
+        return true;
+    }
+    return false;
+}
+
+// Huruf pertama menggunakan Sirilik "\u{0430}" (tampak persis seperti 'admin'):
+var_dump(apakahUsernameMencurigakanAtauMiripAdmin("\u{0430}dmin")); // bool(true) -> DITOLAK!
+```
+
+## 4. Kesalahan Umum dan Cara Menghindarinya
+
+1. **Menyisipkan variabel pengguna langsung ke dalam string `$pattern` pada `MessageFormatter::formatMessage($locale, $pattern, $args)`:** String `$pattern` (argumen kedua) wajib berasal dari **kamus terjemahan statis tepercaya**, sedangkan data dinamis dari pengguna wajib dimasukkan melalui array `$args` (argumen ketiga). Jika input pengguna содержащий karakter `{` atau `'` disisipkan ke `$pattern`, sintaks ICU akan rusak!
+2. **Lupa menyediakan cabang wajib `other{...}` di dalam blok `plural` atau `select`:** Spesifikasi ICU MessageFormat **mewajibkan** keberadaan klausul cadangan `other{...}` pada setiap aturan `plural`, `select`, dan `selectordinal`. Tanpa `other{...}`, `MessageFormatter::formatMessage()` akan gagal dan mengembalikan `false`!
+3. **Menulis tanda kutip tunggal `'` di dalam pola ICU tanpa menggandakannya (`''`):** Di dalam sintaks ICU MessageFormat, tanda kutip tunggal `'` adalah karakter escape untuk mengapit kurung kurawal literal (`'{'`). Jika teks bahasa Inggris Anda menggunakan apostrof seperti `Don't`, tulis sebagai `Don''t` atau gunakan karakter apostrof tipografi `’` (`U+2019`).
 
 ## Latihan Praktik Mandiri
 
-1. Buat sebuah class atau fungsi layanan terisolasi yang menerapkan pola `MessageFormatter::formatMessage('id_ID', '{jumlah, plural, =0{Kosong} other{# barang}}', ['jumlah' => 5]);` seperti pada contoh di atas.
-2. Tulis minimal 2 pengujian otomatis di PHPUnit: satu untuk jalur sukses (*happy path*) dan satu untuk memastikan eksepsi dilempar ketika diberikan masukan tidak valid atau berbahaya.
-3. Periksa penggunaan memori (`memory_get_peak_usage(true)`) dan pastikan tidak ada sumber daya yang bocor.
+1. Buat berkas `LokalisasiIcu.php` yang menyediakan fungsi `formatNotifikasiKuis(string $locale, string $nama, int $skor)` menggunakan `MessageFormatter::formatMessage()` serta fungsi `apakahUsernameMencurigakanAtauMiripAdmin()` menggunakan `Spoofchecker`.
+2. Tulis pengujian PHPUnit untuk memverifikasi keluaran pesan pada jumlah `0`, `1`, dan `15` di bahasa `'id_ID'` dan `'en_US'`, serta memastikan `"\u{0430}dmin"` terdeteksi sebagai mencurigakan oleh `Spoofchecker`.
 
 ## Kuis Pemahaman
 
@@ -51,24 +101,24 @@ Mengapa praktik berikut ini wajib dihindari pada aplikasi PHP produksi: *Menyusu
 **Penjelasan:** Menyusun kalimat terjemahan dengan menggabungkan potongan string `'Anda memiliki ' . $jumlah . ' pesan'` rusak ketika aplikasi diterjemahkan ke bahasa yang urutan kata atau bentuk kata bendanya berubah tergantung jumlah angka.
 
 ### Soal 2
-Manakah pernyataan yang benar mengenai penggunaan `MessageFormatter::formatMessage('id_ID', '{jumlah, plural, =0{Kosong} other{# barang}}', ['jumlah' => 5]);` di PHP modern?
-- A. Merupakan pola dan API standar di PHP modern untuk menangani operasi secara aman, presisi, dan terukur
-- B. Hanya dapat dijalankan di dalam peramban web tanpa server PHP
-- C. Membutuhkan ekstensi `mysql_*` warisan dari PHP 4
-- D. Menghapus kebutuhan akan `declare(strict_types=1)`
-
-**Jawaban Benar:** A
-**Penjelasan:** Pola `MessageFormatter::formatMessage('id_ID', '{jumlah, plural, =0{Kosong} other{# barang}}', ['jumlah' => 5]);` memanfaatkan kapabilitas standar PHP 8 modern yang dirancang untuk keamanan dan performa tingkat produksi.
-
-### Soal 3
-Langkah manakah yang paling tepat saat mengintegrasikan materi "Internasionalisasi Skala Penuh dengan MessageFormatter (ICU MessageFormat) dan Spoofchecker" ke dalam arsitektur aplikasi?
-- A. Menyembunyikan seluruh galat dengan operator `@` tanpa pemeriksaan lebih lanjut
-- B. Menerapkan `declare(strict_types=1)`, memvalidasi prasyarat masukan, menangani kegagalan dengan Exception yang jelas, dan mengujinya dengan PHPUnit
-- C. Menyimpan kredensial rahasia secara langsung di dalam kode sumber yang di-*commit* ke Git
-- D. Mengaktifkan `display_errors = On` bagi seluruh pengunjung publik
+Dalam pola ICU `MessageFormatter` seperti `'{jumlah, plural, =0{Kosong} =1{Satu berkas} other{# berkas}}'`, apakah yang terjadi jika Anda menghapus cabang `other{# berkas}` dari pola tersebut?
+- A. `MessageFormatter` otomatis menerjemahkannya ke bahasa Spanyol
+- B. Pemformatan akan gagal (`formatMessage` mengembalikan `false`) karena spesifikasi ICU MessageFormat mewajibkan setiap blok `plural`, `select`, dan `selectordinal` selalu menyertakan cabang cadangan `other{...}`
+- C. Angka selain 0 dan 1 akan dicetak sebagai angka negatif
+- D. PHP akan menghapus ekstensi `intl`
 
 **Jawaban Benar:** B
-**Penjelasan:** Disiplin `strict_types=1`, validasi ketat, penanganan `Throwable` yang terukur, dan pengujian otomatis adalah fondasi utama rekayasa backend PHP modern.
+**Penjelasan:** Cabang `other` adalah kasus *fallback* wajib dalam tata bahasa ICU MessageFormat (terutama karena banyak bahasa seperti bahasa Indonesia hanya menggunakan kategori `other` untuk seluruh bilangan jamak umum).
+
+### Soal 3
+Ancaman keamanan apakah yang ditangani oleh kelas **`Spoofchecker`** dari ekstensi `intl` ketika memvalidasi pendaftaran nama pengguna (*username*) atau nama domain?
+- A. Serangan SQL Injection pada tabel pengguna
+- B. Serangan pemalsuan visual lintas aksara (*Unicode Homograph / Confusable Attack*), di mana penyerang mengganti huruf Latin biasa dengan karakter dari aksara lain yang bentuknya tampak kembar identik di layar (seperti huruf Sirilik `а` `U+0430` untuk meniru `"admin"`)
+- C. Serangan kompresi Zip Bomb
+- D. Serangan Cross-Site Request Forgery (CSRF)
+
+**Jawaban Benar:** B
+**Penjelasan:** `Spoofchecker` menggunakan data *Unicode Security Mechanisms (UTS #39)* untuk mendeteksi pencampuran sistem aksara yang mencurigakan (`isSuspicious`) maupun string yang tampak serupa secara visual (`areConfusable`).
 
 ## Sumber
 

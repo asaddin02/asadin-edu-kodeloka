@@ -144,6 +144,38 @@ Perhatikan bahwa item pada baris terakhir tetap melebar mengisi baris tersebut. 
 
 Properti `order` dan nilai `row-reverse`/`column-reverse` hanya mengubah **urutan visual**. Urutan fokus papan ketik dan urutan baca pembaca layar tetap mengikuti **urutan DOM**. Akibatnya pengguna papan ketik bisa mengalami fokus yang melompat-lompat. WCAG menuntut urutan yang bermakna (SC 1.3.2) dan urutan fokus yang logis (SC 2.4.3). Ubah urutan di HTML bila urutannya memang penting; pakai `order` hanya untuk perubahan visual yang tidak mengubah makna.
 
+## Studi Kasus Produksi: Komponen Kartu Harga (*Pricing Tier*) Setara Tinggi
+
+Pada halaman perbandingan paket langganan, setiap kartu memiliki jumlah poin fitur yang berbeda, tetapi tombol "Pilih Paket" harus selalu rata di bagian paling bawah kartu:
+
+```css
+.daftar-paket {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: stretch; /* Semua kartu dalam satu baris sama tinggi */
+}
+
+.kartu-paket {
+  flex: 1 1 18rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border: 1px solid oklch(85% 0.02 250);
+  border-radius: 1rem;
+}
+
+.kartu-paket .daftar-fitur {
+  margin-block: 1rem 1.5rem;
+}
+
+.kartu-paket .tombol-beli {
+  margin-block-start: auto; /* Mendorong tombol ke dasar kartu */
+}
+```
+
+Deklarasi `margin-block-start: auto` menyerap seluruh ruang kosong vertikal yang tersisa di dalam `.kartu-paket` berarah kolom, sehingga tombol aksi pada semua kartu tampak sejajar rapi.
+
 ## Kesalahan Umum dan Cara Menghindarinya
 
 1. **Lupa `min-inline-size: 0` pada kolom isi.** Blok `<pre>` atau URL panjang membuat kolom meluber.

@@ -3,25 +3,23 @@
 - **Tingkat:** Lanjut
 - **Ringkasan:** Memilih petunjuk pemuatan jaringan yang tepat pada elemen `<link>` tanpa membanjiri bandwidth pengguna, memahami kapan `crossorigin` wajib disertakan, dan mengukur dampaknya di waterfall jaringan.
 
-## Mengapa Topik "Strategi Resource Hints Mendalam: `dns-prefetch`, `preconnect`, `preload`, dan `modulepreload`" Penting di Lingkungan Produksi?
+## Mengapa Peramban Membutuhkan Petunjuk Awal (*Resource Hints*) di `<head>`?
 
-Dalam pengembangan web profesional, menguasai **Strategi Resource Hints Mendalam: `dns-prefetch`, `preconnect`, `preload`, dan `modulepreload`** membedakan kode yang sekadar tampil di layar pengembang dari kode yang benar-benar tangguh, cepat, aman, dan dapat diakses oleh seluruh pengguna di berbagai perangkat.
+Saat peramban mengunduh dokumen HTML, ia baru mengetahui keberadaan berkas fon web (`@font-face`), gambar latar CSS (`background-image`), atau sub-modul JavaScript yang diimpor di lapisan dalam **setelah** berkas CSS atau JavaScript induknya selesai diunduh dan diurai. Keterlambatan penemuan aset (*late discovery*) ini menciptakan rantai permintaan berurutan (*network waterfall*) yang memperlambat *First Contentful Paint* (FCP) dan *Largest Contentful Paint* (LCP).
 
-Pada pelajaran ini kita membedah cara kerja **`preconnect`** dan **`preload`** berdasarkan spesifikasi [WHATWG HTML Living Standard](https://html.spec.whatwg.org/multipage/links.html) serta dokumentasi [MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/preload).
+Melalui **Resource Hints** pada elemen `<link>`, Anda dapat memberi tahu peramban di dalam `<head>` tentang koneksi domain atau berkas kritis apa saja yang harus segera disiapkan sejak detik pertama.
 
-## 1. Konsep Inti dan Aturan Standar
+## 1. Perbandingan Lima Jenis Resource Hints (`dns-prefetch` hingga `prefetch`)
 
-Peramban modern memproses `preconnect` dan `preload` mengikuti aturan semantik dan keamanan yang ketat:
+Setiap nilai `rel` pada `<link>` memiliki biaya jaringan dan tujuan yang sangat berbeda:
 
-| Aspek | Praktik Buruk (Hindari) | Praktik Standar Modern (Gunakan) |
+| Nilai `rel` | Apa yang Dilakukan Peramban? | Kapan Harus Digunakan? |
 |---|---|---|
-| **Pendekatan Markup** | Mengandalkan tebakan peramban atau skrip tambahan yang rapuh. | Mendeklarasikan `preconnect` dan `preload` secara eksplisit sesuai spesifikasi resmi. |
-| **Aksesibilitas (a11y)** | Mengabaikan pembaca layar dan navigasi tombol `Tab`. | Memastikan nama aksesibel, peran (*role*), dan status fokus terjaga. |
-| **Keamanan & Kinerja** | Membiarkan sumber daya dimuat tanpa batasan. | Menerapkan prinsip hak akses minimal dan pemuatan terukur. |
-
-## 2. Contoh Implementasi Lengkap dan Siap Pakai
-
-Berikut adalah pola penulisan HTML modern yang menerapkan `preconnect` dan `preload` secara benar:
+| `dns-prefetch` | Hanya melakukan resolusi nama domain (DNS lookup) di latar belakang. Biaya CPU/jaringan sangat kecil. | Untuk domain pihak ketiga sekunder (misalnya layanan analitik atau peta) yang akan diakses nanti. |
+| `preconnect` | Melakukan **DNS lookup + TCP handshake + negosiasi TLS** sekaligus ke domain tujuan. | Hanya untuk **1–2 domain lintas-asal kritis** yang pasti akan segera diminta dalam waktu kurang dari 10 detik (misalnya CDN aset utama atau API autentikasi). |
+| `preload` | Memaksa peramban **segera mengunduh berkas spesifik** dengan prioritas tinggi untuk digunakan di **halaman saat ini**. Wajib menyertakan atribut `as="..."`. | Untuk fon utama judul (`as="font"`), gambar LCP yang dimuat dari CSS (`as="image"`), atau stylesheet kritis. |
+| `modulepreload` | Mengunduh, mengurai, dan mengompilasi modul ES (`.js`) ke dalam *module map* peramban sejak awal. | Untuk memangkas rantai ketergantungan `import` bertingkat pada aplikasi berbasis ES Modules. |
+| `prefetch` | Mengunduh berkas dengan prioritas **paling rendah** saat jaringan sedang menganggur (*idle*) untuk **navigasi halaman berikutnya**. | Untuk berkas halaman atau bundel rute berikutnya yang kemungkinan besar akan diklik pengguna (misalnya halaman "Modul 2"). |
 
 ```html
 <!DOCTYPE html>
@@ -58,54 +56,61 @@ Berikut adalah pola penulisan HTML modern yang menerapkan `preconnect` dan `prel
 
 > **Status dukungan (Oktober 2026):** `preconnect`, `preload`, dan `modulepreload` berstatus *Baseline Widely Available*. `dns-prefetch` baru *Baseline Newly Available* sejak September 2025, sedangkan `prefetch` belum berstatus Baseline (Safari belum mendukungnya), jadi anggap keduanya sebagai optimasi opsional.
 
-> **💡 Tips Praktis Produksi:**
-> Selalu periksa hasil perenderan elemen dan atribut `preconnect` menggunakan panel **Elements** dan **Accessibility Tree** di Browser DevTools (`F12`) untuk memastikan tidak ada atribut yang salah ketik atau konflik peran semantik.
+## 2. Jebakan Klasik Atribut `crossorigin` pada `preload` Fon Web dan `preconnect`
+
+Salah satu kesalahan performa paling sering di produksi terjadi ketika melakukan `preload` pada berkas fon (`.woff2`):
+
+> **⚠️ Wajib Menyertakan `crossorigin` pada `<link rel="preload" as="font">`:** Menurut spesifikasi CSS Fonts, seluruh permintaan fon web (`@font-face`) selalu diambil oleh peramban menggunakan **mode CORS anonim**, bahkan ketika berkas fon tersebut berada di domain yang sama (*same-origin*) dengan halaman HTML!
+> Jika Anda menulis `<link rel="preload" href="/fon.woff2" as="font">` **tanpa** atribut `crossorigin`, maka berkas fon akan diunduh ke dalam *cache non-CORS*. Ketika CSS `@font-face` dieksekusi, peramban menolak memakai hasil `preload` tersebut dan **mengunduh ulang berkas fon yang sama untuk kedua kalinya**!
+
+Hal serupa berlaku pada `<link rel="preconnect">`:
+- Jika domain tujuan hanya melayani gambar biasa (`<img>`) atau skrip biasa tanpa CORS, tulis `<link rel="preconnect" href="https://cdn.contoh.id">` (tanpa `crossorigin`).
+- Jika domain tujuan melayani **fon web (`@font-face`)**, **`fetch()` CORS**, atau **`<script type="module">`** lintas-asal, Anda **wajib** menambahkan `crossorigin` pada `<link rel="preconnect" href="https://cdn.contoh.id" crossorigin>` agar soket koneksi yang dibuka berada di kolam koneksi (*connection pool*) CORS yang tepat.
 
 ## 3. Kesalahan Umum dan Cara Menghindarinya
 
-1. **Menggunakan atribut tanpa memahami dampaknya pada perangkat seluler dan pembaca layar:**
-   Pastikan setiap penggunaan `preconnect` diuji baik menggunakan tetikus maupun hanya dengan papan ketik (`Tab`, `Shift+Tab`, `Enter`, `Space`, dan `Esc`).
-2. **Mencampuradukkan tugas struktur HTML dengan presentasi CSS:**
-   Biarkan HTML menangani makna semantik `preload`, dan serahkan pengaturan visual sepenuhnya kepada stylesheet CSS.
+1. **Melakukan `preload` pada berkas yang tidak dipakai dalam 3 detik pertama:** Jika Anda mem-`preload` berkas yang ternyata tidak segera dipakai oleh halaman saat ini, Chrome dan Firefox akan memunculkan peringatan di Console: *"The resource ... was preloaded using link preload but not used within a few seconds from the window's load event"*, dan Anda telah membuang kuota data pengguna secara percuma.
+2. **Membuka `preconnect` ke 8 domain sekaligus:** Setiap koneksi TCP/TLS memakan memori dan siklus CPU di perangkat pengguna maupun di server. Jika koneksi `preconnect` tidak terpakai dalam ~10 detik, peramban akan menutupnya kembali. Batasi `preconnect` hanya untuk 1–2 domain paling kritis.
+3. **Lupa menulis atribut `as` pada `<link rel="preload">`:** Tanpa atribut `as` yang valid (`as="font"`, `as="image"`, `as="style"`, `as="script"`), peramban tidak dapat menentukan prioritas unduhan dan kebijakan *Content Security Policy* (CSP) yang tepat sehingga petunjuk `preload` diabaikan.
 
 ## Latihan Praktik
 
-Buatlah berkas `36-resource-hints-preconnect-preload-prefetch.html` di komputer Anda:
-1. Terapkan struktur dokumen HTML5 lengkap dengan `<html lang="id">` dan `<main>`.
-2. Implementasikan contoh penggunaan `preconnect` dan `preload` sesuai skenario di atas.
-3. Uji halaman tersebut menggunakan navigasi papan ketik dan periksa pohon aksesibilitasnya di DevTools.
+Buatlah berkas `36-resource-hints-preconnect-preload-prefetch.html`:
+1. Pasang `<link rel="preconnect" href="https://cdn.asadinedu.com" crossorigin>` untuk menyiapkan koneksi CDN fon.
+2. Pasang `<link rel="preload" href="/assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>` dan pastikan aturan `@font-face` di dalam `<style>` merujuk ke URL `/assets/fonts/inter-latin.woff2` yang sama persis.
+3. Pasang `<link rel="modulepreload">` untuk modul JavaScript utama dan `<link rel="prefetch">` untuk halaman materi berikutnya, lalu amati urutan pemuatannya di tab **Network** DevTools.
 
 ## Kuis Pemahaman
 
 ### Soal 1
-Apa tujuan utama penggunaan `preconnect` dalam konteks **Strategi Resource Hints Mendalam: `dns-prefetch`, `preconnect`, `preload`, dan `modulepreload`** pada standar HTML modern?
-- A. Hanya untuk mengubah warna teks tanpa memerlukan berkas CSS
-- B. Memberikan instruksi deklaratif dan semantik yang presisi kepada peramban serta teknologi bantu terkait perilaku `preconnect`
-- C. Menggantikan seluruh fungsi protokol HTTP di sisi server
-- D. Mematikan fitur keamanan bawaan peramban
+Mengapa elemen `<link rel="preload" href="/fonts/utama.woff2" as="font" type="font/woff2" crossorigin>` **wajib** menyertakan atribut `crossorigin` meskipun berkas fon `.woff2` tersebut berada di domain yang sama (*same-origin*) dengan dokumen HTML?
+- A. Karena berkas `.woff2` selalu dienkripsi dengan sertifikat TLS terpisah
+- B. Karena spesifikasi CSS Fonts menetapkan bahwa pengambilan fon oleh `@font-face` selalu menggunakan mode CORS anonim; tanpa atribut `crossorigin` pada `preload`, peramban akan mengunduh berkas fon tersebut dua kali
+- C. Karena atribut `as="font"` hanya berfungsi di peramban seluler jika disertai `crossorigin`
+- D. Untuk mengubah format fon `.woff2` menjadi `.ttf` secara otomatis
 
 **Jawaban Benar:** B
-**Penjelasan:** `preconnect` dirancang di dalam spesifikasi HTML agar peramban dan alat bantu (*assistive technologies*) dapat menangani fitur tersebut secara konsisten dan deklaratif.
+**Penjelasan:** Permintaan fon dari `@font-face` menggunakan kredensial mode CORS anonim. Agar cache hasil `preload` cocok dengan permintaan `@font-face`, elemen `<link rel="preload" as="font">` wajib menyertakan atribut `crossorigin` meskipun *same-origin*.
 
 ### Soal 2
-Mengapa penerapan `preload` yang sesuai spesifikasi lebih disarankan dibandingkan membuat tiruannya dengan `<div>` dan JavaScript manual?
-- A. Karena `<div>` sudah dihapus dari spesifikasi HTML5
-- B. Karena fitur bawaan (`preload`) ditangani langsung oleh mesin peramban dengan dukungan aksesibilitas papan ketik, kinerja tinggi, dan perilaku lintas perangkat yang terstandarisasi
-- C. Karena JavaScript tidak dapat berjalan di peramban ponsel
-- D. Agar ukuran gambar di halaman otomatis mengecil
+Apa perbedaan mendasar antara `<link rel="preload">` dan `<link rel="prefetch">`?
+- A. `preload` memaksa pengunduhan aset berprioritas tinggi yang dibutuhkan untuk **halaman saat ini**, sedangkan `prefetch` mengunduh aset dengan prioritas rendah saat peramban senggang untuk **navigasi halaman berikutnya**
+- B. `preload` hanya untuk gambar, sedangkan `prefetch` hanya untuk berkas CSS
+- C. `prefetch` memblokir perenderan HTML, sedangkan `preload` berjalan setelah halaman ditutup
+- D. Keduanya memiliki perilaku dan prioritas jaringan yang sama persis
 
-**Jawaban Benar:** B
-**Penjelasan:** Mengikuti prinsip *Rule of Least Power*, memanfaatkan fitur asli HTML mengurangi beban kode JavaScript sekaligus menjamin kompatibilitas dengan pembaca layar dan perangkat seluler.
+**Jawaban Benar:** A
+**Penjelasan:** `preload` adalah instruksi deklaratif berprioritas tinggi untuk aset kritis pada halaman yang sedang dibuka sekarang, sementara `prefetch` adalah petunjuk spekulatif berprioritas rendah untuk mempercepat perpindahan ke halaman berikutnya.
 
 ### Soal 3
-Bagaimana cara memverifikasi bahwa implementasi `preconnect` dan `preload` pada halaman Anda sudah bekerja dengan benar bagi seluruh pengguna?
-- A. Cukup melihat tampilannya sekilas di satu ukuran layar desktop
-- B. Menginspeksi elemen di DevTools (termasuk panel Network/Accessibility Tree) serta menguji interaksinya menggunakan navigasi papan ketik
-- C. Menghapus tag `<!DOCTYPE html>`
-- D. Mengubah ekstensi berkas menjadi `.txt`
+Tahapan jaringan apa saja yang dituntaskan lebih awal oleh `<link rel="preconnect" href="https://api.kodeloka.id">` dibandingkan `<link rel="dns-prefetch" href="https://api.kodeloka.id">`?
+- A. `preconnect` otomatis mengunduh seluruh isi database dari `api.kodeloka.id`
+- B. Sementara `dns-prefetch` hanya menyelesaikan pencarian alamat IP (DNS lookup), `preconnect` menyelesaikan **DNS lookup ditambah jabat tangan TCP (*TCP handshake*) dan negosiasi TLS** sekaligus
+- C. `preconnect` mematikan pemeriksaan sertifikat HTTPS agar koneksi lebih cepat
+- D. `dns-prefetch` lebih lengkap karena langsung mengunduh berkas `index.html`
 
 **Jawaban Benar:** B
-**Penjelasan:** Pengujian menyeluruh mencakup pemeriksaan DOM/Accessibility Tree di DevTools serta pengujian navigasi papan ketik untuk memastikan aksesibilitas dan keandalan.
+**Penjelasan:** `preconnect` menghemat hingga tiga putaran waktu bolak-balik jaringan (*round-trip time*) karena menuntaskan resolusi DNS, koneksi TCP, dan jabat tangan TLS sebelum permintaan HTTP pertama dikirim.
 
 ## Sumber
 - [`rel="preload"` — MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/preload)
